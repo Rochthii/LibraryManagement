@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "DauSach.h"
+#include "../include/DauSach.h"
 
 using namespace std;
 

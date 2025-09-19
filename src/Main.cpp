@@ -1,13 +1,15 @@
 #include <iostream>
-#include "DocGia.h"
-#include "DauSach.h"
+#include "../include/DocGia.h"
+#include "../include/DauSach.h"
 
 using namespace std;
 
+// Global variables definition
+DauSach* dsDauSach[MAX_DAUSACH];
+int soLuongDauSach = 0;
+
 int main() {
-    DauSach* dsDauSach[MAX_DAUSACH];
-    int soLuongDauSach = 0;
-    TheDocGia* cayDocGia = nullptr;
+    DocGia* cayDocGia = nullptr;
 
     // Đọc dữ liệu từ file
     docDauSachTuFile(dsDauSach, soLuongDauSach);

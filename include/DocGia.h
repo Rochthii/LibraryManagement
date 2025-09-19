@@ -26,6 +26,7 @@ struct MuonTra {
 };
 
 // Prototype hàm cho DocGia
+DocGia* timDocGia(int maThe);
 void themDocGia(DocGia*& root);
 void xoaDocGia(DocGia*& root, int maThe);
 void hieuChinhDocGia(DocGia* root, int maThe);

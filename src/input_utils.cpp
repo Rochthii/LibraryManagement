@@ -8,13 +8,16 @@
 #include <limits>
 #include <cstdlib>
 #include <ctime>
+#include <cstdio>
 #include <algorithm>
-#include "DauSach.h" // Để truy cập dsDauSach
-#include "DocGia.h"  // Để truy cập rootDocGia
+#include <functional>
+#include "../include/DauSach.h" // Để truy cập dsDauSach
+#include "../include/DocGia.h"  // Để truy cập rootDocGia
+
+// Global enum for language support
+enum class Language { VI, EN };
 
 namespace InputUtils {
-
-enum class Language { VI, EN };
 
 const int MAX_ATTEMPTS = 5; // Số lần thử nhập lại tối đa
 
@@ -427,12 +430,12 @@ bool KiemTramaSach(const std::string& maSach, int mode, std::ostream& out = std:
             for (DanhMucSach* sach = dsDauSach[i]->dms; sach; sach = sach->next) {
                 if (sach->maSach == maSach) {
                     if (mode == 0) return true;
-                    if (mode == 1 && sach->TrangThai == 0) return true;
-                    if (mode == 2 && sach->TrangThai == 1) return true;
+                    if (mode == 1 && sach->trangThai == 0) return true;
+                    if (mode == 2 && sach->trangThai == 1) return true;
                     if (lang == Language::VI)
-                        out << "Lỗi: maSach " << maSach << " không hợp lệ (trạng thái: " << sach->TrangThai << ")!\n";
+                        out << "Lỗi: maSach " << maSach << " không hợp lệ (trạng thái: " << sach->trangThai << ")!\n";
                     else
-                        out << "Error: maSach " << maSach << " invalid (status: " << sach->TrangThai << ")!\n";
+                        out << "Error: maSach " << maSach << " invalid (status: " << sach->trangThai << ")!\n";
                     return false;
                 }
             }
@@ -551,7 +554,7 @@ bool KiemTraMaThe(const std::string& maThe, std::ostream& out = std::cout, Langu
             out << "Error: Card ID is invalid (not a number)!\n";
         return false;
     }
-    TheDocGia* docGia = timDocGia(maTheInt);
+    DocGia* docGia = timDocGia(maTheInt);
     if (docGia) return true;
     if (lang == Language::VI)
         out << "Lỗi: Mã thẻ " << maThe << " không tồn tại!\n";
@@ -674,7 +677,7 @@ bool KiemTraSoSachDangMuon(const std::string& maThe, std::ostream& out = std::co
             out << "Error: Card ID is invalid (not a number)!\n";
         return false;
     }
-    TheDocGia* docGia = timDocGia(maTheInt);
+    DocGia* docGia = timDocGia(maTheInt);
     if (!docGia) {
         if (lang == Language::VI)
             out << "Lỗi: Mã thẻ " << maThe << " không tồn tại!\n";
@@ -684,7 +687,7 @@ bool KiemTraSoSachDangMuon(const std::string& maThe, std::ostream& out = std::co
     }
     int count = 0;
     for (MuonTra* mt = docGia->dsMuonTra; mt; mt = mt->next) {
-        if (mt->TrangThai == 0) count++; // Đang mượn
+        if (mt->trangThai == 0) count++; // Đang mượn
     }
     if (count >= 3) {
         if (lang == Language::VI)
@@ -708,7 +711,7 @@ bool KiemTraQuaHan(const std::string& maThe, std::ostream& out = std::cout, Lang
             out << "Error: Card ID is invalid (not a number)!\n";
         return false;
     }
-    TheDocGia* docGia = timDocGia(maTheInt);
+    DocGia* docGia = timDocGia(maTheInt);
     if (!docGia) {
         if (lang == Language::VI)
             out << "Lỗi: Mã thẻ " << maThe << " không tồn tại!\n";
@@ -717,8 +720,23 @@ bool KiemTraQuaHan(const std::string& maThe, std::ostream& out = std::cout, Lang
         return false;
     }
     time_t now = time(nullptr);
+    
+    // Helper function to convert date string (DD/MM/YYYY) to time_t
+    auto dateStringToTimeT = [](const std::string& dateStr) -> time_t {
+        struct tm tm = {};
+        int day, month, year;
+        if (sscanf(dateStr.c_str(), "%d/%d/%d", &day, &month, &year) == 3) {
+            tm.tm_mday = day;
+            tm.tm_mon = month - 1;  // tm_mon is 0-11
+            tm.tm_year = year - 1900;  // tm_year is years since 1900
+            return mktime(&tm);
+        }
+        return 0;  // Invalid date
+    };
+    
     for (MuonTra* mt = docGia->dsMuonTra; mt; mt = mt->next) {
-        if (mt->TrangThai == 0 && difftime(now, mt->NgayMuon) > 7 * 86400) {
+        time_t ngayMuonTime = dateStringToTimeT(mt->ngayMuon);
+        if (mt->trangThai == 0 && ngayMuonTime > 0 && difftime(now, ngayMuonTime) > 7 * 86400) {
             if (lang == Language::VI)
                 out << "Lỗi: Độc giả có sách quá hạn!\n";
             else
@@ -752,6 +770,440 @@ bool KiemTraLuotMuon(int luotMuon, std::ostream& out = std::cout, Language lang 
     return false;
 }
 
-} // namespace InputUtils
+// Hàm 21: Sinh mã sách từ ISBN và số thứ tự với kiểm tra lỗi và tự động sửa
+std::string sinhMaSach(std::string ISBN, int soThuTu, std::ostream& out = std::cout, Language lang = Language::VI) {
+    // Tự động xóa khoảng trắng đầu cuối
+    ISBN.erase(ISBN.begin(), std::find_if(ISBN.begin(), ISBN.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+    ISBN.erase(std::find_if(ISBN.rbegin(), ISBN.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ISBN.end());
+    
+    // Kiểm tra chuỗi rỗng sau khi trim
+    if (ISBN.empty()) {
+        if (lang == Language::VI)
+            out << "Lỗi: ISBN không được rỗng!\n";
+        else
+            out << "Error: ISBN cannot be empty!\n";
+        throw std::invalid_argument("ISBN cannot be empty");
+    }
+    
+    // Tự động xóa các ký tự không phải số và dấu gạch ngang
+    std::string cleanISBN;
+    bool hasNonDigit = false;
+    for (char c : ISBN) {
+        if (std::isdigit(static_cast<unsigned char>(c))) {
+            cleanISBN += c;
+        } else if (c != '-' && c != ' ') {
+            hasNonDigit = true;
+        }
+    }
+    
+    if (hasNonDigit) {
+        if (lang == Language::VI)
+            out << "Tự động sửa: Đã loại bỏ các ký tự không hợp lệ khỏi ISBN.\n";
+        else
+            out << "Auto-fix: Removed invalid characters from ISBN.\n";
+    }
+    
+    if (cleanISBN.empty()) {
+        if (lang == Language::VI)
+            out << "Lỗi: ISBN không chứa chữ số nào!\n";
+        else
+            out << "Error: ISBN contains no digits!\n";
+        throw std::invalid_argument("ISBN contains no digits");
+    }
+    
+    // Kiểm tra số thứ tự và tự động sửa nếu <= 0
+    if (soThuTu <= 0) {
+        soThuTu = 1;
+        if (lang == Language::VI)
+            out << "Tự động sửa: Số thứ tự được đặt thành 1.\n";
+        else
+            out << "Auto-fix: Serial number set to 1.\n";
+    }
+    
+    std::string maSach = cleanISBN + "-" + std::to_string(soThuTu);
+    
+    // Kiểm tra trùng mã sách và tự động tăng số thứ tự
+    int attempts = 0;
+    while (KiemTraTrungmaSach(maSach, out, lang) && attempts < 100) {
+        attempts++;
+        soThuTu++;
+        maSach = cleanISBN + "-" + std::to_string(soThuTu);
+    }
+    
+    if (attempts > 0) {
+        if (lang == Language::VI)
+            out << "Tự động sửa: Mã sách được điều chỉnh thành " << maSach << " để tránh trùng lặp.\n";
+        else
+            out << "Auto-fix: Book code adjusted to " << maSach << " to avoid duplication.\n";
+    }
+    
+    return maSach;
+}
+
+// Hàm 22: Sinh mã thẻ từ root với kiểm tra lỗi
+int sinhMaThe(DocGia* root, std::ostream& out = std::cout, Language lang = Language::VI) {
+    if (!root) {
+        if (lang == Language::VI)
+            out << "Cảnh báo: Danh sách độc giả rỗng, bắt đầu từ mã thẻ 1!\n";
+        else
+            out << "Warning: Reader list empty, starting from card ID 1!\n";
+        return 1;
+    }
+    
+    int maxMaThe = 0;
+    int count = 0;
+    // Helper function to traverse BST and find max maThe
+    std::function<void(DocGia*)> traverseBST = [&](DocGia* node) {
+        if (!node) return;
+        count++;
+        if (node->maThe > maxMaThe) {
+            maxMaThe = node->maThe;
+        }
+        // Kiểm tra giới hạn số lượng độc giả
+        if (count >= 10000) {
+            if (lang == Language::VI)
+                out << "Cảnh báo: Đã có quá nhiều độc giả (>= 10000)!\n";
+            else
+                out << "Warning: Too many readers (>= 10000)!\n";
+            return; // Exit traversal early
+        }
+        traverseBST(node->left);
+        traverseBST(node->right);
+    };
+    
+    traverseBST(root);
+    
+    int newMaThe = maxMaThe + 1;
+    
+    // Kiểm tra overflow
+    if (newMaThe <= maxMaThe) {
+        if (lang == Language::VI)
+            throw std::overflow_error("Lỗi: Mã thẻ bị tràn số!");
+        else
+            throw std::overflow_error("Error: Card ID overflow!");
+    }
+    
+    if (lang == Language::VI)
+        out << "Sinh mã thẻ mới: " << newMaThe << "\n";
+    else
+        out << "Generated new card ID: " << newMaThe << "\n";
+    
+    return newMaThe;
+}
+}
+
+// Hàm 23: Kiểm tra quá hạn từ ngày mượn với validation và tự động sửa
+bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Language lang = Language::VI) {
+    // Tự động xóa khoảng trắng đầu cuối
+    ngayMuon.erase(ngayMuon.begin(), std::find_if(ngayMuon.begin(), ngayMuon.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+    ngayMuon.erase(std::find_if(ngayMuon.rbegin(), ngayMuon.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ngayMuon.end());
+    
+    // Kiểm tra chuỗi rỗng
+    if (ngayMuon.empty()) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày mượn không được rỗng!\n";
+        else
+            out << "Error: Borrow date cannot be empty!\n";
+        return false;
+    }
+    
+    // Tự động sửa định dạng ngày từ DD-MM-YYYY, DD.MM.YYYY thành DD/MM/YYYY
+    bool autoFixed = false;
+    if (ngayMuon.find('-') != std::string::npos) {
+        std::replace(ngayMuon.begin(), ngayMuon.end(), '-', '/');
+        autoFixed = true;
+    }
+    if (ngayMuon.find('.') != std::string::npos) {
+        std::replace(ngayMuon.begin(), ngayMuon.end(), '.', '/');
+        autoFixed = true;
+    }
+    
+    if (autoFixed) {
+        if (lang == Language::VI)
+            out << "Tự động sửa: Định dạng ngày được chuyển thành " << ngayMuon << "\n";
+        else
+            out << "Auto-fix: Date format converted to " << ngayMuon << "\n";
+    }
+    
+    // Tự động thêm số 0 đầu cho ngày/tháng nếu cần (d/m/yyyy -> dd/mm/yyyy)
+    size_t firstSlash = ngayMuon.find('/');
+    size_t secondSlash = ngayMuon.find('/', firstSlash + 1);
+    
+    if (firstSlash != std::string::npos && secondSlash != std::string::npos) {
+        std::string day = ngayMuon.substr(0, firstSlash);
+        std::string month = ngayMuon.substr(firstSlash + 1, secondSlash - firstSlash - 1);
+        std::string year = ngayMuon.substr(secondSlash + 1);
+        
+        bool needPadding = false;
+        if (day.length() == 1) {
+            day = "0" + day;
+            needPadding = true;
+        }
+        if (month.length() == 1) {
+            month = "0" + month;
+            needPadding = true;
+        }
+        
+        if (needPadding) {
+            ngayMuon = day + "/" + month + "/" + year;
+            if (lang == Language::VI)
+                out << "Tự động sửa: Thêm số 0 đầu cho ngày/tháng: " << ngayMuon << "\n";
+            else
+                out << "Auto-fix: Added leading zeros to day/month: " << ngayMuon << "\n";
+        }
+    }
+    
+    // Kiểm tra độ dài chuỗi ngày sau khi sửa
+    if (ngayMuon.length() != 10) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày mượn phải có định dạng DD/MM/YYYY!\n";
+        else
+            out << "Error: Borrow date must be in DD/MM/YYYY format!\n";
+        return false;
+    }
+    
+    // Parse ngày mượn (format DD/MM/YYYY)
+    struct tm tm_muon = {};
+    int day, month, year;
+    
+    if (sscanf(ngayMuon.c_str(), "%d/%d/%d", &day, &month, &year) != 3) {
+        if (lang == Language::VI)
+            out << "Lỗi: Định dạng ngày không hợp lệ! Sử dụng DD/MM/YYYY\n";
+        else
+            out << "Error: Invalid date format! Use DD/MM/YYYY\n";
+        return false;
+    }
+    
+    // Tự động sửa năm 2 chữ số thành 4 chữ số (YY -> 20YY hoặc 19YY)
+    if (year < 100) {
+        if (year <= 30) {
+            year += 2000; // 00-30 -> 2000-2030
+        } else {
+            year += 1900; // 31-99 -> 1931-1999
+        }
+        if (lang == Language::VI)
+            out << "Tự động sửa: Năm được chuyển thành " << year << "\n";
+        else
+            out << "Auto-fix: Year converted to " << year << "\n";
+    }
+    
+    // Kiểm tra tính hợp lệ của ngày tháng năm
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày tháng năm không hợp lệ!\n";
+        else
+            out << "Error: Invalid day/month/year!\n";
+        return false;
+    }
+    
+    tm_muon.tm_mday = day;
+    tm_muon.tm_mon = month - 1; // tháng tính từ 0
+    tm_muon.tm_year = year - 1900; // năm tính từ 1900
+    
+    time_t time_muon = mktime(&tm_muon);
+    if (time_muon == -1) {
+        if (lang == Language::VI)
+            out << "Lỗi: Không thể chuyển đổi ngày mượn!\n";
+        else
+            out << "Error: Cannot convert borrow date!\n";
+        return false;
+    }
+    
+    time_t now = time(nullptr);
+    double diff = difftime(now, time_muon);
+    bool quaHan = diff > (7 * 24 * 60 * 60); // > 7 ngày
+    
+    if (quaHan) {
+        int soNgayQuaHan = static_cast<int>(diff / (24 * 60 * 60)) - 7;
+        if (lang == Language::VI)
+            out << "Cảnh báo: Sách đã quá hạn " << soNgayQuaHan << " ngày!\n";
+        else
+            out << "Warning: Book is overdue by " << soNgayQuaHan << " days!\n";
+    }
+    
+    return quaHan;
+}
+
+// Hàm 24: Lấy ngày hiện tại với kiểm tra lỗi
+std::string layNgayHienTai(std::ostream& out = std::cout, Language lang = Language::VI) {
+    time_t now = time(nullptr);
+    if (now == -1) {
+        if (lang == Language::VI)
+            throw std::runtime_error("Lỗi: Không thể lấy thời gian hiện tại!");
+        else
+            throw std::runtime_error("Error: Cannot get current time!");
+    }
+    
+    tm* ltm = localtime(&now);
+    if (!ltm) {
+        if (lang == Language::VI)
+            throw std::runtime_error("Lỗi: Không thể chuyển đổi thời gian!");
+        else
+            throw std::runtime_error("Error: Cannot convert time!");
+    }
+    
+    char buffer[11];
+    size_t result = strftime(buffer, sizeof(buffer), "%d/%m/%Y", ltm);
+    if (result == 0) {
+        if (lang == Language::VI)
+            throw std::runtime_error("Lỗi: Không thể định dạng ngày!");
+        else
+            throw std::runtime_error("Error: Cannot format date!");
+    }
+    
+    std::string ngayHienTai(buffer);
+    
+    if (lang == Language::VI)
+        out << "Ngày hiện tại: " << ngayHienTai << "\n";
+    else
+        out << "Current date: " << ngayHienTai << "\n";
+    
+    return ngayHienTai;
+}
+
+// Hàm 25: Tính số ngày quá hạn với validation đầy đủ và tự động sửa
+int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Language lang = Language::VI) {
+    // Tự động xóa khoảng trắng đầu cuối
+    ngayMuon.erase(ngayMuon.begin(), std::find_if(ngayMuon.begin(), ngayMuon.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+    ngayMuon.erase(std::find_if(ngayMuon.rbegin(), ngayMuon.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ngayMuon.end());
+    
+    // Kiểm tra chuỗi rỗng
+    if (ngayMuon.empty()) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày mượn không được rỗng!\n";
+        else
+            out << "Error: Borrow date cannot be empty!\n";
+        return -1;
+    }
+    
+    // Tự động sửa định dạng ngày từ DD-MM-YYYY, DD.MM.YYYY thành DD/MM/YYYY
+    bool autoFixed = false;
+    if (ngayMuon.find('-') != std::string::npos) {
+        std::replace(ngayMuon.begin(), ngayMuon.end(), '-', '/');
+        autoFixed = true;
+    }
+    if (ngayMuon.find('.') != std::string::npos) {
+        std::replace(ngayMuon.begin(), ngayMuon.end(), '.', '/');
+        autoFixed = true;
+    }
+    
+    if (autoFixed) {
+        if (lang == Language::VI)
+            out << "Tự động sửa: Định dạng ngày được chuyển thành " << ngayMuon << "\n";
+        else
+            out << "Auto-fix: Date format converted to " << ngayMuon << "\n";
+    }
+    
+    // Tự động thêm số 0 đầu cho ngày/tháng nếu cần (d/m/yyyy -> dd/mm/yyyy)
+    size_t firstSlash = ngayMuon.find('/');
+    size_t secondSlash = ngayMuon.find('/', firstSlash + 1);
+    
+    if (firstSlash != std::string::npos && secondSlash != std::string::npos) {
+        std::string day = ngayMuon.substr(0, firstSlash);
+        std::string month = ngayMuon.substr(firstSlash + 1, secondSlash - firstSlash - 1);
+        std::string year = ngayMuon.substr(secondSlash + 1);
+        
+        bool needPadding = false;
+        if (day.length() == 1) {
+            day = "0" + day;
+            needPadding = true;
+        }
+        if (month.length() == 1) {
+            month = "0" + month;
+            needPadding = true;
+        }
+        
+        if (needPadding) {
+            ngayMuon = day + "/" + month + "/" + year;
+            if (lang == Language::VI)
+                out << "Tự động sửa: Thêm số 0 đầu cho ngày/tháng: " << ngayMuon << "\n";
+            else
+                out << "Auto-fix: Added leading zeros to day/month: " << ngayMuon << "\n";
+        }
+    }
+    
+    // Kiểm tra độ dài chuỗi ngày sau khi sửa
+    if (ngayMuon.length() != 10) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày mượn phải có định dạng DD/MM/YYYY!\n";
+        else
+            out << "Error: Borrow date must be in DD/MM/YYYY format!\n";
+        return -1;
+    }
+    
+    // Parse ngày mượn (format DD/MM/YYYY)
+    struct tm tm_muon = {};
+    int day, month, year;
+    
+    if (sscanf(ngayMuon.c_str(), "%d/%d/%d", &day, &month, &year) != 3) {
+        if (lang == Language::VI)
+            out << "Lỗi: Định dạng ngày không hợp lệ! Sử dụng DD/MM/YYYY\n";
+        else
+            out << "Error: Invalid date format! Use DD/MM/YYYY\n";
+        return -1;
+    }
+    
+    // Tự động sửa năm 2 chữ số thành 4 chữ số
+    if (year < 100) {
+        if (year <= 30) {
+            year += 2000; // 00-30 -> 2000-2030
+        } else {
+            year += 1900; // 31-99 -> 1931-1999
+        }
+        if (lang == Language::VI)
+            out << "Tự động sửa: Năm được chuyển thành " << year << "\n";
+        else
+            out << "Auto-fix: Year converted to " << year << "\n";
+    }
+    
+    // Kiểm tra tính hợp lệ của ngày tháng năm
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+        if (lang == Language::VI)
+            out << "Lỗi: Ngày tháng năm không hợp lệ!\n";
+        else
+            out << "Error: Invalid day/month/year!\n";
+        return -1;
+    }
+    
+    tm_muon.tm_mday = day;
+    tm_muon.tm_mon = month - 1; // tháng tính từ 0
+    tm_muon.tm_year = year - 1900; // năm tính từ 1900
+    
+    time_t time_muon = mktime(&tm_muon);
+    if (time_muon == -1) {
+        if (lang == Language::VI)
+            out << "Lỗi: Không thể chuyển đổi ngày mượn!\n";
+        else
+            out << "Error: Cannot convert borrow date!\n";
+        return -1;
+    }
+    
+    time_t now = time(nullptr);
+    if (now == -1) {
+        if (lang == Language::VI)
+            out << "Lỗi: Không thể lấy thời gian hiện tại!\n";
+        else
+            out << "Error: Cannot get current time!\n";
+        return -1;
+    }
+    
+    double diff = difftime(now, time_muon);
+    int soNgayDaMuon = static_cast<int>(diff / (24 * 60 * 60));
+    int soNgayQuaHan = (soNgayDaMuon > 7) ? (soNgayDaMuon - 7) : 0;
+    
+    if (soNgayQuaHan > 0) {
+        if (lang == Language::VI)
+            out << "Thông tin: Sách đã quá hạn " << soNgayQuaHan << " ngày (đã mượn " << soNgayDaMuon << " ngày).\n";
+        else
+            out << "Info: Book is overdue by " << soNgayQuaHan << " days (borrowed for " << soNgayDaMuon << " days).\n";
+    } else {
+        if (lang == Language::VI)
+            out << "Thông tin: Sách chưa quá hạn (đã mượn " << soNgayDaMuon << " ngày).\n";
+        else
+            out << "Info: Book is not overdue (borrowed for " << soNgayDaMuon << " days).\n";
+    }
+    
+    return soNgayQuaHan;
+}
 
 #endif // INPUT_UTILS_H

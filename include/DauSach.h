@@ -24,6 +24,10 @@ struct DanhMucSach {
     DanhMucSach* next;
 };
 
+// Global variables
+extern DauSach* dsDauSach[MAX_DAUSACH];
+extern int soLuongDauSach;
+
 // Prototype hàm cho DauSach
 void themDauSach(DauSach* dsDauSach[], int& soLuongDauSach);
 void inDauSachTheoTheLoai(DauSach* dsDauSach[], int soLuongDauSach);

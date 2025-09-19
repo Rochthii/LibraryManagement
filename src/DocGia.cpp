@@ -1,33 +1,40 @@
-#include "DocGia.h"
+#include "../include/DocGia.h"
 
-TheDocGia* rootDocGia = nullptr;
+DocGia* rootDocGia = nullptr;
 
-TheDocGia* themDocGia(int MaThe, std::string Ho, std::string Ten, std::string Phai, int TrangThai) {
-    // TODO: Thêm vào BST
-    return nullptr;
+void themDocGia(DocGia*& root) {
+    // TODO: Input data and add to BST
 }
 
-void xoaDocGia(TheDocGia*& root, int MaThe) {
+void xoaDocGia(DocGia*& root, int MaThe) {
     // TODO: Xóa nút BST
 }
 
-TheDocGia* timDocGia(int MaThe) {
+DocGia* timDocGia(int MaThe) {
     // TODO: Tìm theo MaThe
     return nullptr;
 }
 
-void inDocGiaInorder(TheDocGia* root) {
+void inDocGiaInorder(DocGia* root) {
     // TODO: Duyệt inorder
 }
 
-void themMuonTra(TheDocGia* docGia, std::string MaSach) {
+void themMuonTra(DocGia* docGia, std::string MaSach) {
     // TODO: Thêm phiếu mượn
 }
 
-void saveDocGia(std::ofstream& file) {
-    // TODO: Lưu BST và dsMuonTra
+void docDocGiaTuFile(DocGia*& root) {
+    // TODO: Đọc từ file docgia.txt
 }
 
-void loadDocGia(std::ifstream& file) {
-    // TODO: Đọc từ file
+void inDocGiaTheoTen(DocGia* root) {
+    // TODO: In danh sách độc giả theo tên
+}
+
+void inDocGiaTheoMa(DocGia* root) {
+    // TODO: In danh sách độc giả theo mã thẻ  
+}
+
+void ghiDocGiaVaoFile(DocGia* root) {
+    // TODO: Ghi danh sách độc giả ra file
 }
