@@ -1,29 +1,52 @@
+#include <iostream>
+#include <fstream>
 #include "DauSach.h"
-#include <algorithm>
 
-DauSach** dsDauSach = nullptr;
-int soLuongDauSach = 0;
-int maxDauSach = 1000;
+using namespace std;
 
-void themDauSach(std::string ISBN, std::string tenSach, int soTrang, std::string tacGia, int namXB, std::string theLoai) {
-    //
-}
-DanhMucSach* themSach(std::string ISBN, int soLuongSach) {
-    //
-}
-DauSach* timDauSach(std::string tenSach) {
-    //
-}
-void inDanhSachDauSach() {
-    //
-}
-void saveDauSach(std::ofstream& file) {
-    //
-}
-void loadDauSach(std::ifstream& file) {
-    //
-}
-void capNhatTrangThaiSach(std::string MaSach, int TrangThai) {
-    //
+void themDauSach(DauSach* dsDauSach[], int& soLuongDauSach) {
+    if (soLuongDauSach >= MAX_DAUSACH) {
+        cout << "Danh sach dau sach day!\n";
+        return;
+    }
+    DauSach* newDS = new DauSach;
+    cout << "Nhap ISBN: "; getline(cin, newDS->ISBN);
+    cout << "Nhap ten sach: "; getline(cin, newDS->tenSach);
+    cout << "Nhap so trang: "; cin >> newDS->soTrang;
+    cin.ignore();
+    cout << "Nhap tac gia: "; getline(cin, newDS->tacGia);
+    cout << "Nhap nam xuat ban: "; cin >> newDS->namXuatBan;
+    cin.ignore();
+    cout << "Nhap the loai: "; getline(cin, newDS->theLoai);
+    newDS->dms = nullptr;
+
+    int soSach;
+    cout << "Nhap so luong sach: "; cin >> soSach;
+    cin.ignore();
+    themDanhMucSach(newDS->dms, newDS->ISBN, soSach);
+
+    // Insertion sort theo tenSach
+    int i = soLuongDauSach - 1;
+    while (i >= 0 && dsDauSach[i]->tenSach > newDS->tenSach) {
+        dsDauSach[i + 1] = dsDauSach[i];
+        i--;
+    }
+    dsDauSach[i + 1] = newDS;
+    soLuongDauSach++;
 }
 
+void inDauSachTheoTheLoai(DauSach* dsDauSach[], int soLuongDauSach) {
+    // Triển khai in theo thể loại
+}
+
+void timSachTheoTen(DauSach* dsDauSach[], int soLuongDauSach, string tenSach) {
+    // Triển khai tìm sách
+}
+
+void docDauSachTuFile(DauSach* dsDauSach[], int& soLuongDauSach) {
+    // Đọc từ dausach.txt
+}
+
+void ghiDauSachVaoFile(DauSach* dsDauSach[], int soLuongDauSach) {
+    // Ghi vào dausach.txt
+}

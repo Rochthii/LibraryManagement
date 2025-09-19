@@ -1,19 +1,44 @@
 # Library Management System
 
 ## Mô tả
-Dự án quản lý thư viện bằng C++, hỗ trợ quản lý đầu sách, danh mục sách, độc giả, và mượn trả.
+Chương trình quản lý thư viện sử dụng C++ với các cấu trúc dữ liệu:
+- Danh sách tuyến tính (mảng con trỏ) cho đầu sách.
+- Danh sách liên kết đơn cho danh mục sách và mượn trả.
+- Cây nhị phân tìm kiếm cho thẻ độc giả.
 
 ## Cấu trúc thư mục
-- `include/`: Chứa file header (.h)
-- `src/`: Chứa file nguồn (.cpp)
-- `data/`: Chứa file dữ liệu (thuvien.dat)
+- `include/`: Chứa các file header (.h) định nghĩa struct và prototype hàm.
+- `src/`: Chứa các file source (.cpp) triển khai logic.
+- `data/`: Chứa các file dữ liệu (text) cho đầu sách, danh mục sách, độc giả, mượn trả.
 
-## Cách build và chạy
-1. Cài g++ hoặc IDE hỗ trợ C++ (Visual Studio, Code::Blocks).
-2. Build: `g++ src/*.cpp -o library`
-3. Run: `./library` (Linux/macOS) hoặc `library.exe` (Windows)
+## Yêu cầu
+- Compiler: g++ (MinGW trên Windows).
+- VS Code với extension C/C++ (Microsoft).
+- Python (để chạy script tạo cấu trúc).
 
-## Phân công
-- A: DauSach.h, DauSach.cpp, README.md, .gitignore
-- B: DocGia.h, DocGia.cpp, Utils.h, Utils.cpp
-- Cả hai: Main.cpp, data/thuvien.dat
+## Cách biên dịch và chạy
+1. Biên dịch:
+   ```bash
+   g++ -I include src/*.cpp -o library_management.exe
+   ```
+2. Chạy chương trình:
+   ```bash
+   .\library_management.exe
+   ```
+
+## Chức năng
+1. Nhập thẻ độc giả (thêm/xóa/hiệu chỉnh).
+2. In danh sách độc giả (theo tên hoặc mã).
+3. Nhập đầu sách và danh mục sách.
+4. In danh sách đầu sách theo thể loại.
+5. Tìm sách theo tên.
+6. Mượn sách.
+7. Trả sách.
+8. Liệt kê sách đang mượn của độc giả.
+9. Liệt kê độc giả mượn quá hạn.
+10. In 10 sách được mượn nhiều nhất.
+
+## Lưu ý
+- File dữ liệu được lưu trong thư mục `data/`.
+- Đảm bảo giải phóng bộ nhớ khi thoát chương trình.
+- Kiểm tra lỗi đầu vào và file I/O cẩn thận.
