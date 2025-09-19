@@ -1,36 +1,44 @@
 #ifndef DOCGIA_H
 #define DOCGIA_H
+
 #include <string>
-#include <ctime>
-#include <fstream>
+#include "DauSach.h"
+
+struct MuonTra;  // Forward declaration
+
+struct DocGia {
+    int maThe;
+    std::string ho;
+    std::string ten;
+    std::string phai;
+    int trangThai;  // 0: khóa, 1: hoạt động
+    MuonTra* dsMuonTra;
+    DocGia* left;
+    DocGia* right;
+};
 
 struct MuonTra {
-    std::string MaSach;
-    time_t NgayMuon;
-    time_t NgayTra;  // 0 nếu chưa trả
-    int TrangThai;    // 0: đang mượn, 1: đã trả, 2: mất sách
+    std::string maSach;
+    std::string ngayMuon;
+    std::string ngayTra;
+    int trangThai;  // 0: đang mượn, 1: đã trả, 2: mất sách
     MuonTra* next;
 };
 
-struct TheDocGia {
-    int MaThe;        // Số ngẫu nhiên, duy nhất
-    std::string Ho;
-    std::string Ten;
-    std::string Phai; // "Nam" hoặc "Nữ"
-    int TrangThai;    // 0: khóa, 1: hoạt động
-    MuonTra* dsMuonTra;
-    TheDocGia* left;
-    TheDocGia* right;
-};
+// Prototype hàm cho DocGia
+void themDocGia(DocGia*& root);
+void xoaDocGia(DocGia*& root, int maThe);
+void hieuChinhDocGia(DocGia* root, int maThe);
+void inDocGiaTheoTen(DocGia* root);
+void inDocGiaTheoMa(DocGia* root);
+void docDocGiaTuFile(DocGia*& root);
+void ghiDocGiaVaoFile(DocGia* root);
 
-extern TheDocGia* rootDocGia;
-
-TheDocGia* themDocGia(int MaThe, std::string Ho, std::string Ten, std::string Phai, int TrangThai);
-void xoaDocGia(TheDocGia*& root, int MaThe);
-TheDocGia* timDocGia(int MaThe);
-void inDocGiaInorder(TheDocGia* root);
-void themMuonTra(TheDocGia* docGia, std::string MaSach);
-void saveDocGia(std::ofstream& file);
-void loadDocGia(std::ifstream& file);
+// Prototype hàm cho MuonTra
+void muonSach(DocGia* root, DauSach* dsDauSach[], int soLuongDauSach);
+void traSach(DocGia* root, DauSach* dsDauSach[], int soLuongDauSach);
+void lietKeSachDangMuon(DocGia* root, int maThe, DauSach* dsDauSach[], int soLuongDauSach);
+void lietKeQuaHan(DocGia* root);
+void top10SachMuonNhieu(DauSach* dsDauSach[], int soLuongDauSach, DocGia* root);
 
 #endif

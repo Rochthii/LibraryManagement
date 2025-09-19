@@ -1,36 +1,38 @@
 #ifndef DAUSACH_H
 #define DAUSACH_H
-#include<string>
-#include<fstream>
 
-struct DanhMucSach {
-    std::string maSach;
-    int TrangThai; // 0: cho muon dc, 1: da muon, 2: da thanh ly
-    std::string viTri;
-    DanhMucSach* next;
-};
+#include <string>
+
+struct DanhMucSach;  // Forward declaration
+
+const int MAX_DAUSACH = 1000;
 
 struct DauSach {
     std::string ISBN;
     std::string tenSach;
     int soTrang;
     std::string tacGia;
-    int nanXuatBan;
+    int namXuatBan;
     std::string theLoai;
     DanhMucSach* dms;
 };
 
-//bien toan cuc
-extern DauSach** dsDauSach;
-extern int soLuongDauSach;
-extern int maxDauSach;
+struct DanhMucSach {
+    std::string maSach;
+    int trangThai;  // 0: cho mượn được, 1: đang mượn, 2: thanh lý
+    std::string viTri;
+    DanhMucSach* next;
+};
 
-void themDauSach(std::string ISBN, std::string tenSach, int soTrang, std::string tacGia, int namXB, std::string theLoai); //c
-DanhMucSach* themSach(std::string ISBN, int soLuongSach); //c
-DauSach* timDauSach(std::string tenSach); //e
-void inDanhSachDauSach(); //d
-void saveDauSach(std::ofstream& file); // luu tru du lieu vao thuvien.dat
-void loadDauSach(std::ifstream& file); //doc du lieu tu thuvien.dat
-void capNhatTrangThaiSach(std::string MaSach, int TrangThai); // f va g
+// Prototype hàm cho DauSach
+void themDauSach(DauSach* dsDauSach[], int& soLuongDauSach);
+void inDauSachTheoTheLoai(DauSach* dsDauSach[], int soLuongDauSach);
+void timSachTheoTen(DauSach* dsDauSach[], int soLuongDauSach, std::string tenSach);
+void docDauSachTuFile(DauSach* dsDauSach[], int& soLuongDauSach);
+void ghiDauSachVaoFile(DauSach* dsDauSach[], int soLuongDauSach);
+
+// Prototype hàm cho DanhMucSach
+void themDanhMucSach(DanhMucSach*& dms, std::string ISBN, int soLuong);
+void capNhatTrangThaiSach(DanhMucSach* dms, std::string maSach, int trangThai);
 
 #endif

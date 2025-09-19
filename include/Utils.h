@@ -1,10 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include <ctime>
-#include <string>
 
-time_t layNgayHienTai();
-bool quaHan(time_t NgayMuon);
-int sinhMaTheNgauNhien();
+#include <string>
+#include <ctime>
+#include "Reader.h"
+
+std::string sinhMaSach(std::string ISBN, int soThuTu);
+int sinhMaThe(TheDocGia* root);
+bool kiemTraQuaHan(std::string ngayMuon);
+std::string layNgayHienTai();
+int tinhSoNgayQuaHan(std::string ngayMuon);
 
 #endif
