@@ -1,40 +1,41 @@
 #include "../include/DocGia.h"
+#include <iostream>
+#include <fstream>
 
 DocGia* rootDocGia = nullptr;
 
-void themDocGia(DocGia*& root) {
-    // TODO: Input data and add to BST
-}
-
-void xoaDocGia(DocGia*& root, int MaThe) {
-    // TODO: Xóa nút BST
-}
-
 DocGia* timDocGia(int MaThe) {
-    // TODO: Tìm theo MaThe
+    // Tìm trong cây (chưa triển khai)
     return nullptr;
 }
 
-void inDocGiaInorder(DocGia* root) {
-    // TODO: Duyệt inorder
+void themDocGia(DocGia*& root) {
+    std::cout << "[STUB] themDocGia() chua duoc trien khai.\n";
 }
 
-void themMuonTra(DocGia* docGia, std::string MaSach) {
-    // TODO: Thêm phiếu mượn
+void xoaDocGia(DocGia*& root, int MaThe) {
+    std::cout << "[STUB] xoaDocGia() chua duoc trien khai.\n";
 }
 
-void docDocGiaTuFile(DocGia*& root) {
-    // TODO: Đọc từ file docgia.txt
+void hieuChinhDocGia(DocGia* root, int maThe) {
+    std::cout << "[STUB] hieuChinhDocGia() chua duoc trien khai.\n";
 }
 
 void inDocGiaTheoTen(DocGia* root) {
-    // TODO: In danh sách độc giả theo tên
+    std::cout << "[STUB] inDocGiaTheoTen() chua duoc trien khai.\n";
 }
 
 void inDocGiaTheoMa(DocGia* root) {
-    // TODO: In danh sách độc giả theo mã thẻ  
+    std::cout << "[STUB] inDocGiaTheoMa() chua duoc trien khai.\n";
+}
+
+void docDocGiaTuFile(DocGia*& root) {
+    // Đọc file (tạm thời bỏ qua)
+    std::cout << "[STUB] docDocGiaTuFile() chua duoc trien khai.\n";
 }
 
 void ghiDocGiaVaoFile(DocGia* root) {
-    // TODO: Ghi danh sách độc giả ra file
+    // Ghi file (tạm thời bỏ qua)
+    std::cout << "[STUB] ghiDocGiaVaoFile() chua duoc trien khai.\n";
 }
+

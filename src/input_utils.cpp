@@ -1,24 +1,77 @@
-#ifndef INPUT_UTILS_H
-#define INPUT_UTILS_H
+// =====================================================================================
+//  File: input_utils.cpp
+//  Mục đích / Purpose:
+//      Triển khai (implementation) các hàm được khai báo trong InputUtils.h nhằm
+//      chuẩn hóa & kiểm tra dữ liệu đầu vào cho chương trình Quản Lý Thư Viện.
+//
+//  Refactor bổ sung: Sắp xếp lại theo nhóm + Table of Contents để dễ bảo trì.
+//  (Only comments added; no logic changes.)
+//
+//  NOTE: Nếu thêm hàm mới, vui lòng:
+//    1. Chọn đúng nhóm hoặc tạo nhóm mới rõ ràng.
+//    2. Cập nhật Table of Contents dưới đây.
+//    3. Giữ nguyên phong cách thông báo đa ngôn ngữ (VI / EN).
+//
+//  TABLE OF CONTENTS
+//  -----------------
+//   [1] Internal Helper Structures & Functions
+//        - struct Error
+//        - void InLoi(...)
+//
+//   [2] Input & Normalization Functions (Nhập + Chuẩn hóa)
+//        - NhapChuoiSo
+//        - NhapTen
+//        - NhapMa
+//        - NhapSoNguyen
+//        - NhapPhai
+//        - NhapLuaChonSapXep
+//
+//   [3] Validation / Checking Functions (Kiểm tra)
+//        - KiemTraTrungISBN
+//        - KiemTramaSach
+//        - KiemTraChuoiRong
+//        - KiemTraTrangThaiThe
+//        - KiemTraMaThe
+//        - KiemTraISBN
+//        - KiemTraTongSoBanSao
+//        - KiemTraTrungmaSach
+//        - KiemTraSoSachDangMuon
+//        - KiemTraQuaHan
+//        - KiemTraNgayHienTai
+//        - KiemTraLuotMuon
+//
+//   [4] String Utilities
+//        - ChuyenInThuong
+//
+//   [5] ID / Code Generation
+//        - SinhMaTheNgauNhien
+//        - sinhMaSach
+//        - sinhMaThe
+//
+//   [6] Date / Time Related (Global scope – ngoài namespace InputUtils)
+//        - kiemTraQuaHan
+//        - layNgayHienTai
+//        - tinhSoNgayQuaHan
+//
+// =====================================================================================
 
-#include <iostream>
-#include <string>
+// Định nghĩa triển khai các hàm khai báo trong InputUtils.h
+#include "../include/InputUtils.h"
+
+// Các include bổ sung chỉ dùng nội bộ file (nếu chưa có trong header)
 #include <cctype>
 #include <stdexcept>
 #include <limits>
 #include <cstdlib>
-#include <ctime>
 #include <cstdio>
 #include <algorithm>
 #include <functional>
-#include "../include/DauSach.h" // Để truy cập dsDauSach
-#include "../include/DocGia.h"  // Để truy cập rootDocGia
-
-// Global enum for language support
-enum class Language { VI, EN };
 
 namespace InputUtils {
 
+// =====================================================================================
+// [1] Internal Helper Structures & Functions
+// =====================================================================================
 const int MAX_ATTEMPTS = 5; // Số lần thử nhập lại tối đa
 
 
@@ -46,8 +99,11 @@ void InLoi(const Error* errors, int errorCount, const std::string& message_vi, c
     }
 }
 
+// =====================================================================================
+// [2] Input & Normalization Functions (Nhập + Chuẩn hóa)
+// =====================================================================================
 // Hàm 1: Nhập chuỗi số (ISBN, MaThe)
-std::string NhapChuoiSo(size_t minLength, size_t maxLength, std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+std::string NhapChuoiSo(size_t minLength, size_t maxLength, std::istream& in, std::ostream& out, Language lang) {
     std::string number;
     int attempts = 0;
     while (attempts < MAX_ATTEMPTS) {
@@ -125,7 +181,7 @@ std::string NhapChuoiSo(size_t minLength, size_t maxLength, std::istream& in = s
 }
 
 // Hàm 2: Nhập tên (TenSach, TacGia, TheLoai, Ho, Ten) với viết hoa đầu và loại bỏ non-ASCII
-std::string NhapTen(size_t minLength, size_t maxLength, std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+std::string NhapTen(size_t minLength, size_t maxLength, std::istream& in, std::ostream& out, Language lang) {
     std::string str;
     int attempts = 0;
     while (attempts < MAX_ATTEMPTS) {
@@ -218,7 +274,7 @@ std::string NhapTen(size_t minLength, size_t maxLength, std::istream& in = std::
 }
 
 // Hàm 3: Nhập mã (maSach)
-std::string NhapMa(size_t minLength, size_t maxLength, std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+std::string NhapMa(size_t minLength, size_t maxLength, std::istream& in, std::ostream& out, Language lang) {
     std::string code;
     int attempts = 0;
     while (attempts < MAX_ATTEMPTS) {
@@ -280,7 +336,7 @@ std::string NhapMa(size_t minLength, size_t maxLength, std::istream& in = std::c
 }
 
 // Hàm 4: Nhập số nguyên (SoTrang, NamXuatBan, soLuongSach)
-int NhapSoNguyen(int minVal, int maxVal, std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+int NhapSoNguyen(int minVal, int maxVal, std::istream& in, std::ostream& out, Language lang) {
     std::string input;
     int number;
     int attempts = 0;
@@ -408,8 +464,11 @@ int NhapSoNguyen(int minVal, int maxVal, std::istream& in = std::cin, std::ostre
     return number;
 }
 
-// Hàm 5: Kiểm tra trùng ISBN
-bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out = std::cout, Language lang = Language::VI) {
+// =====================================================================================
+// [3] Validation / Checking Functions (Kiểm tra)
+// =====================================================================================
+// Hàm 5 (Validation): Kiểm tra trùng ISBN
+bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out, Language lang) {
     for (int i = 0; i < soLuongDauSach; i++) {
         if (dsDauSach[i] && dsDauSach[i]->ISBN == ISBN) {
             if (lang == Language::VI)
@@ -422,9 +481,9 @@ bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out = std::cout, La
     return false;
 }
 
-// Hàm 6: Kiểm tra maSach hợp lệ và trạng thái
+// Hàm 6 (Validation): Kiểm tra maSach hợp lệ và trạng thái
 // mode: 0 (tồn tại), 1 (mượn: TrangThai=0), 2 (trả: TrangThai=1)
-bool KiemTramaSach(const std::string& maSach, int mode, std::ostream& out = std::cout, Language lang = Language::VI) {
+bool KiemTramaSach(const std::string& maSach, int mode, std::ostream& out, Language lang) {
     for (int i = 0; i < soLuongDauSach; i++) {
         if (dsDauSach[i]) {
             for (DanhMucSach* sach = dsDauSach[i]->dms; sach; sach = sach->next) {
@@ -448,8 +507,8 @@ bool KiemTramaSach(const std::string& maSach, int mode, std::ostream& out = std:
     return false;
 }
 
-// Hàm 7: Kiểm tra chuỗi không rỗng
-bool KiemTraChuoiRong(const std::string& str, const std::string& fieldName, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 7 (Validation): Kiểm tra chuỗi không rỗng
+bool KiemTraChuoiRong(const std::string& str, const std::string& fieldName, std::ostream& out, Language lang) {
     if (str.empty()) {
         if (lang == Language::VI)
             out << "Lỗi: " << fieldName << " không được rỗng!\n";
@@ -460,6 +519,9 @@ bool KiemTraChuoiRong(const std::string& str, const std::string& fieldName, std:
     return true;
 }
 
+// =====================================================================================
+// [4] String Utilities
+// =====================================================================================
 // Hàm 8: Chuyển chuỗi về in thường
 std::string ChuyenInThuong(const std::string& str) {
     std::string result = str;
@@ -469,8 +531,8 @@ std::string ChuyenInThuong(const std::string& str) {
     return result;
 }
 
-// Hàm 9: Nhập Phái (Nam/Nữ) với chuẩn hóa
-std::string NhapPhai(std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 9 (Input Normalize): Nhập Phái (Nam/Nữ) với chuẩn hóa
+std::string NhapPhai(std::istream& in, std::ostream& out, Language lang) {
     std::string phai;
     int attempts = 0;
     while (attempts < MAX_ATTEMPTS) {
@@ -530,8 +592,8 @@ std::string NhapPhai(std::istream& in = std::cin, std::ostream& out = std::cout,
         throw std::invalid_argument("Error: Exceeded maximum allowed attempts!");
 }
 
-// Hàm 10: Kiểm tra trạng thái thẻ (0/1)
-bool KiemTraTrangThaiThe(int trangThai, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 10 (Validation): Kiểm tra trạng thái thẻ (0/1)
+bool KiemTraTrangThaiThe(int trangThai, std::ostream& out, Language lang) {
     if (trangThai == 0 || trangThai == 1) {
         return true;
     }
@@ -542,8 +604,8 @@ bool KiemTraTrangThaiThe(int trangThai, std::ostream& out = std::cout, Language 
     return false;
 }
 
-// Hàm 11: Kiểm tra mã thẻ độc giả tồn tại
-bool KiemTraMaThe(const std::string& maThe, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 11 (Validation): Kiểm tra mã thẻ độc giả tồn tại
+bool KiemTraMaThe(const std::string& maThe, std::ostream& out, Language lang) {
     int maTheInt = 0;
     try {
         maTheInt = std::stoi(maThe);
@@ -563,8 +625,11 @@ bool KiemTraMaThe(const std::string& maThe, std::ostream& out = std::cout, Langu
     return false;
 }
 
-// Hàm 12: Sinh mã thẻ ngẫu nhiên không trùng
-std::string SinhMaTheNgauNhien(size_t length, std::ostream& out = std::cout, Language lang = Language::VI) {
+// =====================================================================================
+// [5] ID / Code Generation
+// =====================================================================================
+// Hàm 12 (Gen ID): Sinh mã thẻ ngẫu nhiên không trùng
+std::string SinhMaTheNgauNhien(size_t length, std::ostream& out, Language lang) {
     static bool initialized = false;
     if (!initialized) {
         std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -600,8 +665,8 @@ std::string SinhMaTheNgauNhien(size_t length, std::ostream& out = std::cout, Lan
         throw std::runtime_error("Error: Cannot generate unique card ID after 5 attempts!");
 }
 
-// Hàm 13: Kiểm tra định dạng ISBN (10 hoặc 13 chữ số)
-bool KiemTraISBN(const std::string& ISBN, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 13 (Validation): Kiểm tra định dạng ISBN (10 hoặc 13 chữ số)
+bool KiemTraISBN(const std::string& ISBN, std::ostream& out, Language lang) {
     if (ISBN.length() != 10 && ISBN.length() != 13) {
         if (lang == Language::VI)
             out << "Lỗi: ISBN phải có 10 hoặc 13 chữ số!\n";
@@ -621,8 +686,8 @@ bool KiemTraISBN(const std::string& ISBN, std::ostream& out = std::cout, Languag
     return true;
 }
 
-// Hàm 14: Kiểm tra tổng số bản sao
-bool KiemTraTongSoBanSao(const std::string& ISBN, int soLuongSach, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 14 (Validation): Kiểm tra tổng số bản sao
+bool KiemTraTongSoBanSao(const std::string& ISBN, int soLuongSach, std::ostream& out, Language lang) {
     int currentCount = 0;
     for (int i = 0; i < soLuongDauSach; i++) {
         if (dsDauSach[i] && dsDauSach[i]->ISBN == ISBN) {
@@ -642,8 +707,8 @@ bool KiemTraTongSoBanSao(const std::string& ISBN, int soLuongSach, std::ostream&
     return true;
 }
 
-// Hàm 15: Kiểm tra trùng maSach toàn cục
-bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 15 (Validation): Kiểm tra trùng maSach toàn cục
+bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out, Language lang) {
     for (int i = 0; i < soLuongDauSach; i++) {
         if (dsDauSach[i]) {
             for (DanhMucSach* sach = dsDauSach[i]->dms; sach; sach = sach->next) {
@@ -660,13 +725,13 @@ bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out = std::cout
     return false;
 }
 
-// Hàm 16: Nhập lựa chọn sắp xếp (1: tên+họ, 2: mã thẻ)
-int NhapLuaChonSapXep(std::istream& in = std::cin, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 16 (Input): Nhập lựa chọn sắp xếp (1: tên+họ, 2: mã thẻ)
+int NhapLuaChonSapXep(std::istream& in, std::ostream& out, Language lang) {
     return NhapSoNguyen(1, 2, in, out, lang);
 }
 
-// Hàm 17: Kiểm tra số sách đang mượn
-bool KiemTraSoSachDangMuon(const std::string& maThe, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 17 (Validation): Kiểm tra số sách đang mượn
+bool KiemTraSoSachDangMuon(const std::string& maThe, std::ostream& out, Language lang) {
     int maTheInt = 0;
     try {
         maTheInt = std::stoi(maThe);
@@ -699,8 +764,8 @@ bool KiemTraSoSachDangMuon(const std::string& maThe, std::ostream& out = std::co
     return true;
 }
 
-// Hàm 18: Kiểm tra sách quá hạn
-bool KiemTraQuaHan(const std::string& maThe, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 18 (Validation): Kiểm tra sách quá hạn
+bool KiemTraQuaHan(const std::string& maThe, std::ostream& out, Language lang) {
     int maTheInt = 0;
     try {
         maTheInt = std::stoi(maThe);
@@ -747,8 +812,8 @@ bool KiemTraQuaHan(const std::string& maThe, std::ostream& out = std::cout, Lang
     return true;
 }
 
-// Hàm 19: Kiểm tra ngày hiện tại
-bool KiemTraNgayHienTai(time_t ngay, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 19 (Validation): Kiểm tra ngày hiện tại
+bool KiemTraNgayHienTai(time_t ngay, std::ostream& out, Language lang) {
     time_t now = time(nullptr);
     if (ngay > now || ngay < 0) {
         if (lang == Language::VI)
@@ -760,8 +825,8 @@ bool KiemTraNgayHienTai(time_t ngay, std::ostream& out = std::cout, Language lan
     return true;
 }
 
-// Hàm 20: Kiểm tra lượt mượn
-bool KiemTraLuotMuon(int luotMuon, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 20 (Validation): Kiểm tra lượt mượn
+bool KiemTraLuotMuon(int luotMuon, std::ostream& out, Language lang) {
     if (luotMuon >= 0) return true;
     if (lang == Language::VI)
         out << "Lỗi: Lượt mượn phải lớn hơn hoặc bằng 0!\n";
@@ -770,8 +835,8 @@ bool KiemTraLuotMuon(int luotMuon, std::ostream& out = std::cout, Language lang 
     return false;
 }
 
-// Hàm 21: Sinh mã sách từ ISBN và số thứ tự với kiểm tra lỗi và tự động sửa
-std::string sinhMaSach(std::string ISBN, int soThuTu, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 21 (Gen ID): Sinh mã sách từ ISBN và số thứ tự với kiểm tra lỗi và tự động sửa
+std::string sinhMaSach(std::string ISBN, int soThuTu, std::ostream& out, Language lang) {
     // Tự động xóa khoảng trắng đầu cuối
     ISBN.erase(ISBN.begin(), std::find_if(ISBN.begin(), ISBN.end(), [](unsigned char ch) { return !std::isspace(ch); }));
     ISBN.erase(std::find_if(ISBN.rbegin(), ISBN.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ISBN.end());
@@ -840,8 +905,8 @@ std::string sinhMaSach(std::string ISBN, int soThuTu, std::ostream& out = std::c
     return maSach;
 }
 
-// Hàm 22: Sinh mã thẻ từ root với kiểm tra lỗi
-int sinhMaThe(DocGia* root, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 22 (Gen ID): Sinh mã thẻ từ root với kiểm tra lỗi
+int sinhMaThe(DocGia* root, std::ostream& out, Language lang) {
     if (!root) {
         if (lang == Language::VI)
             out << "Cảnh báo: Danh sách độc giả rỗng, bắt đầu từ mã thẻ 1!\n";
@@ -892,8 +957,11 @@ int sinhMaThe(DocGia* root, std::ostream& out = std::cout, Language lang = Langu
 }
 }
 
-// Hàm 23: Kiểm tra quá hạn từ ngày mượn với validation và tự động sửa
-bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Language lang = Language::VI) {
+// =====================================================================================
+// [6] Date / Time Related (Global scope – ngoài namespace InputUtils)
+// =====================================================================================
+// Hàm 23 (Date/Validation): Kiểm tra quá hạn từ ngày mượn với validation và tự động sửa
+bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out, Language lang) {
     // Tự động xóa khoảng trắng đầu cuối
     ngayMuon.erase(ngayMuon.begin(), std::find_if(ngayMuon.begin(), ngayMuon.end(), [](unsigned char ch) { return !std::isspace(ch); }));
     ngayMuon.erase(std::find_if(ngayMuon.rbegin(), ngayMuon.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ngayMuon.end());
@@ -1024,8 +1092,8 @@ bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Language
     return quaHan;
 }
 
-// Hàm 24: Lấy ngày hiện tại với kiểm tra lỗi
-std::string layNgayHienTai(std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 24 (Date): Lấy ngày hiện tại với kiểm tra lỗi
+std::string layNgayHienTai(std::ostream& out, Language lang) {
     time_t now = time(nullptr);
     if (now == -1) {
         if (lang == Language::VI)
@@ -1061,8 +1129,8 @@ std::string layNgayHienTai(std::ostream& out = std::cout, Language lang = Langua
     return ngayHienTai;
 }
 
-// Hàm 25: Tính số ngày quá hạn với validation đầy đủ và tự động sửa
-int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Language lang = Language::VI) {
+// Hàm 25 (Date/Validation): Tính số ngày quá hạn với validation đầy đủ và tự động sửa
+int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out, Language lang) {
     // Tự động xóa khoảng trắng đầu cuối
     ngayMuon.erase(ngayMuon.begin(), std::find_if(ngayMuon.begin(), ngayMuon.end(), [](unsigned char ch) { return !std::isspace(ch); }));
     ngayMuon.erase(std::find_if(ngayMuon.rbegin(), ngayMuon.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), ngayMuon.end());
@@ -1205,5 +1273,3 @@ int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out = std::cout, Langua
     
     return soNgayQuaHan;
 }
-
-#endif // INPUT_UTILS_H

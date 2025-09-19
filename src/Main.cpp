@@ -4,14 +4,20 @@
 
 using namespace std;
 
-// Global variables definition
-DauSach* dsDauSach[MAX_DAUSACH];
+// Global variables definition (initialize to nullptr to avoid undefined pointers)
+DauSach* dsDauSach[MAX_DAUSACH] = { NULL };
 int soLuongDauSach = 0;
 
+// Optional: initialization function (future extension)
+static void khoiTaoBoNhoDauSach() {
+    for (int i = 0; i < MAX_DAUSACH; ++i) dsDauSach[i] = NULL;
+}
+
 int main() {
-    DocGia* cayDocGia = nullptr;
+    DocGia* cayDocGia = NULL;
 
     // Đọc dữ liệu từ file
+    khoiTaoBoNhoDauSach(); // đảm bảo sạch trước khi load
     docDauSachTuFile(dsDauSach, soLuongDauSach);
     docDocGiaTuFile(cayDocGia);
 
