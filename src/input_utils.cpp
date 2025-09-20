@@ -1,59 +1,58 @@
-// =====================================================================================
-//  File: input_utils.cpp
-//  Mục đích / Purpose:
-//      Triển khai (implementation) các hàm được khai báo trong InputUtils.h nhằm
-//      chuẩn hóa & kiểm tra dữ liệu đầu vào cho chương trình Quản Lý Thư Viện.
-//
-//  Refactor bổ sung: Sắp xếp lại theo nhóm + Table of Contents để dễ bảo trì.
-//  (Only comments added; no logic changes.)
-//
-//  NOTE: Nếu thêm hàm mới, vui lòng:
-//    1. Chọn đúng nhóm hoặc tạo nhóm mới rõ ràng.
-//    2. Cập nhật Table of Contents dưới đây.
-//    3. Giữ nguyên phong cách thông báo đa ngôn ngữ (VI / EN).
-//
-//  TABLE OF CONTENTS
-//  -----------------
-//   [1] Internal Helper Structures & Functions
-//        - struct Error
-//        - void InLoi(...)
-//
-//   [2] Input & Normalization Functions (Nhập + Chuẩn hóa)
-//        - NhapChuoiSo
-//        - NhapTen
-//        - NhapMa
-//        - NhapSoNguyen
-//        - NhapPhai
-//        - NhapLuaChonSapXep
-//
-//   [3] Validation / Checking Functions (Kiểm tra)
-//        - KiemTraTrungISBN
-//        - KiemTramaSach
-//        - KiemTraChuoiRong
-//        - KiemTraTrangThaiThe
-//        - KiemTraMaThe
-//        - KiemTraISBN
-//        - KiemTraTongSoBanSao
-//        - KiemTraTrungmaSach
-//        - KiemTraSoSachDangMuon
-//        - KiemTraQuaHan
-//        - KiemTraNgayHienTai
-//        - KiemTraLuotMuon
-//
-//   [4] String Utilities
-//        - ChuyenInThuong
-//
-//   [5] ID / Code Generation
-//        - SinhMaTheNgauNhien
-//        - sinhMaSach
-//        - sinhMaThe
-//
-//   [6] Date / Time Related (Global scope – ngoài namespace InputUtils)
-//        - kiemTraQuaHan
-//        - layNgayHienTai
-//        - tinhSoNgayQuaHan
-//
-// =====================================================================================
+/* 
+   File: input_utils.cpp
+   Mục đích / Purpose:
+       Triển khai (implementation) các hàm được khai báo trong InputUtils.h nhằm
+       chuẩn hóa & kiểm tra dữ liệu đầu vào cho chương trình Quản Lý Thư Viện.
+ 
+   Refactor bổ sung: Sắp xếp lại theo nhóm + Table of Contents để dễ bảo trì.
+ 
+   NOTE: Nếu thêm hàm mới:
+     1. Chọn đúng nhóm hoặc tạo nhóm mới rõ ràng.
+     2. Cập nhật Table of Contents dưới đây.
+     3. Giữ nguyên phong cách thông báo đa ngôn ngữ (VI / EN).
+ 
+   TABLE OF CONTENTS
+   -----------------
+    [1] Internal Helper Structures & Functions
+         - struct Error
+         - void InLoi(...)
+ 
+    [2] Input & Normalization Functions (Nhập + Chuẩn hóa)
+         - NhapChuoiSo
+         - NhapTen
+         - NhapMa
+         - NhapSoNguyen
+         - NhapPhai
+         - NhapLuaChonSapXep
+ 
+    [3] Validation / Checking Functions (Kiểm tra)
+         - KiemTraTrungISBN
+         - KiemTramaSach
+         - KiemTraChuoiRong
+         - KiemTraTrangThaiThe
+         - KiemTraMaThe
+         - KiemTraISBN
+         - KiemTraTongSoBanSao
+         - KiemTraTrungmaSach
+         - KiemTraSoSachDangMuon
+         - KiemTraQuaHan
+         - KiemTraNgayHienTai
+         - KiemTraLuotMuon
+ 
+    [4] String Utilities
+         - ChuyenInThuong
+ 
+    [5] ID / Code Generation
+         - SinhMaTheNgauNhien
+         - sinhMaSach
+         - sinhMaThe
+   [6] Date / Time Related (Global scope – ngoài namespace InputUtils)
+        - kiemTraQuaHan
+        - layNgayHienTai
+        - tinhSoNgayQuaHan
+
+
+*/
 
 // Định nghĩa triển khai các hàm khai báo trong InputUtils.h
 #include "../include/InputUtils.h"
@@ -69,7 +68,6 @@
 
 namespace InputUtils {
 
-// =====================================================================================
 // [1] Internal Helper Structures & Functions
 // =====================================================================================
 const int MAX_ATTEMPTS = 5; // Số lần thử nhập lại tối đa
@@ -81,7 +79,7 @@ struct Error {
     char character;
 };
 
-// Hàm in danh sách lỗi (không dùng vector)
+// Hàm in danh sách lỗi
 void InLoi(const Error* errors, int errorCount, const std::string& message_vi, const std::string& message_en, std::ostream& out, Language lang) {
     if (errorCount > 0) {
         out << "\a\n";
@@ -101,7 +99,6 @@ void InLoi(const Error* errors, int errorCount, const std::string& message_vi, c
 
 // =====================================================================================
 // [2] Input & Normalization Functions (Nhập + Chuẩn hóa)
-// =====================================================================================
 // Hàm 1: Nhập chuỗi số (ISBN, MaThe)
 std::string NhapChuoiSo(size_t minLength, size_t maxLength, std::istream& in, std::ostream& out, Language lang) {
     std::string number;
@@ -464,9 +461,8 @@ int NhapSoNguyen(int minVal, int maxVal, std::istream& in, std::ostream& out, La
     return number;
 }
 
-// =====================================================================================
 // [3] Validation / Checking Functions (Kiểm tra)
-// =====================================================================================
+
 // Hàm 5 (Validation): Kiểm tra trùng ISBN
 bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out, Language lang) {
     for (int i = 0; i < soLuongDauSach; i++) {
@@ -957,9 +953,8 @@ int sinhMaThe(DocGia* root, std::ostream& out, Language lang) {
 }
 }
 
-// =====================================================================================
 // [6] Date / Time Related (Global scope – ngoài namespace InputUtils)
-// =====================================================================================
+
 // Hàm 23 (Date/Validation): Kiểm tra quá hạn từ ngày mượn với validation và tự động sửa
 bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out, Language lang) {
     // Tự động xóa khoảng trắng đầu cuối
