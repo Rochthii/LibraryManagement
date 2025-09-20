@@ -1,3 +1,9 @@
 *.exe
 *.o
+main
 data/*
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+.DS_Store
