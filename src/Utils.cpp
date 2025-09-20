@@ -1,29 +1,50 @@
-#include <iostream>
+#include "Utils.h"
+
 #include <ctime>
-#include "../include/Utils.h"
+#include <cstdlib>
+#include <string>
 
-using namespace std;
-
-string sinhMaSach(string ISBN, int soThuTu) {
-    return ISBN + "-" + to_string(soThuTu);
+int sinhMaTheNgauNhien(THE root){
+    srand((unsigned int)time(NULL));
+    int ma;
+    do{
+        ma = rand() % 9000 + 1000;
+    }while(timDocGia(root, ma) != NULL);
+    return ma;
+}
+string layNgayHienTai(){
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    int ngay = ltm->tm_mday;
+    int thang = ltm->tm_mon + 1;
+    int nam = ltm->tm_year + 1900;
+    
+    return to_string(ngay)+ "/" +to_string(thang) + "/" + to_string(nam);
+}
+void tachngay(const string& date, int &year, int &month, int &day ){
+    size_t pos1 = date.find("/");
+    size_t pos2 = date.find("/", pos1 + 1);
+    
+    day = stoi(date.substr(0, pos1));
+    month = stoi(date.substr(pos1 + 1, pos2 - pos1 - 1));
+    year = stoi(date.substr(pos2 + 1));
 }
 
-int sinhMaThe(DocGia* root) {
-    // Triển khai sinh mã thẻ
-    return 0;
+time_t chuyenSangTimeT(int year, int month, int day){
+    tm time_in = {};
+    time_in.tm_year = year - 1900;
+    time_in.tm_mon = month - 1;
+    time_in.tm_mday = day;
+    return mktime(&time_in);
 }
 
-bool kiemTraQuaHan(string ngayMuon) {
-    // Triển khai kiểm tra quá hạn
-    return false;
-}
-
-string layNgayHienTai() {
-    // Triển khai lấy ngày hiện tại
-    return "";
-}
-
-int tinhSoNgayQuaHan(string ngayMuon) {
-    // Triển khai tính ngày quá hạn
-    return 0;
+bool quaHan(const MuonTra &mt, int soNgayToiDa){
+    int d, m, y;
+    tachngay(mt.NgayMuon, y, m, d);
+    
+    time_t tMuon = chuyenSangTimeT(y, m, d);
+    time_t now = time(0);
+    double soNgay = difftime(now, tMuon)/(60 * 60 * 24);
+    
+    return (soNgay > soNgayToiDa);
 }

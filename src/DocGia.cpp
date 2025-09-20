@@ -1,41 +1,203 @@
-#include "../include/DocGia.h"
+#include "DocGia.h"
+#include "Utils.h"
 #include <iostream>
-#include <fstream>
+//quan ly cay doc gia
 
-DocGia* rootDocGia = nullptr;
-
-DocGia* timDocGia(int MaThe) {
-    // Tìm trong cây (chưa triển khai)
-    return nullptr;
+//tao the docgia
+THE taoDocGia(string ho, string ten, bool phai, int trangthai, THE root){
+    THE dg = new TheDocGia;
+    dg->MaThe = sinhMaTheNgauNhien(root);
+    dg->Ho = ho;
+    dg->Ten = ten;
+    dg->Phai = phai;
+    dg->TrangThai = trangthai;
+    dg->dsmt = NULL;
+    dg->left = dg->right = NULL;
+    return dg;
+}
+THE taoDocGia(string ho, string ten, bool phai, int trangthai, int mathe){
+    THE dg = new TheDocGia;
+    dg->MaThe = mathe;
+    dg->Ho = ho;
+    dg->Ten = ten;
+    dg->Phai = phai;
+    dg->TrangThai = trangthai;
+    dg->dsmt = NULL;
+    dg->left = dg->right = NULL;
+    return dg;
 }
 
-void themDocGia(DocGia*& root) {
-    std::cout << "[STUB] themDocGia() chua duoc trien khai.\n";
+
+
+//ham de quy ho tro chen
+THE themDocGia(THE &root, THE node){
+    if(root == NULL) return node;
+    
+    if(node->MaThe < root->MaThe) root->left = themDocGia(root->left, node);
+    else if(node->MaThe > root->MaThe) root->right = themDocGia(root->right, node);
+    else{
+        cout << "Ma the bi trung, khong the them!"<< endl;
+    }
+    return root;
 }
 
-void xoaDocGia(DocGia*& root, int MaThe) {
-    std::cout << "[STUB] xoaDocGia() chua duoc trien khai.\n";
+void xoaDocGia(THE &root, int mathe);
+
+THE timDocGia(THE root, int mathe){
+    if(root ==NULL) return NULL;
+    if(mathe < root->MaThe)return timDocGia(root->left, mathe);
+    else if(mathe > root->MaThe)return timDocGia(root->right, mathe);
+    else return root;//da tim thay
+}
+void display(THE root){
+    cout << "MaThe: " << root->MaThe
+         << " | HoTen: " << root->Ho << " " << root->Ten
+         << " | Phai: " << (root->Phai ? "Nu" : "Nam")
+         << " | TrangThai: " << (root->TrangThai ? "Hoat dong" : "Khoa")
+         << endl;
+}
+void inDocGiaInOrder(THE root){
+    if(root != NULL){
+        inDocGiaInOrder(root->left);
+        display(root);
+        inDocGiaInOrder(root->right);
+    }
 }
 
-void hieuChinhDocGia(DocGia* root, int maThe) {
-    std::cout << "[STUB] hieuChinhDocGia() chua duoc trien khai.\n";
+//quan ly muon tra
+void themMuonTra(THE docgia, string maSach){
+    if(docgia == NULL)return;
+    
+    MUONTRA node = new dsMuonTra;
+    node->data.MaSach = maSach;
+    node->data.NgayMuon = layNgayHienTai();
+    node->data.NgayTra = "";
+    node->data.TrangThai = 0;//dang muon
+    node->next = NULL;
+    
+    if(docgia->dsmt == NULL){
+        docgia->dsmt = node;
+    }
+    else {
+        node->next = docgia->dsmt;
+        docgia->dsmt = node;
+    }
 }
 
-void inDocGiaTheoTen(DocGia* root) {
-    std::cout << "[STUB] inDocGiaTheoTen() chua duoc trien khai.\n";
+void themMuonTra(THE docgia, const MuonTra &mt) {
+    if (docgia == NULL) return;
+
+    MUONTRA node = new dsMuonTra;   // đúng: dsMuonTra*, không phải MuonTra*
+    node->data = mt;                // copy toàn bộ trường vào node->data
+    node->next = docgia->dsmt;
+    docgia->dsmt = node;
 }
 
-void inDocGiaTheoMa(DocGia* root) {
-    std::cout << "[STUB] inDocGiaTheoMa() chua duoc trien khai.\n";
+void saveDsMuonTra(MUONTRA ds, ofstream &out){
+    while(ds != NULL){
+        out << ds->data.MaSach;
+        if(ds->data.TrangThai == 1) out << "(T)";//da tra
+        else if(ds->data.TrangThai == 2) out << "(M)";//da mat
+        
+        if(ds->next != NULL) out << ",";
+        ds = ds->next;
+    }
 }
 
-void docDocGiaTuFile(DocGia*& root) {
-    // Đọc file (tạm thời bỏ qua)
-    std::cout << "[STUB] docDocGiaTuFile() chua duoc trien khai.\n";
+void saveDocGia(THE root, ofstream &out){
+    if(root == NULL) return;
+    
+    //duyet LNR
+    saveDocGia(root->left, out);
+    // , , , , | , ,
+    out << root->MaThe << ","
+        << root->Ho << ","
+        << root->Ten << ","
+        <<root->Phai << ","
+        << root->TrangThai << "|";
+    saveDsMuonTra(root->dsmt, out);
+    out << "\n";
+    
+    saveDocGia(root->right, out);
 }
 
-void ghiDocGiaVaoFile(DocGia* root) {
-    // Ghi file (tạm thời bỏ qua)
-    std::cout << "[STUB] ghiDocGiaVaoFile() chua duoc trien khai.\n";
+void saveDocGia(THE root){
+    ofstream out("docgia.txt");
+    if(!out.is_open()){
+        cout << "Khong mo duoc file de ghi!"<< endl;
+        return;
+    }
+    saveDocGia(root, out);
+    out.close();
 }
 
+
+THE loadDocGia(){
+    ifstream in("docgia.txt");//mo file
+    if(!in.is_open()){//mo that bai
+        cout << "khong mo duoc file de doc!" <<endl;
+        return NULL;
+    }
+    
+    THE root = NULL;//khoi tao cay BST rong
+    string line;
+    while(getline(in, line)){//doc tung dong file
+        if(line.empty()) continue;//bo qua dong trong
+        
+        //tach thong tin doc gia va ds muon tra
+        size_t posSlash = line.find('|');//tim vi tri dau |
+        string info = line.substr(0,posSlash);//thong tin doc gia trc dau |
+        string muontras = (posSlash == string::npos) ? line.substr(posSlash +1) : "";//thong tin muon tra sau dau | neu khong co de rong
+        
+        //tach thong tin doc gia theo dau ,
+        int mathe, phai, trangthai;
+        string ho, ten;
+        THE dg;
+        //tach tung dau ,
+        size_t p1 = info.find(',');
+        size_t p2 = info.find(',', p1 + 1);
+        size_t p3 = info.find(',', p2 + 1);
+        size_t p4 = info.find(',', p3 + 1);
+        //chuyen doi du lieu de cho vao dg
+        mathe = stoi(info.substr(0, p1));
+        ho = info.substr(p1 + 1, p2 - p1 - 1);
+        ten = info.substr(p2 + 1, p3 - p2 - 1);
+        phai = stoi(info.substr(p3 + 1, p4 - p3 - 1));
+        trangthai = stoi(info.substr(p4 + 1));
+        //tao node tu du lieu tren
+        dg = taoDocGia(ho, ten, phai, trangthai, mathe);
+        //xu li ds muon tra
+        size_t start = 0;
+        while(start < muontras.size()){//duyet tung token trong chuoi muon tra
+            size_t posComma = muontras.find(',', start);//tim dau ,
+            string token;
+            if(posComma == string::npos){//truong hop cuoi cung
+                token = muontras.substr(start);//lay token cuoi cung
+                start = muontras.size();//ket thuc vong lap
+            }
+            else {
+                token = muontras.substr(start, posComma - start);//gan vi tri giua 2 dau ,
+                start = posComma + 1;//tiep tuc sau dau ,
+            }
+            if(!token.empty()){//xu ly token
+                MuonTra mt;
+                if(token.find("(T)") != string::npos){//xet trang thai de xoa (T) va tra ve gia tri dung
+                    mt.MaSach = token.substr(0, token.size() - 3);
+                    mt.TrangThai = 1;
+                }
+                else if(token.find("(M)") != string::npos){//xet trang thai de xoa (M) va tra ve gia tri dung
+                    mt.MaSach = token.substr(0, token.size() - 3);
+                    mt.TrangThai = 2;
+                }
+                else{//khong can xoa va chi can tra ve dang muon
+                    mt.MaSach = token;
+                    mt.TrangThai = 0;
+                }
+                themMuonTra(dg, mt);// Them muon tra vao node doc gia
+            }
+        }
+        themDocGia(root, dg);//them vao BST
+    }
+    in.close();
+    return root;
+}
