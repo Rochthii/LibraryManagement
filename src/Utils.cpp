@@ -4,11 +4,14 @@
 #include <cstdlib>
 #include <string>
 
-int sinhMaTheNgauNhien(THE root){
+#define MAX 9000
+#define MIN 1000
+
+int sinhMaTheNgauNhien(PTRDG root){
     srand((unsigned int)time(NULL));
     int ma;
     do{
-        ma = rand() % 9000 + 1000;
+        ma = rand() % MAX + MIN;
     }while(timDocGia(root, ma) != NULL);
     return ma;
 }
@@ -46,5 +49,5 @@ bool quaHan(const MuonTra &mt, int soNgayToiDa){
     time_t now = time(0);
     double soNgay = difftime(now, tMuon)/(60 * 60 * 24);
     
-    return (soNgay > soNgayToiDa);
+    return (soNgay > SO_NGAY_TOI_DA);
 }

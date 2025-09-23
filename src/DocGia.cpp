@@ -3,26 +3,26 @@
 #include <iostream>
 //quan ly cay doc gia
 
-//tao the docgia
-THE taoDocGia(string ho, string ten, bool phai, int trangthai, THE root){
-    THE dg = new TheDocGia;
-    dg->MaThe = sinhMaTheNgauNhien(root);
-    dg->Ho = ho;
-    dg->Ten = ten;
-    dg->Phai = phai;
-    dg->TrangThai = trangthai;
-    dg->dsmt = NULL;
+//tao PTRDG docgia
+PTRDG taoDocGia(string ho, string ten, bool phai, int trangthai, PTRDG root){
+    PTRDG dg = new NodeDG;
+    dg->data.MaThe = sinhMaTheNgauNhien(root);
+    dg->data.Ho = ho;
+    dg->data.Ten = ten;
+    dg->data.Phai = phai;
+    dg->data.TrangThai = trangthai;
+    dg->data.dsmt = NULL;
     dg->left = dg->right = NULL;
     return dg;
 }
-THE taoDocGia(string ho, string ten, bool phai, int trangthai, int mathe){
-    THE dg = new TheDocGia;
-    dg->MaThe = mathe;
-    dg->Ho = ho;
-    dg->Ten = ten;
-    dg->Phai = phai;
-    dg->TrangThai = trangthai;
-    dg->dsmt = NULL;
+PTRDG taoDocGia(string ho, string ten, bool phai, int trangthai, int mathe){
+    PTRDG dg = new NodeDG;
+    dg->data.MaThe = mathe;
+    dg->data.Ho = ho;
+    dg->data.Ten = ten;
+    dg->data.Phai = phai;
+    dg->data.TrangThai = trangthai;
+    dg->data.dsmt = NULL;
     dg->left = dg->right = NULL;
     return dg;
 }
@@ -30,33 +30,35 @@ THE taoDocGia(string ho, string ten, bool phai, int trangthai, int mathe){
 
 
 //ham de quy ho tro chen
-THE themDocGia(THE &root, THE node){
+PTRDG themDocGia(PTRDG &root, PTRDG node){
     if(root == NULL) return node;
     
-    if(node->MaThe < root->MaThe) root->left = themDocGia(root->left, node);
-    else if(node->MaThe > root->MaThe) root->right = themDocGia(root->right, node);
+    if(node->data.MaThe < root->data.MaThe) root->left = themDocGia(root->left, node);
+    else if(node->data.MaThe > root->data.MaThe) root->right = themDocGia(root->right, node);
     else{
-        cout << "Ma the bi trung, khong the them!"<< endl;
+        cout << "Ma PTRDG bi trung, khong PTRDG them!"<< endl;
     }
     return root;
 }
 
-void xoaDocGia(THE &root, int mathe);
+void xoaDocGia(PTRDG &root, int mathe);
 
-THE timDocGia(THE root, int mathe){
+PTRDG timDocGia(PTRDG root, int mathe){
     if(root ==NULL) return NULL;
-    if(mathe < root->MaThe)return timDocGia(root->left, mathe);
-    else if(mathe > root->MaThe)return timDocGia(root->right, mathe);
+    if(mathe < root->data.MaThe)
+        return timDocGia(root->left, mathe);
+    else if(mathe > root->data.MaThe)
+        return timDocGia(root->right, mathe);
     else return root;//da tim thay
 }
-void display(THE root){
-    cout << "MaThe: " << root->MaThe
-         << " | HoTen: " << root->Ho << " " << root->Ten
-         << " | Phai: " << (root->Phai ? "Nu" : "Nam")
-         << " | TrangThai: " << (root->TrangThai ? "Hoat dong" : "Khoa")
+void display(PTRDG root){
+    cout << "MaThe: " << root->data.MaThe
+         << " | HoTen: " << root->data.Ho << " " << root->data.Ten
+         << " | Phai: " << (root->data.Phai ? "Nu" : "Nam")
+         << " | TrangThai: " << (root->data.TrangThai ? "Hoat dong" : "Khoa")
          << endl;
 }
-void inDocGiaInOrder(THE root){
+void inDocGiaInOrder(PTRDG root){
     if(root != NULL){
         inDocGiaInOrder(root->left);
         display(root);
@@ -65,32 +67,32 @@ void inDocGiaInOrder(THE root){
 }
 
 //quan ly muon tra
-void themMuonTra(THE docgia, string maSach){
+void themMuonTra(PTRDG docgia, string maSach){
     if(docgia == NULL)return;
     
-    MUONTRA node = new dsMuonTra;
+    MUONTRA node = new NodeMT;
     node->data.MaSach = maSach;
     node->data.NgayMuon = layNgayHienTai();
     node->data.NgayTra = "";
     node->data.TrangThai = 0;//dang muon
     node->next = NULL;
     
-    if(docgia->dsmt == NULL){
-        docgia->dsmt = node;
+    if(docgia->data.dsmt == NULL){
+        docgia->data.dsmt = node;
     }
     else {
-        node->next = docgia->dsmt;
-        docgia->dsmt = node;
+        node->next = docgia->data.dsmt;
+        docgia->data.dsmt = node;
     }
 }
 
-void themMuonTra(THE docgia, const MuonTra &mt) {
+void themMuonTra(PTRDG docgia, const MuonTra &mt) {
     if (docgia == NULL) return;
 
-    MUONTRA node = new dsMuonTra;   // đúng: dsMuonTra*, không phải MuonTra*
-    node->data = mt;                // copy toàn bộ trường vào node->data
-    node->next = docgia->dsmt;
-    docgia->dsmt = node;
+    MUONTRA node = new NodeMT;
+    node->data = mt;
+    node->next = docgia->data.dsmt;
+    docgia->data.dsmt = node;
 }
 
 void saveDsMuonTra(MUONTRA ds, ofstream &out){
@@ -104,24 +106,24 @@ void saveDsMuonTra(MUONTRA ds, ofstream &out){
     }
 }
 
-void saveDocGia(THE root, ofstream &out){
+void saveDocGia(PTRDG root, ofstream &out){
     if(root == NULL) return;
     
     //duyet LNR
     saveDocGia(root->left, out);
     // , , , , | , ,
-    out << root->MaThe << ","
-        << root->Ho << ","
-        << root->Ten << ","
-        <<root->Phai << ","
-        << root->TrangThai << "|";
-    saveDsMuonTra(root->dsmt, out);
+    out << root->data.MaThe << ","
+        << root->data.Ho << ","
+        << root->data.Ten << ","
+        <<root->data.Phai << ","
+        << root->data.TrangThai << "|";
+    saveDsMuonTra(root->data.dsmt, out);
     out << "\n";
     
     saveDocGia(root->right, out);
 }
 
-void saveDocGia(THE root){
+void saveDocGia(PTRDG root){
     ofstream out("docgia.txt");
     if(!out.is_open()){
         cout << "Khong mo duoc file de ghi!"<< endl;
@@ -132,14 +134,14 @@ void saveDocGia(THE root){
 }
 
 
-THE loadDocGia(){
+PTRDG loadDocGia(){
     ifstream in("docgia.txt");//mo file
     if(!in.is_open()){//mo that bai
         cout << "khong mo duoc file de doc!" <<endl;
         return NULL;
     }
     
-    THE root = NULL;//khoi tao cay BST rong
+    PTRDG root = NULL;//khoi tao cay BST rong
     string line;
     while(getline(in, line)){//doc tung dong file
         if(line.empty()) continue;//bo qua dong trong
@@ -152,7 +154,7 @@ THE loadDocGia(){
         //tach thong tin doc gia theo dau ,
         int mathe, phai, trangthai;
         string ho, ten;
-        THE dg;
+        PTRDG dg;
         //tach tung dau ,
         size_t p1 = info.find(',');
         size_t p2 = info.find(',', p1 + 1);

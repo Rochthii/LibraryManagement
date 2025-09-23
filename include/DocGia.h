@@ -12,45 +12,47 @@ struct MuonTra{
     string NgayTra;
     int TrangThai;//0= dang muon, 1 da tra, 2 la lam mat
 };
-struct dsMuonTra{
+struct NodeMT{
     MuonTra data;
-    dsMuonTra* next;
+    NodeMT* next;
 };
-typedef dsMuonTra* MUONTRA;
+typedef NodeMT* MUONTRA;
 
-//the doc gia
+//PTRDGdoc gia
 struct TheDocGia{
     int MaThe;
     string Ho;
     string Ten;
     bool Phai;//0 nam 1 nu
-    int TrangThai;//0 = khoa, 1=hoat dong
+    int TrangThai = 1;//0 = khoa, 1=hoat dong
     
-    MUONTRA dsmt;//danh sach muon tra linked list
+    MUONTRA dsmt = NULL;//danh sach muon tra linked list
     
     TheDocGia* left;
     TheDocGia* right;
 };
-typedef TheDocGia* THE;
 
 //binary search tree
-struct BST{
-    THE root;
+struct NodeDG{
+    TheDocGia data;
+    NodeDG* left;
+    NodeDG* right;
 };
+typedef NodeDG* PTRDG;
 
 //prototype
 
 //quan ly cay doc gia
-THE themDocGia(THE &root, THE node);
-void xoaDocGia(THE &root, int mathe);
-THE timDocGia(THE root, int mathe);
-void inDocGiaInOrder(THE root);
-void hieuChinhDocGia(THE root, int mathe);
+PTRDG themDocGia(PTRDG &root, PTRDG node);
+void xoaDocGia(PTRDG &root, int mathe);
+PTRDG timDocGia(PTRDG root, int mathe);
+void inDocGiaInOrder(PTRDG root);
+void hieuChinhDocGia(PTRDG root, int mathe);
 
 //quan ly muon tra
-void themMuonTra(THE root, string maSach);
-void saveDocGia(THE root);
-THE loadDocGia();
+void themMuonTra(PTRDG root, string maSach);
+void saveDocGia(PTRDG root);
+PTRDG loadDocGia();
 
 
 
