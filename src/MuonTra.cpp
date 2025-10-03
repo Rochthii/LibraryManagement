@@ -5,22 +5,27 @@
 
 using namespace std;
 
-void muonSach(DocGia* root, DauSach* dsDauSach[], int soLuongDauSach) {
+void muonSach(PTRDG root, PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+    (void)root; (void)dsDauSach; (void)soLuongDauSach;
     // Triển khai mượn sách
 }
 
-void traSach(DocGia* root, DauSach* dsDauSach[], int soLuongDauSach) {
+void traSach(PTRDG root, PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+    (void)root; (void)dsDauSach; (void)soLuongDauSach;
     // Triển khai trả sách
 }
 
-void lietKeSachDangMuon(DocGia* root, int maThe, DauSach* dsDauSach[], int soLuongDauSach) {
+void lietKeSachDangMuon(PTRDG root, int maThe, PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+    (void)root; (void)maThe; (void)dsDauSach; (void)soLuongDauSach;
     // Triển khai liệt kê sách đang mượn
 }
 
-void lietKeQuaHan(DocGia* root) {
+void lietKeQuaHan(PTRDG root) {
+    (void)root;
     // Triển khai liệt kê quá hạn
 }
 
-void top10SachMuonNhieu(DauSach* dsDauSach[], int soLuongDauSach, DocGia* root) {
+void top10SachMuonNhieu(PTRDAUSACH dsDauSach[], int soLuongDauSach, PTRDG root) {
+    (void)dsDauSach; (void)soLuongDauSach; (void)root;
     // Triển khai top 10 sách
 }

@@ -7,3 +7,6 @@ data/*
 xcuserdata/
 DerivedData/
 .DS_Store
+
+# Exclude web-app directory
+web-app/
