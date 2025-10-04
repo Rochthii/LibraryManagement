@@ -9,41 +9,37 @@
 
 using namespace std;
 
-// Ham nhap va them dau sach tu dong (sinh ISBN, tao ban sao)
+// Nhap va them dau sach tu dong
 void nhapVaThemDauSachTuDong() {
     using namespace InputUtils;
     thongBao(cout, "=== Thêm đầu sách và đánh mã sách tự động ===", THONG_TIN);
 
     try {
-        // Tự động sinh ISBN (đánh mã sách tự động)
-        string isbn = SinhISBN13TuDong(cout, false); // Không cho phép nhập thủ công
+        // Tu dong sinh ISBN
+        string isbn = SinhISBN13TuDong(cout, false);
         thongBao(cout, string("✓ Đã tạo ISBN: ") + isbn, THONG_TIN);
         
-        // Nhập thông tin đầu sách - sử dụng hàm có sẵn
         cout << "\nNhập thông tin đầu sách:\n";
         string tenSach = NhapTenNhan("tên sách", 1, 200, cin, cout);
         int soTrang = NhapSoNguyenNhan("số trang", 1, 50000, cin, cout);
         string tacGia = NhapTenNhan("tác giả", 1, 150, cin, cout);
         
-        // Sử dụng hàm LayNamHienTai() có sẵn thay vì tính toán thủ công
         int namHienTai = LayNamHienTai();
         int namXB = NhapSoNguyenNhan("năm xuất bản", 1000, namHienTai + 5, cin, cout);
         
         string theLoai = NhapTenNhan("thể loại", 1, 100, cin, cout);
 
-        // Thêm đầu sách vào danh sách (tự động sắp xếp tăng dần theo tên)
+        // Them dau sach vao danh sach
         cout << "\nĐang thêm vào danh sách...\n";
         bool ok = themDauSach(dsDauSach, soLuongDauSach, isbn, tenSach, soTrang, tacGia, namXB, theLoai);
         if (ok) {
             thongBao(cout, "✓ Đã thêm đầu sách và tự động sắp xếp theo tên!", THONG_TIN);
             
-            // Nhap so ban sao
             int soLuong = NhapSoNguyenNhan("số bản sao", 0, 10000, cin, cout);
             if (soLuong > 0) {
-                // Tim dau sach vua them va tao ban sao
                 PTRDAUSACH p = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
                 if (p) {
-                    // Dem so ban sao hien tai truoc khi them
+                    // Dem so ban sao hien tai
                     int soHienTai = 0;
                     PTRDMS temp = p->dms;
                     while (temp) {
@@ -51,13 +47,11 @@ void nhapVaThemDauSachTuDong() {
                         temp = temp->next;
                     }
                     
-                    // Tao ban sao moi
                     themDanhMucSach(p->dms, isbn, soLuong);
                     
-                    // Nhap vi tri ke chung cho tat ca cac ban sao moi
                     string viTriChung = NhapTenNhan("vị trí kệ", 0, 50, cin, cout);
                     
-                    // Gan vi tri chung cho tat ca cac ban sao moi
+                    // Gan vi tri cho cac ban sao moi
                     temp = p->dms;
                     int dem = 0;
                     while (temp && dem < soHienTai) {
@@ -65,7 +59,6 @@ void nhapVaThemDauSachTuDong() {
                         dem++;
                     }
                     
-                    // Gan vi tri cho cac ban sao moi
                     int stt = 1;
                     while (temp && stt <= soLuong) {
                         temp->viTri = viTriChung;
@@ -78,7 +71,7 @@ void nhapVaThemDauSachTuDong() {
                 }
             }
             
-            // Tu dong luu file - sử dụng hàm có sẵn
+            // Tu dong luu file
             if (GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach)) {
                 thongBao(cout, "✓ Dữ liệu đã được lưu tự động.", THONG_TIN);
             }
@@ -90,12 +83,11 @@ void nhapVaThemDauSachTuDong() {
     }
 }
 
-// Ham in danh sach dau sach theo the loai
+// In danh sach dau sach theo the loai
 void inDanhSachDauSach() {
     using namespace InputUtils;
     thongBao(cout, "=== In đầu sách theo thể loại ===", THONG_TIN);
     
-    // Sử dụng hàm kiểm tra có sẵn thay vì kiểm tra thủ công
     if (!KiemTraDanhSachHopLe(dsDauSach, soLuongDauSach, MAX_DAUSACH, "Danh sách đầu sách")) {
         return;
     }
@@ -106,10 +98,8 @@ void inDanhSachDauSach() {
     }
     
     try {
-        // Goi ham in danh sach
         inDanhSachTheoTheLoai(dsDauSach, soLuongDauSach);
         
-        // Dem so dau sach thuc te va su dung ham InTongKet
         int count = 0;
         for (int i = 0; i < soLuongDauSach; ++i) {
             if (dsDauSach[i]) count++;
@@ -121,19 +111,16 @@ void inDanhSachDauSach() {
     }
 }
 
-// Ham tim kiem dau sach theo ten - nang cao
+// Tim kiem dau sach theo ten
 void timKiemDauSach() {
     using namespace InputUtils;
     thongBao(cout, "=== Tìm sách ===", THONG_TIN);
     
     try {
-        // Nhap tu khoa tim kiem
         string tuKhoa = NhapTenNhan("từ khóa tìm kiếm", 1, 500, cin, cout);
         
-        // Goi ham tim kiem nang cao va xu ly ket qua
         int found = timDauSach(dsDauSach, soLuongDauSach, tuKhoa);
         
-        // Bao cao ket qua tim kiem
         if (found < 0) {
             thongBao(cout, "Có lỗi xảy ra trong quá trình tìm kiếm!", LOI);
         } else if (found == 0) {
@@ -151,13 +138,12 @@ void timKiemDauSach() {
     }
 }
 
-// Ham nhap lua chon menu - xu ly input an toan
+// Nhap lua chon menu
 int nhapLuaChonMenu() {
     using namespace InputUtils;
     
     string dong;
     
-    // Xoa buffer neu co loi truoc do
     if (cin.fail()) {
         cin.clear();
         cin.ignore(10000, '\n');
@@ -166,12 +152,10 @@ int nhapLuaChonMenu() {
     cout << "Nhập lựa chọn (1-5): ";
     
     try {
-        // Dung getline de tranh loi buffer
         if (!getline(cin, dong)) {
-            // Kiểm tra nếu đã hết input (EOF)
             if (cin.eof()) {
                 thongBao(cout, "Hết dữ liệu đầu vào, thoát chương trình.", THONG_TIN);
-                return 0; // Trả về 0 để thoát
+                return 0;
             }
             thongBao(cout, "Lỗi đọc input!", LOI);
             return -1;
@@ -183,13 +167,12 @@ int nhapLuaChonMenu() {
             return -1;
         }
         
-        // Xu ly ky tu c, d, e
         if (dong.length() == 1) {
             char ch = tolower(dong[0]);
-            if (ch == 'c') return 1;      // c -> option 1
-            if (ch == 'd') return 2;      // d -> option 2  
-            if (ch == 'e') return 3;      // e -> option 3
-            if (ch >= '0' && ch <= '6') { // 0-6 -> direct mapping
+            if (ch == 'c') return 1;
+            if (ch == 'd') return 2;
+            if (ch == 'e') return 3;
+            if (ch >= '0' && ch <= '6') {
                 return ch - '0';
             }
         }
@@ -203,7 +186,7 @@ int nhapLuaChonMenu() {
     }
 }
 
-// Ham xoa dau sach(neu sau nay can sd)
+// Xoa dau sach (neu can)
 void xoaDauSach() {
     using namespace InputUtils;
     thongBao(cout, "=== Tìm và Xóa đầu sách ===", THONG_TIN);
@@ -214,7 +197,6 @@ void xoaDauSach() {
     }
     
     try {
-        // Tim kiem truoc
         string tuKhoa = NhapTenNhan("từ khóa tìm sách (tên hoặc ISBN)", 1, 500, cin, cout);
         cout << "\nĐang tìm kiếm...\n";
         
@@ -225,7 +207,6 @@ void xoaDauSach() {
             return;
         }
         
-        // Chon ISBN de xoa
         string isbn = NhapTenNhan("ISBN của sách muốn xóa", 10, 20, cin, cout);
         PTRDAUSACH sachCanXoa = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
         
@@ -234,7 +215,6 @@ void xoaDauSach() {
             return;
         }
         
-        // Hien thi va xac nhan
         cout << "\nThông tin sách sẽ bị xóa:\n";
         InMotDauSach(sachCanXoa);
         
@@ -244,7 +224,7 @@ void xoaDauSach() {
         xacNhan = CatKhoangTrang(xacNhan);
         
         if (xacNhan == "y" || xacNhan == "Y") {
-            // Tìm vị trí của đầu sách trong mảng
+            // Tim vi tri cua dau sach trong mang
             int viTriXoa = -1;
             for (int i = 0; i < soLuongDauSach; i++) {
                 if (dsDauSach[i] != nullptr && dsDauSach[i]->ISBN == isbn) {
@@ -254,29 +234,23 @@ void xoaDauSach() {
             }
             
             if (viTriXoa != -1) {
-                // Lưu tên sách để thông báo
                 string tenSach = dsDauSach[viTriXoa]->tenSach;
                 
-                // Giải phóng danh mục sách liên kết
                 if (dsDauSach[viTriXoa]->dms != nullptr) {
                     GiaiPhongDanhMucSach(dsDauSach[viTriXoa]->dms);
                 }
                 
-                // Giải phóng đầu sách
                 delete dsDauSach[viTriXoa];
                 
-                // Dịch chuyển các phần tử phía sau lên trước
                 for (int i = viTriXoa; i < soLuongDauSach - 1; i++) {
                     dsDauSach[i] = dsDauSach[i + 1];
                 }
                 
-                // Đặt phần tử cuối về nullptr và giảm số lượng
                 dsDauSach[soLuongDauSach - 1] = nullptr;
                 soLuongDauSach--;
                 
                 thongBao(cout, "✓ Đã xóa đầu sách thành công!", THONG_TIN);
                 
-                // Tu dong luu file
                 if (GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach) &&
                     GhiDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach)) {
                     thongBao(cout, "✓ Dữ liệu đã được lưu tự động.", THONG_TIN);
@@ -293,7 +267,7 @@ void xoaDauSach() {
     }
 }
 
-// Ham main - chuong trinh chinh
+// Ham main
 int main() {
     using namespace InputUtils;
     
@@ -301,14 +275,12 @@ int main() {
     NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach);
     NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach);
     
-    // Thong bao neu chua co du lieu
     if(soLuongDauSach == 0){
         thongBao(cout, "Chưa có dữ liệu đầu sách. Bạn có thể thêm mới hoặc nạp file sau.", THONG_TIN);
     }
     
     // Vong lap menu chinh
     while(true) {
-        // Hien thi menu
         thongBao(cout, "\n===== MENU THƯ VIỆN (chức năng c, d, e) =====", THONG_TIN);
         cout << "1. c) Nhập thông tin đầu sách và đánh mã sách tự động\n";
         cout << "2. d) In danh sách đầu sách theo thể loại (tên tăng dần)\n";
@@ -317,21 +289,17 @@ int main() {
         cout << "5. Lưu dữ liệu ra file\n";
         cout << "0. Thoát\n";
 
-        // Nhap lua chon tu nguoi dung
         int choice = nhapLuaChonMenu();
         
-        // Xu ly input khong hop le
         if (choice == -1) {
-            cout << "\n"; // Them khoang cach cho dep
-            continue;  // Thu lai
+            cout << "\n";
+            continue;
         }
         
-        // Thoat chuong trinh
         if (choice == 0) {
             break;
         }
         
-        // Xu ly cac lua chon
         try {
             switch(choice) {
                 case 1: 
@@ -344,13 +312,11 @@ int main() {
                     timKiemDauSach(); 
                     break;
                 case 4: 
-                    // Tai lai du lieu tu file
                     NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach);
                     NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach);
                     thongBao(cout, "Dữ liệu đã được tải lại.", THONG_TIN);
                     break;
                 case 5: 
-                    // Luu du lieu ra file
                     if (GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach) &&
                         GhiDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach)) {
                         thongBao(cout, "Lưu dữ liệu thành công.", THONG_TIN);

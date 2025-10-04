@@ -89,8 +89,8 @@ bool ChenDauSachVaoViTri(PTRDAUSACH dsDauSach[], int& soLuongDauSach, PTRDAUSACH
 // DOC GHI FILE - File I/O
 void NapDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int& soLuongDauSach);
 void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach);
-bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach);
-bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach);
+bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent = false);
+bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent = false);
 
 // QUAN LY BO NHO - Memory management
 void GiaiPhongDanhMucSach(PTRDMS& dms);

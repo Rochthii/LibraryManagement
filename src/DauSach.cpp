@@ -82,14 +82,12 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
     }
     
     // Kiem tra trung lap
-    if (KiemTraTrungISBN(ISBN)) {
-        PTRDAUSACH dauSachTonTai = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, ISBN);
+    PTRDAUSACH dauSachTonTai = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, ISBN);
+    if (dauSachTonTai) {
         thongBao(cout, "\n=== LỖI TRÙNG LẶP ===", LOI);
         thongBao(cout, "ISBN " + ISBN + " đã tồn tại trong hệ thống!", LOI);
-        if (dauSachTonTai) {
-            thongBao(cout, "Thông tin sách hiện có:", THONG_TIN);
-            InMotDauSach(dauSachTonTai);
-        }
+        thongBao(cout, "Thông tin sách hiện có:", THONG_TIN);
+        InMotDauSach(dauSachTonTai);
         return false;
     }
     

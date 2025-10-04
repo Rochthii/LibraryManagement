@@ -147,28 +147,7 @@ static std::string locChuCaiUnicodeKhoang1(const std::string& s){
 }
 
 
-// Chuan hoa phai cho so sanh
-static std::string chuanHoaPhaiForCompare(const std::string& s){
-    std::string out; out.reserve(s.size());
-    size_t i = 0;
-    while(i < s.size()){
-        uint32_t cp = VietnameseUtils::readCodePoint(s, i);
-        if(cp <= 0x7F){
-            char c = static_cast<char>(cp);
-            if(!laKyTuKhoangTrang(c)){
-                c = chuyenThanhThuong(c);
-                out.push_back(c);
-            }
-            continue;
-        }
-        // Map tất cả biến thể 'Ư'/'ư' (có/không dấu) -> 'u'
-        if(cp == 0x01AF || cp == 0x01B0 ||
-           cp == 0x1EE8 || cp == 0x1EE9 || cp == 0x1EEA || cp == 0x1EEB ||
-           cp == 0x1EEC || cp == 0x1EED || cp == 0x1EEE || cp == 0x1EEF ||
-           cp == 0x1EF0 || cp == 0x1EF1){ out.push_back('u'); continue; }
-    }
-    return out;
-}
+// Removed static function - merged into ChuanHoaPhai
 
 // Kiem tra hop le theo do dai
 static bool hopLeTheoDoDai(const std::string& s, size_t minL, size_t maxL, std::ostream& out, bool themTienToSauLoc){
@@ -220,21 +199,14 @@ static bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool
     return true;
 }
 
-// Wrapper functions cho dễ sử dụng
-static bool chuyenChuoiThanhSoBatKy(const std::string& chuoi, int& ketQua){
-    return chuyenChuoiThanhSoNguyen(chuoi, ketQua, false);
-}
-
-static bool chuyenChuoiThanhSoDuong(const std::string& chuoi, int& ketQua){
-    return chuyenChuoiThanhSoNguyen(chuoi, ketQua, true);
-}
+// Wrapper functions cho dễ sử dụng - REMOVED: Use chuyenChuoiThanhSoNguyen directly
 
 // Phan tich trang thai sach
 static bool PhanTichTrangThaiSach(const std::string& s, int& out){
     std::string t = loaiBoKhoangTrangDauCuoi(s);
     if(t.empty()) return false;
     int v = -1;
-    if(chuyenChuoiThanhSoBatKy(t, v)){
+    if(chuyenChuoiThanhSoNguyen(t, v, false)){
         out = v; return true;
     }
     std::string norm = BoDauVaThuong(t);
@@ -257,7 +229,7 @@ static bool phanTichNgay(const std::string& s, int& ngay, int& thang, int& nam){
         if(c == '/'){
             if(phan.empty() || chiSo >= 3) return false;
             int v = 0;
-            if(!chuyenChuoiThanhSoDuong(phan, v)) return false;
+            if(!chuyenChuoiThanhSoNguyen(phan, v, true)) return false;
             thanhPhan[chiSo++] = v;
             phan.clear();
         } else {
@@ -269,7 +241,7 @@ static bool phanTichNgay(const std::string& s, int& ngay, int& thang, int& nam){
     // Phải có đúng 2 dấu '/', còn lại là phần thứ 3
     if(phan.empty() || chiSo != 2) return false;
     int v = 0;
-    if(!chuyenChuoiThanhSoDuong(phan, v)) return false;
+    if(!chuyenChuoiThanhSoNguyen(phan, v, true)) return false;
     thanhPhan[chiSo] = v;
 
     ngay  = thanhPhan[0];
@@ -340,7 +312,28 @@ bool ChuyenNgaySangTimeT(const std::string& sNgay, time_t& outTime){
 }
 
 std::string ChuanHoaPhai(const std::string& raw){
-    std::string loc = chuanHoaPhaiForCompare(raw);
+    // Normalize string for comparison (merged from chuanHoaPhaiForCompare)
+    std::string loc; 
+    loc.reserve(raw.size());
+    size_t i = 0;
+    while(i < raw.size()){
+        uint32_t cp = VietnameseUtils::readCodePoint(raw, i);
+        if(cp <= 0x7F){
+            char c = static_cast<char>(cp);
+            if(!laKyTuKhoangTrang(c)){
+                c = chuyenThanhThuong(c);
+                loc.push_back(c);
+            }
+            continue;
+        }
+        // Map tất cả biến thể 'Ư'/'ư' (có/không dấu) -> 'u'
+        if(cp == 0x01AF || cp == 0x01B0 ||
+           cp == 0x1EE8 || cp == 0x1EE9 || cp == 0x1EEA || cp == 0x1EEB ||
+           cp == 0x1EEC || cp == 0x1EED || cp == 0x1EEE || cp == 0x1EEF ||
+           cp == 0x1EF0 || cp == 0x1EF1){ loc.push_back('u'); continue; }
+    }
+    
+    // Check normalized result and return proper capitalized form
     if(loc == "nam") return "Nam";
     if(loc == "nu") return "Nữ";
     return std::string();
@@ -559,7 +552,7 @@ void NapDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int& soLuongDa
             thongBao(std::cout, thongBaoLoi(lineNo, "Sai định dạng: " + line), CANH_BAO); ++bookSkip; continue;
         }
         int soTrang = 0, nam = 0;
-        if(!chuyenChuoiThanhSoBatKy(CatKhoangTrang(f[2]), soTrang) || !chuyenChuoiThanhSoBatKy(CatKhoangTrang(f[4]), nam)){
+        if(!chuyenChuoiThanhSoNguyen(CatKhoangTrang(f[2]), soTrang, false) || !chuyenChuoiThanhSoNguyen(CatKhoangTrang(f[4]), nam, false)){
             thongBao(std::cout, thongBaoLoi(lineNo, "Sai định dạng số: " + line), CANH_BAO); ++bookSkip; continue;
         }
         std::string isbnChuan;
@@ -632,9 +625,7 @@ void GiaiPhongDauSach(PTRDAUSACH& dauSach) {
 }
 
 // Ghi du lieu ra file
-// Phien ban silent cho backup
-bool GhiDanhSachDauSachSilent(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach);
-bool GhiDanhMucSachSilent(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach);
+// Phien ban silent cho backup - REMOVED: Use main functions with silent=true parameter
 
 // Ham backup an toan
 bool BackupTruocKhiGiaiPhong(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
@@ -657,11 +648,11 @@ bool BackupTruocKhiGiaiPhong(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
     std::string backupDMSPath = std::string("data/backup_") + fullTimestamp + "_dms.txt";
     
     bool success = true;
-    if(!GhiDanhSachDauSachSilent(backupPath.c_str(), dsDauSach, soLuongDauSach)) {
+    if(!GhiDanhSachDauSach(backupPath.c_str(), dsDauSach, soLuongDauSach, true)) {
         success = false;
     }
     
-    if(!GhiDanhMucSachSilent(backupDMSPath.c_str(), dsDauSach, soLuongDauSach)) {
+    if(!GhiDanhMucSach(backupDMSPath.c_str(), dsDauSach, soLuongDauSach, true)) {
         success = false;
     }
     
@@ -706,6 +697,12 @@ bool ThemMaSachDaXuLy(std::string*& danhSachDaXuLy, int& soLuongDaXuLy, int& dun
     
     danhSachDaXuLy[soLuongDaXuLy++] = maSach;
     return true;
+}
+
+// cập nhật thông tin sách
+static inline void capNhatThongTinSach(PTRDMS sach, int trangThai, const std::string& viTri) {
+    sach->trangThai = (TrangThaiSach)trangThai;
+    sach->viTri = ChuanHoaKhoangTrang(viTri);
 }
 
 void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach){
@@ -789,7 +786,7 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
         
         // Kiểm tra số thứ tự
         int soThuTu = 0; 
-        if(phanSoThuTu.empty() || !chuyenChuoiThanhSoBatKy(CatKhoangTrang(phanSoThuTu), soThuTu) || soThuTu <= 0){
+        if(phanSoThuTu.empty() || !chuyenChuoiThanhSoNguyen(CatKhoangTrang(phanSoThuTu), soThuTu, false) || soThuTu <= 0){
             thongBao(std::cout, thongBaoLoiDMS(soThuTuDong, "Sai định dạng mã sách (số thứ tự > 0), bỏ qua."), CANH_BAO);
             soLuongBoQua++; 
             continue;
@@ -821,8 +818,7 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
         PTRDMS sachDaTonTai = timDanhMucTheoMaSach(maSach);
         if(sachDaTonTai){
             // Cập nhật thông tin sách đã có
-            sachDaTonTai->trangThai = (TrangThaiSach)trangThai;
-            sachDaTonTai->viTri = ChuanHoaKhoangTrang(viTri);
+            capNhatThongTinSach(sachDaTonTai, trangThai, viTri);
             soLuongCapNhat++; 
             soLuongThanhCong++;
             continue;
@@ -833,8 +829,7 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
             // Tìm và cập nhật bản ghi đã được thêm trước đó trong file
             PTRDMS sachTrongFile = timDanhMucTheoMaSach(maSach);
             if(sachTrongFile){
-                sachTrongFile->trangThai = (TrangThaiSach)trangThai;
-                sachTrongFile->viTri = ChuanHoaKhoangTrang(viTri);
+                capNhatThongTinSach(sachTrongFile, trangThai, viTri);
                 soLuongCapNhat++; 
                 soLuongThanhCong++;
                 continue;
@@ -873,41 +868,25 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
 }
 
 // Ghi du lieu ra file (second section)
-bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach){
+// Ghi du lieu ra file - consolidated version
+bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent){
     std::ofstream fout(path, std::ios::trunc);
-    if(!fout){ thongBao(std::cout, std::string("Không mở được ") + path + " để ghi!", LOI); return false; }
-    int wrote = 0;
-    for(int i=0;i<soLuongDauSach;++i){ PTRDAUSACH d = dsDauSach[i]; if(!d) continue;
-        fout << d->ISBN << '|' << d->tenSach << '|' << d->soTrang << '|' << d->tacGia << '|' << d->namXuatBan << '|' << d->theLoai << "\n";
-        ++wrote;
+    if(!fout){ 
+        if(!silent) thongBao(std::cout, std::string("Không mở được ") + path + " để ghi!", LOI); 
+        return false; 
     }
-    return true;
-}
-
-// Phiên bản silent cho backup
-bool GhiDanhSachDauSachSilent(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach){
-    std::ofstream fout(path, std::ios::trunc);
-    if(!fout) return false;
     for(int i=0;i<soLuongDauSach;++i){ PTRDAUSACH d = dsDauSach[i]; if(!d) continue;
         fout << d->ISBN << '|' << d->tenSach << '|' << d->soTrang << '|' << d->tacGia << '|' << d->namXuatBan << '|' << d->theLoai << "\n";
     }
     return true;
 }
 
-bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach){
+bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent){
     std::ofstream fdm(path, std::ios::trunc);
-    if(!fdm){ thongBao(std::cout, std::string("Không mở được ") + path + " để ghi!", LOI); return false; }
-    int wrote = 0;
-    for(int i=0;i<soLuongDauSach;++i){ PTRDAUSACH d = dsDauSach[i]; if(!d) continue;
-        for(PTRDMS q = d->dms; q; q = q->next){ fdm << q->maSach << '|' << (int)q->trangThai << '|' << q->viTri << "\n"; ++wrote; }
+    if(!fdm){ 
+        if(!silent) thongBao(std::cout, std::string("Không mở được ") + path + " để ghi!", LOI); 
+        return false; 
     }
-    return true;
-}
-
-// Phiên bản silent cho backup
-bool GhiDanhMucSachSilent(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach){
-    std::ofstream fdm(path, std::ios::trunc);
-    if(!fdm) return false;
     for(int i=0;i<soLuongDauSach;++i){ PTRDAUSACH d = dsDauSach[i]; if(!d) continue;
         for(PTRDMS q = d->dms; q; q = q->next){ fdm << q->maSach << '|' << (int)q->trangThai << '|' << q->viTri << "\n"; }
     }
@@ -963,7 +942,7 @@ int NhapSoNguyenNhan(const char* nhan, int minVal, int maxVal, std::istream& in,
         std::string sauCat = CatKhoangTrang(dong);
         if(!KiemTraChuoiRong(sauCat, (nhan?nhan:"Giá trị"), out)){ ++soLanThu; }
     else if(sauCat.length() > 30){ thongBao(out, "Quá dài!", LOI); ++soLanThu; }
-    else if(!chuyenChuoiThanhSoBatKy(sauCat, giaTri)){ thongBao(out, "Sai định dạng số!", LOI); ++soLanThu; }
+    else if(!chuyenChuoiThanhSoNguyen(sauCat, giaTri, false)){ thongBao(out, "Sai định dạng số!", LOI); ++soLanThu; }
         else {
             if(giaTri < minVal || giaTri > maxVal){ (void)thongBaoLoiNgoaiPhamVi(out, (nhan?nhan:"Giá trị"), minVal, maxVal); ++soLanThu; }
             else return giaTri;
@@ -1082,9 +1061,8 @@ string NhapPhai(istream& in, ostream& out){
         getline(in, phai);
         if(!KiemTraChuoiRong(phai, "Phái", out)){ ++soLanThu; }
         else {
-            string loc = chuanHoaPhaiForCompare(phai);
-            if(loc == "nam") return "Nam";
-            if(loc == "nu") return "Nữ";
+            string chuanHoa = ChuanHoaPhai(phai);
+            if(!chuanHoa.empty()) return chuanHoa;
             thongBao(out, "Chỉ Nam hoặc Nữ!", LOI); ++soLanThu;
         }
         thongBaoSoLanThuConLai(soLanThu, out);
@@ -1104,7 +1082,7 @@ bool KiemTraTrangThaiThe(int trangThai, ostream& out) {
 // Kiểm tra định dạng mã thẻ
 bool KiemTraMaThe(const string& maThe, ostream& out) {
     int v = 0;
-    if (!chuyenChuoiThanhSoDuong(CatKhoangTrang(maThe), v)) { thongBao(out, "Mã thẻ không hợp lệ!", LOI); return false; }
+    if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(maThe), v, true)) { thongBao(out, "Mã thẻ không hợp lệ!", LOI); return false; }
     return true;
 }
 
@@ -1315,9 +1293,9 @@ int LayNamHienTai() {
     tm* current_time = localtime(&now);
     int namHienTai = current_time ? (current_time->tm_year + 1900) : 2025;
     
-    // Edge case protection: nếu system time sai (quá xa trong quá khứ/tương lai)
+   // nếu system time sai (quá xa trong quá khứ/tương lai)
     if (namHienTai < 1900 || namHienTai > 3000) {
-        return 2025;  // fallback to reasonable default
+        return 2025; 
     }
     
     return namHienTai;
@@ -1334,18 +1312,6 @@ bool KiemTraNamXuatBan(int nam, std::ostream& out) {
     
     return true;
 }
-
-// DYNAMIC ARRAY MANAGEMENT
-
-/**
- * @brief Thay đổi kích thước mảng đầu sách động
- * @param ds Con trỏ tới mảng đầu sách (sẽ được cập nhật)
- * @param size Kích thước hiện tại (sẽ được cập nhật)
- * @param newSize Kích thước mới mong muốn
- * @param out Stream đầu ra cho thông báo
- * @return true nếu thành công, false nếu thất bại
- */
-
 
 
 
