@@ -7,11 +7,8 @@
 
 using namespace std;
 
-// Mảng con trỏ tĩnh cho đầu sách
 PTRDAUSACH dsDauSach[MAX_DAUSACH] = { nullptr };
 int soLuongDauSach = 0;
-
-// Biến theo dõi thay đổi dữ liệu
 bool duLieuDaThayDoi = false;
 
 // Them dau sach moi vao mang, kiem tra hop le, sap xep theo ten tang dan
@@ -26,7 +23,7 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
     // Kiem tra gioi han he thong
     if (soLuongDauSach >= MAX_DAUSACH) {
         thongBao(cout, "=== LỖI HỆ THỐNG ===", LOI);
-        thongBao(cout, "Đã đạt giới hạn tối đa " + to_string(MAX_DAUSACH) + " đầu sách!", LOI);
+        thongBao(cout, "Đã đạt giới hạn tối đa " + to_string(::MAX_DAUSACH) + " đầu sách!", LOI);
         thongBao(cout, "Không thể thêm đầu sách mới.", THONG_TIN);
         return false;
     }
@@ -43,19 +40,19 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
     }
     
     // Kiem tra ten sach
-    if (!KiemTraChuoiVaDodai(tenSach, "Tên sách", 500)) {
+    if (!KiemTraChuoiVaDodai(tenSach, "Tên sách", MAX_TEN_SACH)) {
         coLoi = true;
         chiTietLoi += "- Tên sách không hợp lệ\n";
     }
     
     // Kiem tra so trang
-    if (soTrang <= 0 || soTrang > 50000) {
+    if (soTrang <= 0 || soTrang > MAX_SO_TRANG) {
         coLoi = true;
-        chiTietLoi += "- Số trang phải từ 1-50,000 (hiện tại: " + to_string(soTrang) + ")\n";
+    chiTietLoi += "- Số trang phải từ 1-" + to_string(MAX_SO_TRANG) + " (hiện tại: " + to_string(soTrang) + ")\n";
     }
     
     // Kiem tra tac gia
-    if (!KiemTraChuoiVaDodai(tacGia, "Tác giả", 300)) {
+    if (!KiemTraChuoiVaDodai(tacGia, "Tác giả", MAX_TAC_GIA)) {
         coLoi = true;
         chiTietLoi += "- Tác giả không hợp lệ\n";
     }
@@ -67,7 +64,7 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
     }
     
     // Kiem tra the loai
-    if (!KiemTraChuoiVaDodai(theLoai, "Thể loại", 200)) {
+    if (!KiemTraChuoiVaDodai(theLoai, "Thể loại", MAX_THE_LOAI)) {
         coLoi = true;
         chiTietLoi += "- Thể loại không hợp lệ\n";
     }
@@ -95,9 +92,9 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
     string tenSachSauChuanHoa, tacGiaSauChuanHoa, theLoaiSauChuanHoa;
     
     try {
-        if (!ChuanHoaTenUnicode(tenSach, 1, 500, cout, tenSachSauChuanHoa) ||
-            !ChuanHoaTenUnicode(tacGia, 1, 300, cout, tacGiaSauChuanHoa) ||
-            !ChuanHoaTenUnicode(theLoai, 1, 200, cout, theLoaiSauChuanHoa)) {
+        if (!ChuanHoaTenUnicode(tenSach, 1, MAX_TEN_SACH, cout, tenSachSauChuanHoa) ||
+            !ChuanHoaTenUnicode(tacGia, 1, MAX_TAC_GIA, cout, tacGiaSauChuanHoa) ||
+            !ChuanHoaTenUnicode(theLoai, 1, MAX_THE_LOAI, cout, theLoaiSauChuanHoa)) {
             thongBao(cout, "Lỗi chuẩn hóa dữ liệu!", LOI);
             return false;
         }
@@ -124,7 +121,8 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
         delete dauSachMoi;
         return false;
     }
-    
+    extern bool duLieuDaThayDoi;
+    duLieuDaThayDoi = true;
     // Xac nhan thanh cong
     if (!anLang) {
         thongBao(cout, "\n=== THÊM THÀNH CÔNG ===", THONG_TIN);
@@ -133,7 +131,6 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const string& ISBN
         thongBao(cout, "Tác giả: " + tacGiaSauChuanHoa, THONG_TIN);
         thongBao(cout, "ISBN: " + ISBN, THONG_TIN);
     }
-    
     return true;
 }
 
@@ -243,8 +240,8 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa)
             int loaiKhop;  // 1=ten sach, 2=the loai, 3=tac gia, 4=ISBN
         };
         
-        const int MAX_KET_QUA = 100;
-        KetQuaTimKiem ketQua[MAX_KET_QUA];
+        const int MAX_KET_QUA = MAX_KET_QUA_TIM_KIEM;
+        KetQuaTimKiem ketQua[MAX_KET_QUA_TIM_KIEM];
         int soKetQua = 0;
         
         // 2. Tim kiem trong tat ca dau sach
@@ -256,21 +253,21 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa)
                 ThongTinSachChuanHoa sachChuanHoa = ChuanHoaDuLieuSach(p->tenSach, p->tacGia, p->theLoai, p->ISBN);
                 
                 // Uu tien ten sach truoc
-                int loaiKhop = 0;  // 0=khong khop, 1=ten sach, 2=the loai, 3=tac gia, 4=ISBN
-                
-                // Uu tien cao nhat: Ten sach
+                int loaiKhop = 0;  // 0=khong khop, 1=ten sach, 2=tac gia, 3=the loai, 4=ISBN
+
+                // Uu tien 1: ten sach
                 if (sachChuanHoa.tenSach.find(tuKhoaChuanHoa) != string::npos) {
                     loaiKhop = 1;
                 }
-                // Uu tien thu 2: The loai
-                else if (sachChuanHoa.theLoai.find(tuKhoaChuanHoa) != string::npos) {
+                // Uu tien 2: tac gia
+                else if (sachChuanHoa.tacGia.find(tuKhoaChuanHoa) != string::npos) {
                     loaiKhop = 2;
                 }
-                // Uu tien thu 3: Tac gia
-                else if (sachChuanHoa.tacGia.find(tuKhoaChuanHoa) != string::npos) {
+                // Uu tien 3: the loai
+                else if (sachChuanHoa.theLoai.find(tuKhoaChuanHoa) != string::npos) {
                     loaiKhop = 3;
                 }
-                // Uu tien thap nhat: ISBN
+                // Uu tien 4: ISBN
                 else if (sachChuanHoa.isbn.find(tuKhoaChuanHoa) != string::npos) {
                     loaiKhop = 4;
                 }
@@ -287,7 +284,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa)
             }
         }
         
-        // Sap xep theo uu tien: ten sach truoc, the loai, tac gia, ISBN
+        // Sap xep ket qua: uu tien loaiKhop, neu bang thi ten sach tang dan
         for (int i = 0; i < soKetQua - 1; i++) {
             for (int j = i + 1; j < soKetQua; j++) {
                 bool canHoanDoi = false;

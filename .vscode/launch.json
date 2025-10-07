@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Run main.exe (no debug, minimal)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/LibraryManagement/bin/main.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/LibraryManagement",
+            "environment": [],
+            "externalConsole": true
+        }
+    ]
+}

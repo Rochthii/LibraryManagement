@@ -1,10 +1,25 @@
+
 #ifndef DAUSACH_H
 #define DAUSACH_H
 
 #include <string>
 #include <iostream>
 
+const int MAX_SO_TRANG = 50000;
+const int MAX_BAN_SAO = 10000;
 const int MAX_DAUSACH = 1000;
+const int MAX_KET_QUA_TIM_KIEM = 100;
+const int MAX_TEN_SACH = 500;
+const int MAX_TAC_GIA = 300;
+const int MAX_THE_LOAI = 200;
+const int MAX_VI_TRI_KE = 50;
+const int MIN_TEN_SACH = 1;
+const int MIN_TAC_GIA = 1;
+const int MIN_THE_LOAI = 1;
+const int NAM_XUAT_BAN_MIN = 1000;
+const int NAM_XUAT_BAN_OFFSET_MAX = 5;
+const int SO_LAN_THU_TOI_DA = 5;
+const int SO_NGAY_MUON_TOI_DA = 7;
 
 enum TrangThaiSach {
     CHO_MUON_DUOC = 0,  // Có sẵn để cho mượn
@@ -50,13 +65,8 @@ void sapXepDauSachTheoTen(PTRDAUSACH arr[], int low, int high);
 int partition(PTRDAUSACH arr[], int low, int high);
 void insertionSort(PTRDAUSACH arr[], int low, int high);
 
-//ham ho tro trong main
-void nhapVaThemDauSachTuDong();
-void inDanhSachDauSach();
-void timKiemDauSach();
-
 // ham cho danhmucsach
-void themDanhMucSach(PTRDMS& dms, std::string ISBN, int soLuong);
+void themDanhMucSach(PTRDMS& dms, PTRDAUSACH dsDauSach[], int soLuongDauSach, const std::string& ISBN, int soLuong);
 void capNhatTrangThaiSach(PTRDMS dms, std::string maSach, TrangThaiSach trangThai);
 
 #endif

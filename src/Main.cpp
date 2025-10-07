@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <ctime>
@@ -12,30 +11,31 @@ using namespace std;
 // Nhap va them dau sach tu dong
 void nhapVaThemDauSachTuDong() {
     using namespace InputUtils;
-    thongBao(cout, "=== Thêm đầu sách và đánh mã sách tự động ===", THONG_TIN);
+    thongBao(cout, "=== Thêm đầu sách ===", THONG_TIN);
+
 
     try {
-        // Tu dong sinh ISBN
-        string isbn = SinhISBN13TuDong(cout, false);
-        thongBao(cout, string("✓ Đã tạo ISBN: ") + isbn, THONG_TIN);
-        
-        cout << "\nNhập thông tin đầu sách:\n";
-        string tenSach = NhapTenNhan("tên sách", 1, 200, cin, cout);
-        int soTrang = NhapSoNguyenNhan("số trang", 1, 50000, cin, cout);
-        string tacGia = NhapTenNhan("tác giả", 1, 150, cin, cout);
-        
-        int namHienTai = LayNamHienTai();
-        int namXB = NhapSoNguyenNhan("năm xuất bản", 1000, namHienTai + 5, cin, cout);
-        
-        string theLoai = NhapTenNhan("thể loại", 1, 100, cin, cout);
+        // Nhap ISBN thu cong, kiem tra hop le, khong trung lap
+        string isbn = NhapISBNThuCong(cin, cout);
 
-        // Them dau sach vao danh sach
+    // Nhap thong tin dau sach
+    cout << "\nNhập thông tin đầu sách:\n";
+    string tenSach = NhapTenNhan("tên sách", 1, MAX_TEN_SACH, cin, cout);
+        int soTrang = NhapSoNguyenNhan("số trang", 1, MAX_SO_TRANG, cin, cout);
+    string tacGia = NhapTenNhan("tác giả", 1, MAX_TAC_GIA, cin, cout);
+
+        int namHienTai = LayNamHienTai();
+        int namXB = NhapSoNguyenNhan("năm xuất bản", 1000, namHienTai, cin, cout);
+
+    string theLoai = NhapTenNhan("thể loại", 1, MAX_THE_LOAI, cin, cout);
+
+    // Them dau sach vao danh sach
         cout << "\nĐang thêm vào danh sách...\n";
         bool ok = themDauSach(dsDauSach, soLuongDauSach, isbn, tenSach, soTrang, tacGia, namXB, theLoai);
         if (ok) {
             thongBao(cout, "✓ Đã thêm đầu sách và tự động sắp xếp theo tên!", THONG_TIN);
-            
-            int soLuong = NhapSoNguyenNhan("số bản sao", 0, 10000, cin, cout);
+
+            int soLuong = NhapSoNguyenNhan("số bản sao", 0, MAX_BAN_SAO, cin, cout);
             if (soLuong > 0) {
                 PTRDAUSACH p = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
                 if (p) {
@@ -46,35 +46,28 @@ void nhapVaThemDauSachTuDong() {
                         soHienTai++;
                         temp = temp->next;
                     }
-                    
-                    themDanhMucSach(p->dms, isbn, soLuong);
-                    
-                    string viTriChung = NhapTenNhan("vị trí kệ", 0, 50, cin, cout);
-                    
-                    // Gan vi tri cho cac ban sao moi
+                    themDanhMucSach(p->dms, dsDauSach, soLuongDauSach, isbn, soLuong);
+
+                    string viTriChung = NhapTenNhan("vị trí kệ", 0, MAX_VI_TRI_KE, cin, cout);
+
+
+                    // gan vi tri chung cho all ban sao
                     temp = p->dms;
                     int dem = 0;
                     while (temp && dem < soHienTai) {
                         temp = temp->next;
                         dem++;
                     }
-                    
                     int stt = 1;
                     while (temp && stt <= soLuong) {
                         temp->viTri = viTriChung;
-                        cout << "✓ Bản sao " << stt << " (Mã: " << temp->maSach << ") -> " << viTriChung << "\n";
                         temp = temp->next;
                         stt++;
                     }
-                    
+
                     thongBao(cout, string("✓ Tạo ") + to_string(soLuong) + " bản sao tại kệ '" + viTriChung + "' thành công!", THONG_TIN);
                 }
-            }
-            
-            // Tu dong luu file
-            if (GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach)) {
-                thongBao(cout, "✓ Dữ liệu đã được lưu tự động.", THONG_TIN);
-            }
+            } 
         } else {
             thongBao(cout, "✗ Không thể thêm đầu sách!", LOI);
         }
@@ -120,7 +113,6 @@ void timKiemDauSach() {
         string tuKhoa = NhapTenNhan("từ khóa tìm kiếm", 1, 500, cin, cout);
         
         int found = timDauSach(dsDauSach, soLuongDauSach, tuKhoa);
-        
         if (found < 0) {
             thongBao(cout, "Có lỗi xảy ra trong quá trình tìm kiếm!", LOI);
         } else if (found == 0) {
@@ -129,8 +121,6 @@ void timKiemDauSach() {
             cout << "- Thử tìm với từ khóa ngắn hơn\n";
             cout << "- Kiểm tra chính tả\n";
             cout << "- Thử tìm theo tác giả hoặc thể loại\n";
-        } else {
-            thongBao(cout, string("\n=== HOÀN TẤT: Tìm thấy ") + to_string(found) + " kết quả ===", THONG_TIN);
         }
         
     } catch (const exception& e) {
@@ -149,7 +139,7 @@ int nhapLuaChonMenu() {
         cin.ignore(10000, '\n');
     }
     
-    cout << "Nhập lựa chọn (1-5): ";
+    cout << "Nhập lựa chọn (0-3): ";
     
     try {
         if (!getline(cin, dong)) {
@@ -177,7 +167,7 @@ int nhapLuaChonMenu() {
             }
         }
         
-        thongBao(cout, "Lựa chọn không hợp lệ! Nhập c/d/e hoặc 0-6.", LOI);
+        thongBao(cout, "Lựa chọn không hợp lệ! Nhập c/d/e hoặc 0-3.", LOI);
         return -1;
         
     } catch (const exception& e) {
@@ -285,8 +275,6 @@ int main() {
         cout << "1. c) Nhập thông tin đầu sách và đánh mã sách tự động\n";
         cout << "2. d) In danh sách đầu sách theo thể loại (tên tăng dần)\n";
         cout << "3. e) Tìm thông tin sách theo tên sách\n";
-        cout << "4. Tải dữ liệu từ file\n";
-        cout << "5. Lưu dữ liệu ra file\n";
         cout << "0. Thoát\n";
 
         int choice = nhapLuaChonMenu();
@@ -311,31 +299,17 @@ int main() {
                 case 3: 
                     timKiemDauSach(); 
                     break;
-                case 4: 
-                    NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach);
-                    NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach);
-                    thongBao(cout, "Dữ liệu đã được tải lại.", THONG_TIN);
-                    break;
-                case 5: 
-                    if (GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach) &&
-                        GhiDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach)) {
-                        thongBao(cout, "Lưu dữ liệu thành công.", THONG_TIN);
-                    } else {
-                        thongBao(cout, "Có lỗi khi lưu dữ liệu.", LOI);
-                    }
-                    break;
                 default: 
-                    thongBao(cout, "Lựa chọn không hợp lệ! Vui lòng chọn từ 0-6.", LOI);
+                    thongBao(cout, "Lựa chọn không hợp lệ! Vui lòng chọn từ 0-3.", LOI);
                     break;
             }
         } catch (const exception& e) {
             thongBao(cout, string("Lỗi khi thực thi: ") + e.what(), LOI);
         }
     }
-    
-    // Giai phong bo nho truoc khi thoat
+    GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach);
+    GhiDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach);
     GiaiPhongToanBoDauSach(dsDauSach, soLuongDauSach);
     thongBao(cout, "Chương trình kết thúc. Cảm ơn bạn đã sử dụng!", THONG_TIN);
-    
     return 0;
 }
