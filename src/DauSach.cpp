@@ -1,5 +1,4 @@
 // Chuc nang dau sach: them, in theo the loai, tim kiem, doc/ghi file.
-// Dung InputUtils de kiem tra du lieu, chuan hoa chuoi va doc/ghi dung chung.
 #include <iostream>
 #include <algorithm>
 #include "../include/DauSach.h"
@@ -215,7 +214,6 @@ void inDanhSachTheoTheLoai(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
 int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa) {
     using namespace InputUtils;
     
-    // Kiểm tra tính hợp lệ của đầu vào
     if (!KiemTraDanhSachHopLe(dsDauSach, soLuongDauSach, MAX_DAUSACH, "Danh sách đầu sách")) {
         return -1;
     }
@@ -230,7 +228,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa)
     }
     
     try {
-        // 1. Chuan hoa tu khoa tim kiem
+        // Chuan hoa tu khoa tim kiem
         string tuKhoaChuanHoa = BoDauVaThuong(tuKhoa);
         tuKhoaChuanHoa = ChuanHoaKhoangTrang(tuKhoaChuanHoa);
         
@@ -244,7 +242,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const string& tuKhoa)
         KetQuaTimKiem ketQua[MAX_KET_QUA_TIM_KIEM];
         int soKetQua = 0;
         
-        // 2. Tim kiem trong tat ca dau sach
+        //Tim kiem trong tat ca dau sach
         for (int i = 0; i < soLuongDauSach && soKetQua < MAX_KET_QUA; ++i) {
             PTRDAUSACH p = dsDauSach[i];
             if (!p || p->tenSach.empty()) continue;
