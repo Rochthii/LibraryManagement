@@ -26,20 +26,20 @@ struct TheDocGia{
     bool Phai;//0 nam 1 nu
     int TrangThai = 1;//0 = khoa, 1=hoat dong
     
-    MUONTRA dsmt = NULL;//danh sach muon tra linked list
-    
-    TheDocGia* left;
-    TheDocGia* right;
+    MUONTRA dsmt;//danh sach muon tra linked list
 };
 
 //binary search tree
 struct NodeDG{
     TheDocGia data;
-    NodeDG* left;
-    NodeDG* right;
+    int bf;
+    NodeDG *left, *right;
 };
 typedef NodeDG* PTRDG;
 
+PTRDG RotateLeft(PTRDG root);
+PTRDG RotateRight(PTRDG root);
+PTRDG InsertDocGia(PTRDG &pavltree, TheDocGia x);
 //prototype
 
 //quan ly cay doc gia

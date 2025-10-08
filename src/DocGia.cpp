@@ -1,8 +1,73 @@
 #include "DocGia.h"
 #include "Utils.h"
 #include <iostream>
-//quan ly cay doc gia
 
+//bst-avl
+int DoCao(PTRDG root){
+    if(root == NULL) return 0;
+    int trai = DoCao(root->left);
+    int phai = DoCao(root->right);
+    return 1 + max(trai, phai);
+}
+
+int bfCalc(PTRDG root){
+    int lh, rh;
+    lh = DoCao(root->left);
+    rh = DoCao(root->right);
+    return lh - rh;
+}
+
+PTRDG vitriImbal(PTRDG root){
+    PTRDG vitri;
+    if(root == NULL) return NULL;
+    
+    if(abs(bfCalc(root)) > 1) return root;
+    
+    vitri = vitriImbal(root->left);
+    if(vitri != NULL) return vitri;
+    
+    vitri = vitriImbal(root->right);
+    return vitri;
+}
+PTRDG RotateLeft(PTRDG p){
+    PTRDG cp = p->right;
+    
+    p->right = cp->left;
+    cp->left = p;
+    return cp;
+}
+PTRDG RotateRight(PTRDG p){
+    PTRDG cp = p->left;
+    
+    p->left = cp->right;
+    cp->right = p;
+    return cp;
+}
+//Them AVL
+PTRDG InsertDocGia(PTRDG &pavltree, PTRDG node){    
+//insert node vao
+    PTRDG pavltree = themDocGia(pavltree, node);
+//kiem tra chieu cao
+    int balance = bfCalc(pavltree);
+//Logic AVL
+    if (balance > 1 && node->data.MaThe < pavltree->left->data.MaThe) {
+        return RotateRight(pavltree);//LL
+    }
+    if (balance < -1 && node->data.MaThe > root->right->data.MaThe) {
+        return RotateLeft(pavltree);//RR
+    }
+    if (balance > 1 && node->data.MaThe > pavltree->left->data.MaThe) {
+        pavltree->left = RotateLeft(pavltree->left);
+        return RotateRight(pavltree);//LR
+    }
+    if (balance < -1 && node->data.MaThe < pavltree->right->data.MaThe) {
+        pavltree->right = RotateRight(pavltree->right);
+        return RotateLeft(pavltree);//RL
+    }
+    return pavltree;
+}
+
+//quan ly cay doc gia
 //tao PTRDG docgia
 PTRDG taoDocGia(string ho, string ten, bool phai, int trangthai, PTRDG root){
     PTRDG dg = new NodeDG;
@@ -26,30 +91,38 @@ PTRDG taoDocGia(string ho, string ten, bool phai, int trangthai, int mathe){
     dg->left = dg->right = NULL;
     return dg;
 }
-
-
-
-//ham de quy ho tro chen
+//Them BST
 PTRDG themDocGia(PTRDG &root, PTRDG node){
     if(root == NULL) return node;
     
     if(node->data.MaThe < root->data.MaThe) root->left = themDocGia(root->left, node);
     else if(node->data.MaThe > root->data.MaThe) root->right = themDocGia(root->right, node);
     else{
-        cout << "Ma PTRDG bi trung, khong PTRDG them!"<< endl;
+        cerr << "Ma PTRDG bi trung, khong the them!"<< endl;
     }
     return root;
 }
 
-void xoaDocGia(PTRDG &root, int mathe);
+void xoaDocGia(PTRDG& root, int mathe) {
+    //PTRDG p = root;
+    //PTRDG target = NULL;
+    //target = timDocGia(p, mathe);
+    ////khong co con
+    //if (target->left == NULL && target->right == NULL) delete target;
+    ////co 1 con
+    //if (target->left == NULL || target->right == NULL) {
+    //    PTRDG temp = target->left;
+    }
+}
 
 PTRDG timDocGia(PTRDG root, int mathe){
-    if(root ==NULL) return NULL;
-    if(mathe < root->data.MaThe)
-        return timDocGia(root->left, mathe);
-    else if(mathe > root->data.MaThe)
-        return timDocGia(root->right, mathe);
-    else return root;//da tim thay
+    while (root != NULL && mathe != root->data.MaThe) {
+        if (x < root->data.MaThe)
+            root = root->left;
+        else
+            root = root->right;
+    }
+    return root;
 }
 void display(PTRDG root){
     cout << "MaThe: " << root->data.MaThe
