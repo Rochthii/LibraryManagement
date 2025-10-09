@@ -39,7 +39,7 @@ typedef NodeDG* PTRDG;
 
 PTRDG RotateLeft(PTRDG root);
 PTRDG RotateRight(PTRDG root);
-PTRDG InsertDocGia(PTRDG &pavltree, TheDocGia x);
+void InsertDocGia(PTRDG& root, PTRDG node);
 //prototype
 
 //quan ly cay doc gia
