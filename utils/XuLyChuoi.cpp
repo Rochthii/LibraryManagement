@@ -1,15 +1,11 @@
 #include "include/XuLyChuoi.h"
 #include "include/NgayThang.h"
 #include "include/ThongBao.h"
+#include "Constants.h"
 #include "../include/VietnameseUtils.h"
 #include <stdexcept>
 
-const int DO_DAI_ISBN = 13;
-const int DO_DAI_ISBN_CHECKSUM = 12;
-
-// -------------------------
 // Tiện ích nhỏ (hỗ trợ)
-// -------------------------
 inline bool laKyTuSo(char c) { return c >= '0' && c <= '9'; }
 inline bool laKyTuChuHoa(char c) { return c >= 'A' && c <= 'Z'; }  
 inline bool laKyTuChuThuong(char c) { return c >= 'a' && c <= 'z'; }
@@ -17,15 +13,14 @@ inline bool laKyTuChuCai(char c) { return laKyTuChuHoa(c) || laKyTuChuThuong(c);
 inline bool laKyTuKhoangTrang(char c) { return c==' ' || c=='\t' || c=='\n' || c=='\r' || c=='\f' || c=='\v'; }
 inline char chuyenThanhThuong(char c) { return laKyTuChuHoa(c) ? char(c - 'A' + 'a') : c; }
 
-// Loại bỏ khoảng trắng đầu và cuối chuỗi
-static std::string loaiBoKhoangTrangDauCuoi(const std::string& s){
+
+ std::string loaiBoKhoangTrangDauCuoi(const std::string& s){
     size_t trai = 0, phai = s.size();
     while(trai < phai && laKyTuKhoangTrang(s[trai])) ++trai;
     while(phai > trai && laKyTuKhoangTrang(s[phai-1])) --phai;
     return s.substr(trai, phai - trai);
 }
 
-// Kiểm tra chuỗi rỗng hoặc chỉ khoảng trắng
 bool laChuoiRongHoacChiKhoangTrang(const std::string& s){
     for(char c: s) {
         if(!laKyTuKhoangTrang(c)) return false;
@@ -33,14 +28,12 @@ bool laChuoiRongHoacChiKhoangTrang(const std::string& s){
     return true;
 }
 
-// So sánh độ dài chuỗi với min và max
-static int soSanhDoDaiChuoi(const std::string& s, size_t minL, size_t maxL){
+int soSanhDoDaiChuoi(const std::string& s, size_t minL, size_t maxL){
     if(s.length() < minL) return -1;
     if(s.length() > maxL) return 1;
     return 0;
 }
 
-// Lấy chỉ các ký tự số từ chuỗi
 std::string layChiCacKyTuSo(const std::string& s){
     std::string ketQua; 
     ketQua.reserve(s.size());
@@ -50,7 +43,7 @@ std::string layChiCacKyTuSo(const std::string& s){
     return ketQua;
 }
 
-// Lọc chữ cái Unicode
+
 static std::string locChuCaiUnicodeKhoang1(const std::string& s){
     std::string out; out.reserve(s.size());
     bool truocSpace = true;
@@ -182,11 +175,7 @@ bool ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxL
     ketQua = chuan; return true;
 }
 
-// Bỏ dấu và chuyển thường
 std::string BoDauVaThuong(const std::string& s){
-    // Use VietnameseUtils to remove accents (map to ASCII base letters) and
-    // then normalize whitespace. removeAccents already converts to lowercase
-    // for ASCII letters and maps Vietnamese letters to their ASCII base.
     std::string noAccents = VietnameseUtils::removeAccents(s);
     return ChuanHoaKhoangTrang(noAccents);
 }
@@ -258,7 +247,6 @@ std::string ChuanHoaViTri(const std::string& s) {
     auto containsDigit = [](const std::string& t){ for(char c: t) if (c >= '0' && c <= '9') return true; return false; };
     auto isAsciiLetter = [](char c){ return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); };
 
-    // Nếu có tiền tố Ke/Kệ thì lấy phần sau và chuẩn hóa
     std::string firstLower = VietnameseUtils::toLowerCase(tokens[0]);
     if (firstLower == "ke" || firstLower == "kệ" || firstLower == "kê") {
         if (n == 1) return std::string();
@@ -275,10 +263,6 @@ std::string ChuanHoaViTri(const std::string& s) {
     return raw;
 }
 
-
-
-// Phân tích ngày
-// Chuẩn hóa ISBN core
 bool ChuanHoaISBNCore(const std::string& chuoiGoc, std::string& ketQua, bool tuDong, bool nhapThuCong, bool laDocFile, std::ostream& out) {
     std::string chuoi = CatKhoangTrang(chuoiGoc);
     if (chuoi.empty()) {

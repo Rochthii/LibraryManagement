@@ -1,28 +1,7 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-		{
-			"label": "Build VietnameseUtils Object",
-			"type": "shell",
-			"command": "C:/mingw64/bin/g++.exe",
-			"args": [
-				"-std=c++17",
-				"-Wall",
-				"-Wextra",
-				"-Wno-unused-parameter",
-				"-finput-charset=UTF-8",
-				"-fexec-charset=UTF-8",
-				"-g",
-				"-c",
-				"utils/VietnameseUtils.cpp",
-				"-o",
-				"bin/VietnameseUtils.o"
-			],
-			"group": "build",
-			"problemMatcher": [
-				"$gcc"
-			]
-		},
+
 		{
 			"label": "Build testDauSach (minimal)",
 			"type": "shell",
@@ -34,9 +13,9 @@
 				"-Wno-unused-parameter",
 				"-finput-charset=UTF-8",
 				"-fexec-charset=UTF-8",
+				"-Iinclude",
 				"-g",
 				"main.cpp",
-				"data/Globals.cpp",
 				"data/KiemTraDuLieu.cpp",
 				"data/QuanLySach.cpp",
 				"data/ThaoTacFile.cpp",
@@ -53,9 +32,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"dependsOn": [
-				"Build VietnameseUtils Object"
-			],
+
 			"problemMatcher": [
 				"$gcc"
 			]

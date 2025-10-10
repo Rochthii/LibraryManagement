@@ -76,9 +76,9 @@ Hệ thống quản lý thư viện được xây dựng bằng C++ với các c
 ### Manual Build:
 ```bash
 C:/mingw64/bin/g++.exe -std=c++17 -Wall -Wextra -Wno-unused-parameter \
-  -finput-charset=UTF-8 -fexec-charset=UTF-8 -g \
-  main.cpp data/Globals.cpp data/KiemTraDuLieu.cpp data/QuanLySach.cpp data/ThaoTacFile.cpp data/NhapLieu.cpp data/DocGia.cpp data/TheDocGia.cpp \
-  utils/ThongBao.cpp utils/NgayThang.cpp utils/XuLyChuoi.cpp utils/VietnameseUtils.cpp -I. -o bin/main.exe
+	-finput-charset=UTF-8 -fexec-charset=UTF-8 -g \
+	main.cpp data/KiemTraDuLieu.cpp data/QuanLySach.cpp data/ThaoTacFile.cpp data/NhapLieu.cpp data/DocGia.cpp data/TheDocGia.cpp \
+	utils/ThongBao.cpp utils/NgayThang.cpp utils/XuLyChuoi.cpp utils/VietnameseUtils.cpp -I. -o bin/main.exe
 ```
 
 ## 💾 Data Files

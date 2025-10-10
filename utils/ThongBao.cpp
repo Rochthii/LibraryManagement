@@ -1,8 +1,5 @@
 #include "include/ThongBao.h"
 
-// -------------------------
-// Hiển thị / tạo chuỗi thông báo
-// -------------------------
 // Hiển thị thông báo
 void thongBao(std::ostream& out, const std::string& msg, LoaiThongBao loai) {
     const char* tienTo[] = {"Lỗi: ", "Thông tin: ", "Cảnh báo: "};

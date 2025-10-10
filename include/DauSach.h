@@ -1,4 +1,3 @@
-
 #ifndef DAUSACH_H
 #define DAUSACH_H
 
@@ -32,12 +31,12 @@ struct DauSach {
     int tongBanSao;
 };
 
-typedef DauSach* PTRDAUSACH;   
+typedef DauSach* PTRDS;   
+typedef PTRDS PTRDAUSACH;
 
 // bien toan cuc
-extern PTRDAUSACH dsDauSach[MAX_DAUSACH];
+extern PTRDS dsDauSach[MAX_DAUSACH];
 extern int soLuongDauSach;
-
-bool ChenNodeDMSVaoDauSach(PTRDAUSACH d, const std::string& maSach, int tt, const std::string& viTri);
+extern bool duLieuDaThayDoi;
 
 #endif

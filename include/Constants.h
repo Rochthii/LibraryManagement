@@ -23,7 +23,7 @@ constexpr int MAX_VI_TRI_KE = 50;               // Độ dài vị trí kệ m�
 constexpr int NAM_XUAT_BAN_OFFSET_MAX = 5;      // Offset tối đa cho năm xuất bản
 constexpr int SO_TRUONG_DAU_SACH = 6;            // Số trường trong dòng đầu sách
 constexpr int SO_TRUONG_DMS = 3;                 // Số trường trong dòng danh mục sách
-constexpr int MAX_SO_TRANG = 9999;               // Số trang tối đa
+constexpr int MAX_SO_TRANG = 10000;               // Số trang tối đa
 constexpr int MAX_KET_QUA_TIM_KIEM = 100;        // Số kết quả tìm kiếm tối đa
 
 #endif // CONSTANTS_H

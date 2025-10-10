@@ -1,7 +1,6 @@
 *.exe
 *.o
 main
-data/*
 *.xcodeproj
 *.xcworkspace
 xcuserdata/

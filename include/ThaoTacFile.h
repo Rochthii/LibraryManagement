@@ -11,10 +11,10 @@ static constexpr char FILE_DAUSACH[] = "files/dausach.txt";
 static constexpr char FILE_DANHMUCSACH[] = "files/danhmucsach.txt";
 
 // Đọc ghi file
-void NapDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int& soLuongDauSach, std::ostream& out = std::cout);
-void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, std::ostream& out = std::cout);
-bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent = false, std::ostream& out = std::cout);
-bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent = false, std::ostream& out = std::cout);
+void NapDanhSachDauSach(const char* path, PTRDS dsDauSach[], int& soLuongDauSach, std::ostream& out = std::cout);
+void NapDanhMucSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, std::ostream& out = std::cout);
+bool GhiDanhSachDauSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, bool silent = false, std::ostream& out = std::cout);
+bool GhiDanhMucSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, bool silent = false, std::ostream& out = std::cout);
 
 // Tổng kết đọc/ghi
 void InTongKet(const std::string& hanhDong, int thanhCong, int tongSo, int boQua, std::ostream& out = std::cout);

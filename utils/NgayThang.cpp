@@ -5,16 +5,13 @@
 #include <iomanip>
 #include <sstream>
 
-// -------------------------
-// Hàm ngày / thời gian
-// -------------------------
 int LayNamHienTai() {
     time_t now = time(nullptr);
     struct tm* t = localtime(&now);
     return t->tm_year + 1900;
 }
 
-// Lấy ngày hiện tại dạng chuỗi
+// Lay ngay hien tai dang chuoi
 std::string layNgayHienTai(std::ostream& out) {
     time_t now = time(nullptr);
     struct tm* t = localtime(&now);
@@ -25,34 +22,28 @@ std::string layNgayHienTai(std::ostream& out) {
 
 // Chuyển chuỗi ngày sang time_t
 time_t ChuyenNgaySangTimeT(const std::string& ngay, std::ostream& out) {
-    // Phân tích chuỗi ngày (định dạng dd/mm/yyyy) vào ngày/tháng/năm
     int day, month, year;
     if (!phanTichNgay(ngay, day, month, year)) {
         thongBao(out, "Ngày không đúng định dạng: " + ngay, LOI);
         return -1;
     }
-
     // Khởi tạo cấu trúc tm một cách an toàn và rõ ràng
-    std::tm t{}; // zero-initialize tất cả các trường
+    std::tm t{}; 
     t.tm_mday = day;
     t.tm_mon  = month - 1;     // tm_mon chạy từ 0..11
     t.tm_year = year - 1900;   // tm_year là năm kể từ 1900
-
-    // Thiết lập thời gian về nửa đêm để tránh lệch múi giờ/giờ hè
     t.tm_hour = 0;
     t.tm_min  = 0;
     t.tm_sec  = 0;
-    t.tm_isdst = -1; // để mktime tự xác định DST nếu cần
+    t.tm_isdst = -1;
 
     time_t result = mktime(&t);
     if (result == -1) {
-        // mktime có thể trả -1 khi không thể chuyển đổi
         thongBao(out, "Không thể chuyển ngày sang time_t: " + ngay, LOI);
     }
     return result;
 }
 
-// Tính số ngày quá hạn
 int tinhSoNgayQuaHan(const std::string& ngayMuon, std::ostream& out) {
     time_t now = time(nullptr);
     time_t tMuon = ChuyenNgaySangTimeT(ngayMuon, out);

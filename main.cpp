@@ -11,14 +11,12 @@
 #include "include/NgayThang.h"
 #include "include/Constants.h"
 #include "include/VietnameseUtils.h"
-
-// Use C/C++ locale facilities for cross-platform UTF-8 handling.
-#include <clocale>   // setlocale
-#include <locale>    // std::locale
+#include <clocale>  
+#include <locale>  
 
 using namespace std;
 
-extern PTRDAUSACH dsDauSach[];
+extern PTRDS dsDauSach[];
 extern int soLuongDauSach;
 extern bool duLieuDaThayDoi;
 
@@ -27,15 +25,11 @@ void thongBaoMain(std::ostream& out, const std::string& msg, LoaiThongBao loai) 
     thongBao(out, msg, loai);
 }
 
-// Nhập và thêm đầu sách tự động
 void nhapVaThemDauSachTuDong() {
     thongBaoMain(cout, "=== Thêm đầu sách ===", THONG_TIN);
 
     try {
-        // Nhập ISBN thủ công, kiểm tra hợp lệ, không trùng lặp
         string isbn = NhapISBNThuCong(cin, cout);
-
-        // Nhập thông tin đầu sách
         cout << "\nNhập thông tin đầu sách:\n";
         string tenSach = NhapTen("tên sách", MIN_TEN_SACH, MAX_TEN_SACH, cin, cout);
         int soTrang = NhapSoNguyen("số trang", 1, MAX_SO_TRANG, cin, cout);
@@ -60,7 +54,7 @@ void nhapVaThemDauSachTuDong() {
         }
 
         // Tìm đầu sách vừa thêm
-        PTRDAUSACH dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
         if (!dauSach) {
             thongBaoMain(cout, "Lỗi: Không tìm thấy đầu sách vừa thêm!", LOI);
             return;
@@ -78,7 +72,6 @@ void nhapVaThemDauSachTuDong() {
             if (!themDanhMucSach(dauSach->dms, maSach, CHO_MUON_DUOC, viTri)) {
                 thongBaoMain(cout, "Không thể thêm mã sách: " + maSach, LOI);
             } else {
-                // Cập nhật tổng bản sao của đầu sách
                 dauSach->tongBanSao += 1;
                 thongBaoMain(cout, "Đã thêm mã sách: " + maSach, THONG_TIN);
             }
@@ -103,9 +96,7 @@ int nhapLuaChonMenu(int min, int max) {
 
 // Hàm chính
 int main() {
-    // Khởi tạo console / locale (cross-platform) để hỗ trợ UTF-8.
     VietnameseUtils::initConsoleForUtf8();
-
     NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach, cout);
     NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach, cout);
     while (true) {
@@ -127,7 +118,6 @@ int main() {
                     GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach, false, cout);
                     GhiDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach, false, cout);
                 }
-                // Giải phóng bộ nhớ trước khi thoát
                 GiaiPhongToanBoDauSach(dsDauSach, soLuongDauSach);
                 thongBaoMain(cout, "Đã thoát chương trình!", THONG_TIN);
                 return 0;
