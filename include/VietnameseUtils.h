@@ -243,6 +243,61 @@ std::vector<std::string> splitWords(const std::string& input);
  */
 std::string joinWords(const std::vector<std::string>& words, const std::string& separator = " ");
 
+/**
+ * @brief Khởi tạo console / locale để hỗ trợ UTF-8 trên cả Windows và POSIX.
+ *
+ * - Trên Windows: cố gắng chuyển code page sang UTF-8 (CP_UTF8) và bật
+ *   ANSI VT processing khi có thể.
+ * - Trên macOS/Linux: gọi setlocale(LC_ALL, "") và thiết lập locale cho iostream.
+ *
+ * Hàm này được đặt trong VietnameseUtils để tách phần platform-specific
+ * khỏi `main.cpp` và các file khác.
+ */
+void initConsoleForUtf8() noexcept;
+
+// -----------------------------------------------------------------------------
+// Backward-compatibility wrappers (inline) - expose legacy names used elsewhere
+// -----------------------------------------------------------------------------
+// These are thin forwarding functions to the canonical API above. They are
+// defined inline to avoid duplicate-symbol/linker issues and to allow gradual
+// migration from old names to the new API.
+
+inline void appendCodePointUtf8(std::string& out, uint32_t cp) noexcept {
+    appendCodePoint(out, cp);
+}
+
+inline uint32_t docCodePointUtf8(const std::string& s, size_t& i) noexcept {
+    return readCodePoint(s, i);
+}
+
+inline bool laChuCaiLatinUnicode(uint32_t cp) noexcept {
+    return isVietnameseLetter(cp);
+}
+
+inline uint32_t chuyenDoiCaseTiengViet(uint32_t cp, bool thanhHoa) noexcept {
+    return convertCase(cp, thanhHoa);
+}
+
+inline uint32_t chuyenThanhHoaTiengViet(uint32_t cp) noexcept {
+    return toUpper(cp);
+}
+
+inline uint32_t chuyenThanhThuongTiengViet(uint32_t cp) noexcept {
+    return toLower(cp);
+}
+
+inline std::string tieuDeHoaTiengViet(const std::string& s) {
+    return toTitleCase(s);
+}
+
+inline std::string chuanHoaTenTiengViet(const std::string& ten) {
+    return toTitleCase(ten);
+}
+
+inline std::string chuanHoaChuoiTiengViet(const std::string& chuoi) {
+    return trimAndNormalize(chuoi);
+}
+
 } // namespace VietnameseUtils
 
 #endif // VIETNAMESE_UTILS_H

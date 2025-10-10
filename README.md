@@ -1,3 +1,4 @@
+
 # Library Management System 📚
 
 Hệ thống quản lý thư viện được xây dựng bằng C++ với các cấu trúc dữ liệu tối ưu và hỗ trợ đầy đủ tiếng Việt.
@@ -37,13 +38,16 @@ Hệ thống quản lý thư viện được xây dựng bằng C++ với các c
 ### 📁 Cấu trúc thư mục
 ```
 📦 LibraryManagement/
-├── 📂 src/           # Source code (.cpp)
-├── 📂 include/       # Headers (.h) 
-├── 📂 data/          # Data files (txt)
-├── 📂 bin/           # Compiled executables
-├── 📂 .vscode/       # VS Code tasks
-├── 🔧 run.cmd        # Auto-build script
-└── 📖 README.md      # This file
+├── 📂 utils/         # Mã nguồn và tiện ích (.cpp)
+├── 📂 include/       # Thư viện giao diện (headers .h)
+├── 📂 data/          # Các module dữ liệu (.cpp)
+├── 📂 files/         # Ví dụ / file sao lưu (backup)
+├── 📂 bin/           # Thư mục chứa executable đã biên dịch
+├── 📂 .vscode/       # Cấu hình và tasks cho VS Code
+├── 🔧 run.cmd        # Script tự động build + run
+├── 📝 main.cpp       # Điểm vào chương trình (file tại root)
+├── .gitignore        # Tệp cấu hình git ignore
+└── 📖 README.md      # Tệp hướng dẫn này
 ```
 
 ## 🛠️ Yêu cầu hệ thống
@@ -73,8 +77,8 @@ Hệ thống quản lý thư viện được xây dựng bằng C++ với các c
 ```bash
 C:/mingw64/bin/g++.exe -std=c++17 -Wall -Wextra -Wno-unused-parameter \
   -finput-charset=UTF-8 -fexec-charset=UTF-8 -g \
-  src/Main.cpp src/DauSach.cpp \
-  src/DanhMucSach.cpp src/InputUtils.cpp src/VietnameseUtils.cpp -o bin/main.exe
+  main.cpp data/Globals.cpp data/KiemTraDuLieu.cpp data/QuanLySach.cpp data/ThaoTacFile.cpp data/NhapLieu.cpp data/DocGia.cpp data/TheDocGia.cpp \
+  utils/ThongBao.cpp utils/NgayThang.cpp utils/XuLyChuoi.cpp utils/VietnameseUtils.cpp -I. -o bin/main.exe
 ```
 
 ## 💾 Data Files
@@ -112,7 +116,7 @@ Module `VietnameseUtils` đã được nâng cấp thành bộ công cụ xử l
 
 ### 📁 Files:
 - `include/VietnameseUtils.h`: API với Doxygen documentation
-- `src/VietnameseUtils.cpp`: Implementation tối ưu
+- `utils/VietnameseUtils.cpp`: Implementation tối ưu
 
 ### 📈 Upgrade History:
 - **v2.1.0**: Professional module với hash tables và comprehensive API
@@ -125,9 +129,9 @@ Module `VietnameseUtils` đã được nâng cấp thành bộ công cụ xử l
 **Nguồn dữ liệu Unicode cho tiếng Việt:**
 - **Unicode Standard**: [The Unicode Consortium](https://unicode.org/charts/PDF/U0000.pdf) - Official Unicode charts
 - **Vietnamese Unicode Range**: 
-  - Latin-1 Supplement (U+0080–U+00FF)
-  - Latin Extended-A (U+0100–U+017F) 
-  - Latin Extended Additional (U+1E00–U+1EFF)
+	- Latin-1 Supplement (U+0080–U+00FF)
+	- Latin Extended-A (U+0100–U+017F) 
+	- Latin Extended Additional (U+1E00–U+1EFF)
 - **Case Mapping**: [Unicode Case Mapping Data](https://unicode.org/Public/UCD/latest/ucd/CaseFolding.txt)
 
 ### 📖 Technical References
@@ -192,20 +196,20 @@ Danh sách liên kết đơn (MASACH, NgayMuon, NgayTra, trạng thái): trạng
 ### ✅ Tình trạng tổng thể
 - **Ổn định**: Project build thành công, chạy được mà không có lỗi runtime. Đã test với dữ liệu mẫu (59 đầu sách, 166 bản sao) và menu hoạt động bình thường.
 - **Đúng yêu cầu đề bài**: 
-  - Hoàn thành các chức năng chính (c, d, e) theo đề bài.
-  - Cấu trúc dữ liệu đúng: Đầu sách (mảng con trỏ), Danh mục sách (liên kết đơn), Thẻ độc giả (cây BST), Mượn trả (liên kết đơn).
-  - Xử lý tiếng Việt UTF-8, kiểm tra lỗi đầu vào, quản lý bộ nhớ an toàn.
+	- Hoàn thành các chức năng chính (c, d, e) theo đề bài.
+	- Cấu trúc dữ liệu đúng: Đầu sách (mảng con trỏ), Danh mục sách (liên kết đơn), Thẻ độc giả (cây BST), Mượn trả (liên kết đơn).
+	- Xử lý tiếng Việt UTF-8, kiểm tra lỗi đầu vào, quản lý bộ nhớ an toàn.
 - **Mở rộng thêm**: Có thể phát triển a, b, f, g, h, i, j nếu cần.
 
 ### 🔍 Đánh giá chi tiết
 - **Code quality**: 
-  - Cấu trúc rõ ràng, tách file hợp lý (src/, include/, data/).
-  - Comment đã được dọn dẹp và chuẩn hóa: Loại bỏ comment không cần thiết, giữ lại mô tả hàm, thêm comment trong hàm cho chỗ khó hiểu. Tất cả comment bằng tiếng Việt không dấu, dễ hiểu.
-  - Không có lỗi syntax hoặc logic sau chỉnh sửa.
+	- Cấu trúc rõ ràng, tách file hợp lý (utils/, include/, data/).
+	- Comment đã được dọn dẹp và chuẩn hóa: Loại bỏ comment không cần thiết, giữ lại mô tả hàm, thêm comment trong hàm cho chỗ khó hiểu. Tất cả comment bằng tiếng Việt không dấu, dễ hiểu.
+	- Không có lỗi syntax hoặc logic sau chỉnh sửa.
 - **Build & Run**: 
-  - Sử dụng MinGW g++ C++17, hỗ trợ UTF-8.
-  - Script `run.cmd` tự động build và run, rất tiện lợi.
-  - VS Code tasks hoạt động tốt.
+	- Sử dụng MinGW g++ C++17, hỗ trợ UTF-8.
+	- Script `run.cmd` tự động build và run, rất tiện lợi.
+	- VS Code tasks hoạt động tốt.
 - **Dữ liệu**: File data (dausach.txt, danhmucsach.txt, etc.) được load/save chính xác.
 - **Tính năng nâng cao**: Auto-backup, validation ISBN, xử lý quá hạn, top sách mượn nhiều – vượt yêu cầu cơ bản.
 

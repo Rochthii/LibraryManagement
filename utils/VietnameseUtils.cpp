@@ -18,20 +18,33 @@
  * @copyright Unicode data © Unicode, Inc. Licensed under Unicode License Agreement
  */
 
-#include "../include/VietnameseUtils.h"
+#if defined(__has_include)
+#  if __has_include("../include/VietnameseUtils.h")
+#    include "../include/VietnameseUtils.h"
+#  elif __has_include("include/VietnameseUtils.h")
+#    include "include/VietnameseUtils.h"
+#  else
+#    error "VietnameseUtils.h not found"
+#  endif
+#else
+#  include "../include/VietnameseUtils.h"
+#endif
 #include <cctype>
 #include <algorithm>
 #include <unordered_map>
 #include <array>
+#include <iostream>
+#include <clocale>
+#include <locale>
+#include <cstdlib>
 
 using namespace std;
 
 namespace VietnameseUtils {
 
-// =============================================================================
-// PRIVATE CONSTANTS VA LOOKUP TABLES
-// =============================================================================
-
+// -------------------------
+// Bảng tra cứu và hằng số nội bộ
+// -------------------------
 namespace {
     // Kiem tra la ky tu khong gian (space, tab, newline, etc.)
     constexpr bool isWhitespace(char c) noexcept { 
@@ -621,45 +634,40 @@ string joinWords(const vector<string>& words, const string& separator) {
     return result;
 }
 
-// =============================================================================
-// BACKWARD COMPATIBILITY ALIASES  
-// =============================================================================
-
-// Provide old function names for backward compatibility
-void appendCodePointUtf8(string& out, uint32_t cp) {
-    appendCodePoint(out, cp);
+// -----------------------------------------------------------------------------
+// Platform-specific initialization helper for console / locale
+// -----------------------------------------------------------------------------
+void initConsoleForUtf8() noexcept {
+    // Portable best-effort UTF-8 initialization.
+    // On Windows, invoke chcp 65001 to set the console code page to UTF-8.
+    // On other platforms, use locale settings.
+    #if defined(_WIN32)
+    // Use system() to change code page; avoids direct WinAPI dependency so code
+    // compiles across MinGW/GCC/MSVC without pulling in windows.h.
+    try {
+        std::system("chcp 65001 >nul");
+    } catch (...) {
+        // ignore failures
+    }
+    // Also try to imbue C++ streams with the user's locale as a fallback
+    try {
+        std::locale::global(std::locale(""));
+        std::cout.imbue(std::locale());
+    } catch (...) {
+        // ignore locale errors; best-effort only
+    }
+    #else
+    setlocale(LC_ALL, "");
+    try {
+        std::locale::global(std::locale(""));
+        std::cout.imbue(std::locale());
+    } catch (...) {
+        // ignore locale errors; best-effort only
+    }
+    #endif
 }
 
-uint32_t docCodePointUtf8(const string& s, size_t& i) {
-    return readCodePoint(s, i);
-}
-
-bool laChuCaiLatinUnicode(uint32_t cp) {
-    return isVietnameseLetter(cp);
-}
-
-uint32_t chuyenDoiCaseTiengViet(uint32_t cp, bool thanhHoa) {
-    return convertCase(cp, thanhHoa);
-}
-
-uint32_t chuyenThanhHoaTiengViet(uint32_t cp) {
-    return toUpper(cp);
-}
-
-uint32_t chuyenThanhThuongTiengViet(uint32_t cp) {
-    return toLower(cp);
-}
-
-string tieuDeHoaTiengViet(const string& s) {
-    return toTitleCase(s);
-}
-
-string chuanHoaTenTiengViet(const string& ten) {
-    return toTitleCase(ten);
-}
-
-string chuanHoaChuoiTiengViet(const string& chuoi) {
-    return trimAndNormalize(chuoi);
-}
+// Backward-compatibility aliases are provided inline in the header to avoid
+// duplicate definitions. (Removed .cpp wrappers.)
 
 } // namespace VietnameseUtils
