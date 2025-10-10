@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-PTRDAUSACH dsDauSach[MAX_DAUSACH] = { nullptr };
+PTRDS dsDauSach[MAX_DAUSACH] = { nullptr };
 int soLuongDauSach = 0;
 bool duLieuDaThayDoi = false;
 
@@ -49,7 +49,7 @@ int checksumEAN13(const std::string& s12) {
     return chuSoKiemTra;
 }
 
-// Sinh ISBN-13 tu dong
+// Sinh ISBN-13 tu dong(co the dung neu can)
 std::string SinhISBN13TuDong(std::ostream& out) {
     std::string s12 = taoChuoiSoNgauNhien(DO_DAI_ISBN_CHECKSUM);
     int check = checksumEAN13(s12);
@@ -102,7 +102,6 @@ bool themDanhMucSach(PTRDMS& dms, const std::string& maSach, TrangThaiSach trang
     return true;
 }
 
-// Cap nhat trang thai sach
 void capNhatTrangThaiSach(PTRDMS dms, const std::string& maSach, TrangThaiSach trangThai) {
     PTRDMS p = dms;
     int dem = 0;
@@ -119,8 +118,7 @@ void capNhatTrangThaiSach(PTRDMS dms, const std::string& maSach, TrangThaiSach t
     }
 }
 
-// Tim danh muc theo ma sach
-PTRDMS timDanhMucTheoMaSach(const std::string& maSach, PTRDAUSACH ds[], int n, std::ostream& out, bool silent /*= false*/) {
+PTRDMS timDanhMucTheoMaSach(const std::string& maSach, PTRDS ds[], int n, std::ostream& out, bool silent /*= false*/) {
     for (int i = 0; i < n; ++i) {
         if (ds[i]) {
             PTRDMS p = ds[i]->dms;
@@ -137,22 +135,21 @@ PTRDMS timDanhMucTheoMaSach(const std::string& maSach, PTRDAUSACH ds[], int n, s
     }
     if (!silent) {
         std::string isbn = TachISBNTuMaSach(maSach);
-        PTRDAUSACH foundDau = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    PTRDS foundDau = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
         std::string detail = "Không tìm thấy mã sách: " + maSach + " (ISBN=" + isbn + ", dauSach=" + (foundDau ? "FOUND" : "MISSING") + ")";
         thongBao(out, detail, LOI);
     }
     return nullptr;
 }
 
-// Tim dau sach theo ISBN
-PTRDAUSACH TimDauSachTheoISBN(PTRDAUSACH ds[], int n, const std::string& isbn) {
+PTRDS TimDauSachTheoISBN(PTRDS ds[], int n, const std::string& isbn) {
     for (int chiSo = 0; chiSo < n; ++chiSo) {
         if (ds[chiSo] && ds[chiSo]->ISBN == isbn) return ds[chiSo];
     }
     return nullptr;
 }
 
-void InMotDauSach(PTRDAUSACH d, std::ostream& out) {
+void InMotDauSach(PTRDS d, std::ostream& out) {
     if (!d) {
         thongBao(out, "Đầu sách không tồn tại!", LOI);
         return;
@@ -182,8 +179,7 @@ void InMotDauSach(PTRDAUSACH d, std::ostream& out) {
     }
 }
 
-// Them dau sach moi
-bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const std::string& ISBN, const std::string& tenSach, int soTrang, const std::string& tacGia, int namXuatBan, const std::string& theLoai, bool anLang) {
+bool themDauSach(PTRDS dsDauSach[], int& soLuongDauSach, const std::string& ISBN, const std::string& tenSach, int soTrang, const std::string& tacGia, int namXuatBan, const std::string& theLoai, bool anLang) {
     if (!KiemTraDanhSachHopLe(dsDauSach, soLuongDauSach, MAX_DAUSACH, "Danh sách đầu sách", std::cout)) {
         return false;
     }
@@ -245,7 +241,7 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const std::string&
     }
     
     // Them dau sach moi
-    PTRDAUSACH newBook = new DauSach;
+    PTRDS newBook = new DauSach;
     newBook->ISBN = isbnKiemTra;
     newBook->tenSach = VietnameseUtils::toTitleCase(tenSach);
     newBook->soTrang = soTrang;
@@ -267,7 +263,7 @@ bool themDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach, const std::string&
     return true;
 }
 
-void inDanhSachTheoTheLoai(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+void inDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach) {
     if (!KiemTraDanhSachHopLe(dsDauSach, soLuongDauSach, MAX_DAUSACH, "Danh sách đầu sách", std::cout)) {
         return;
     }
@@ -306,8 +302,8 @@ void inDanhSachTheoTheLoai(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
     }
 }
 
-// Tim sach theo tu khoa
-int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const std::string& tuKhoa) {
+// Tim sach theo tu khoa(tensach, tacgia, the loai,...)
+int timDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa) {
     
     if (!KiemTraDanhSachHopLe(dsDauSach, soLuongDauSach, MAX_DAUSACH, "Danh sách đầu sách")) {
         return -1;
@@ -329,7 +325,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const std::string& tu
         
     // Mang luu ket qua
         struct KetQuaTimKiem {
-            PTRDAUSACH sach;
+            PTRDS sach;
             int loaiKhop;  // 1=ten sach, 2=the loai, 3=tac gia, 4=ISBN
         };
         
@@ -339,7 +335,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const std::string& tu
         
     // Tim kiem trong tat ca dau sach
         for (int i = 0; i < soLuongDauSach && soKetQua < MAX_KET_QUA; ++i) {
-            PTRDAUSACH p = dsDauSach[i];
+                PTRDS p = dsDauSach[i];
             if (!p || p->tenSach.empty()) continue;
             
             try {
@@ -423,7 +419,7 @@ int timDauSach(PTRDAUSACH dsDauSach[], int soLuongDauSach, const std::string& tu
 }
 
 // Sap xep dau sach theo ten
-void sapXepDauSachTheoTen(PTRDAUSACH arr[], int low, int high) {
+void sapXepDauSachTheoTen(PTRDS arr[], int low, int high) {
     if (!arr || low < 0 || high >= MAX_DAUSACH || low >= high) return;
     
     try {
@@ -440,10 +436,10 @@ void sapXepDauSachTheoTen(PTRDAUSACH arr[], int low, int high) {
 }
 
 // Ham phu cho quick sort
-int partition(PTRDAUSACH arr[], int low, int high) {
+int partition(PTRDS arr[], int low, int high) {
     if (!arr || low < 0 || high >= MAX_DAUSACH) return low;
     
-    PTRDAUSACH pivot = arr[high];
+    PTRDS pivot = arr[high];
     if (!pivot) return low;
     
     int i = low - 1;
@@ -459,11 +455,11 @@ int partition(PTRDAUSACH arr[], int low, int high) {
 }
 
 // Insertion sort cho dau sach
-void insertionSort(PTRDAUSACH arr[], int low, int high) {
+void insertionSort(PTRDS arr[], int low, int high) {
     if (!arr || low < 0 || high >= MAX_DAUSACH) return;
     
     for (int i = low + 1; i <= high; ++i) {
-        PTRDAUSACH key = arr[i];
+    PTRDS key = arr[i];
         if (!key) continue;
         
         int j = i - 1;
@@ -475,7 +471,6 @@ void insertionSort(PTRDAUSACH arr[], int low, int high) {
     }
 }
 
-// Phan tich trang thai sach
 int PhanTichTrangThaiSach(const std::string& trangThai, std::ostream& out) {
     std::string tt = VietnameseUtils::trimAndNormalize(trangThai);
     if (tt == "0" || tt == "0\r") return CHO_MUON_DUOC;
@@ -488,7 +483,6 @@ int PhanTichTrangThaiSach(const std::string& trangThai, std::ostream& out) {
     return -1;
 }
 
-// Giai phong danh muc sach
 void GiaiPhongDanhMucSach(PTRDMS& dms) {
     while (dms) {
         PTRDMS temp = dms;
@@ -498,8 +492,7 @@ void GiaiPhongDanhMucSach(PTRDMS& dms) {
     dms = nullptr;
 }
 
-// Giai phong dau sach
-void GiaiPhongDauSach(PTRDAUSACH& dauSach) {
+void GiaiPhongDauSach(PTRDS& dauSach) {
     if (dauSach) {
         GiaiPhongDanhMucSach(dauSach->dms);
         delete dauSach;
@@ -507,8 +500,7 @@ void GiaiPhongDauSach(PTRDAUSACH& dauSach) {
     }
 }
 
-// Giai phong toan bo dau sach
-void GiaiPhongToanBoDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach) {
+void GiaiPhongToanBoDauSach(PTRDS dsDauSach[], int& soLuongDauSach) {
     if (!dsDauSach) return;
     for (int i = 0; i < soLuongDauSach; ++i) {
         GiaiPhongDauSach(dsDauSach[i]);
@@ -516,7 +508,7 @@ void GiaiPhongToanBoDauSach(PTRDAUSACH dsDauSach[], int& soLuongDauSach) {
     soLuongDauSach = 0;
 }
 
-int DemTongSoBanSao(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+int DemTongSoBanSao(PTRDS dsDauSach[], int soLuongDauSach) {
     int tong = 0;
     if (!dsDauSach) return 0;
     for (int i = 0; i < soLuongDauSach; ++i) {
@@ -536,7 +528,7 @@ int DemTongSoBanSao(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
     return tong;
 }
 
-bool ChenNodeDMSVaoDauSach(PTRDAUSACH d, const std::string& maSach, int tt, const std::string& viTri) {
+bool ChenNodeDMSVaoDauSach(PTRDS d, const std::string& maSach, int tt, const std::string& viTri) {
     if (!d) return false;
     if (tt < 0 || tt > 2) return false;
 
@@ -549,7 +541,7 @@ bool ChenNodeDMSVaoDauSach(PTRDAUSACH d, const std::string& maSach, int tt, cons
     return true;
 }
 
-void CapNhatTongBanSao(PTRDAUSACH dsDauSach[], int soLuongDauSach) {
+void CapNhatTongBanSao(PTRDS dsDauSach[], int soLuongDauSach) {
     if (!dsDauSach) return;
     for (int i = 0; i < soLuongDauSach; ++i) {
         if (!dsDauSach[i]) continue;

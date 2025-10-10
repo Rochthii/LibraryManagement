@@ -27,7 +27,6 @@ time_t ChuyenNgaySangTimeT(const std::string& ngay, std::ostream& out) {
         thongBao(out, "Ngày không đúng định dạng: " + ngay, LOI);
         return -1;
     }
-    // Khởi tạo cấu trúc tm một cách an toàn và rõ ràng
     std::tm t{}; 
     t.tm_mday = day;
     t.tm_mon  = month - 1;     // tm_mon chạy từ 0..11

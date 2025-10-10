@@ -22,7 +22,7 @@ static bool KiemTraSoTrang(int soTrang, std::ostream& out) {
 }
 
 // Nạp danh sách đầu sách
-void NapDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int& soLuongDauSach, std::ostream& out) {
+void NapDanhSachDauSach(const char* path, PTRDS dsDauSach[], int& soLuongDauSach, std::ostream& out) {
     std::ifstream inp(path);
     if (!inp.is_open()) {
         thongBao(out, "Không thể mở file đầu sách: " + std::string(path), LOI);
@@ -88,7 +88,7 @@ void NapDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int& soLuongDa
 }
 
 // Nạp danh mục sách
-void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, std::ostream& out) {
+void NapDanhMucSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, std::ostream& out) {
     std::ifstream inp(path);
     if (!inp.is_open()) {
         thongBao(out, "Không thể mở file danh mục sách: " + std::string(path), LOI);
@@ -115,7 +115,7 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
             continue;
         }
         std::string isbn = TachISBNTuMaSach(maSach);
-        PTRDAUSACH dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
         if (!dauSach) {
             thongBao(out, thongBaoLoiDMS(soThuTuDong, "Không tìm thấy đầu sách cho mã sách: " + maSach, true), CANH_BAO);
             ++soLuongBoQua;
@@ -148,7 +148,7 @@ void NapDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach
 }
 
 // Ghi danh sách đầu sách
-bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent, std::ostream& out) {
+bool GhiDanhSachDauSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, bool silent, std::ostream& out) {
     std::ofstream outf(path);
     if (!outf.is_open()) {
         if (!silent) thongBao(out, "Không thể mở file để ghi đầu sách: " + std::string(path), LOI);
@@ -172,7 +172,7 @@ bool GhiDanhSachDauSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDau
 }
 
 // Ghi danh mục sách
-bool GhiDanhMucSach(const char* path, PTRDAUSACH dsDauSach[], int soLuongDauSach, bool silent, std::ostream& out) {
+bool GhiDanhMucSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, bool silent, std::ostream& out) {
     std::ofstream outf(path);
     if (!outf.is_open()) {
         if (!silent) thongBao(out, "Không thể mở file để ghi danh mục sách: " + std::string(path), LOI);

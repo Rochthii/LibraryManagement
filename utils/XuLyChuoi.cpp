@@ -86,7 +86,6 @@ static bool hopLeTheoDoDai(const std::string& s, size_t minL, size_t maxL, std::
     return false;
 }
 
-// Chuyển đổi chuỗi thành số nguyên
 bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiChoPhepSoDuong){
     if(chuoi.empty()) return false;
     long long dau = 1;
@@ -107,17 +106,14 @@ bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiCho
     return true;
 }
 
-// Chuyển in thường
 std::string ChuyenInThuong(const std::string& dauVao){
     return VietnameseUtils::toLowerCase(dauVao);
 }
 
-// Cắt khoảng trắng
 std::string CatKhoangTrang(const std::string& s){
     return loaiBoKhoangTrangDauCuoi(s);
 }
 
-// Chuẩn hóa khoảng trắng
 std::string ChuanHoaKhoangTrang(const std::string& s){
     std::string out; out.reserve(s.size());
     bool prevSpace = false;
@@ -132,7 +128,6 @@ std::string ChuanHoaKhoangTrang(const std::string& s){
     return loaiBoKhoangTrangDauCuoi(out);
 }
 
-// Chuẩn hóa phái
 std::string ChuanHoaPhai(const std::string& raw){
     std::string loc; 
     loc.reserve(raw.size());
@@ -163,7 +158,6 @@ bool ChuanHoaISBNFile(const std::string& chuoiGoc, std::string& ketQua, std::ost
     return ChuanHoaISBNCore(chuoiGoc, ketQua, true, false, true, out);
 }
 
-// Chuẩn hóa tên Unicode
 bool ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength,
                         std::ostream& out, std::string& ketQua){
     if(dauVao.empty()){ thongBao(out, "Không được để trống!", LOI); return false; }
@@ -180,7 +174,6 @@ std::string BoDauVaThuong(const std::string& s){
     return ChuanHoaKhoangTrang(noAccents);
 }
 
-// Chuẩn hóa dữ liệu sách
 ThongTinSachChuanHoa ChuanHoaDuLieuSach(const std::string& tenSach, const std::string& tacGia, 
                                         const std::string& theLoai, const std::string& isbn) {
     ThongTinSachChuanHoa ketQua;
@@ -219,13 +212,11 @@ int TachTokenKhoangTrang(const std::string& s, std::string tokens[], int maxTok)
     return soToken;
 }
 
-// Kiểm tra chứa tất cả từ khóa
 bool ChuaTatCaTuKhoa(const std::string& haystack, const std::string tokens[], int count){
     for(int i=0;i<count;++i){ if(haystack.find(tokens[i]) == std::string::npos) return false; }
     return true;
 }
 
-// Kiểm tra khớp tiêu đề không dấu
 bool KhopTieuDeKhongDau(const std::string& titleNorm, const std::string& kwNorm,
                         const std::string tokens[], int tokenCount){
     return ChuaTatCaTuKhoa(titleNorm, tokens, tokenCount);

@@ -32,7 +32,6 @@ struct DauSach {
 };
 
 typedef DauSach* PTRDS;   
-typedef PTRDS PTRDAUSACH;
 
 // bien toan cuc
 extern PTRDS dsDauSach[MAX_DAUSACH];

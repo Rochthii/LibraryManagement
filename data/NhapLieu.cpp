@@ -5,10 +5,6 @@
 #include "include/ThongBao.h"
 #include "include/Constants.h"
 
-// -------------------------
-// Nhập liệu - trợ giúp
-// -------------------------
-// In thông báo số lần thử còn lại
 void thongBaoSoLanThuConLai(int soLanDaThu, std::ostream& out, int maxLanThu) {
     if (soLanDaThu < maxLanThu)
         thongBao(out, "Còn " + std::to_string(maxLanThu - soLanDaThu) + " lần thử.", LOI);
@@ -26,9 +22,6 @@ static inline void kiemTraEOF(std::istream& in) {
     throw std::invalid_argument("Lỗi: Quá số lần nhập sai cho phép!");
 }
 
-// -------------------------
-// Các hàm nhập từng loại trường
-// -------------------------
 // Nhập tên
 std::string NhapTen(const char* nhan, size_t minLength, size_t maxLength, std::istream& in, std::ostream& out) {
     std::string goc;
@@ -55,7 +48,6 @@ std::string NhapTen(const char* nhan, size_t minLength, size_t maxLength, std::i
     nemLoiQuaSoLanNhap();
 }
 
-// Nhập số nguyên
 int NhapSoNguyen(const char* nhan, int minVal, int maxVal, std::istream& in, std::ostream& out) {
     int soLanThu = 0;
     while (soLanThu < SO_LAN_THU_TOI_DA) {
@@ -75,7 +67,6 @@ int NhapSoNguyen(const char* nhan, int minVal, int maxVal, std::istream& in, std
     nemLoiQuaSoLanNhap();
 }
 
-// Nhập phái
 std::string NhapPhai(std::istream& in, std::ostream& out) {
     std::string phaiNhapVao;
     int soLanThu = 0;
@@ -100,7 +91,6 @@ std::string NhapPhai(std::istream& in, std::ostream& out) {
     nemLoiQuaSoLanNhap();
 }
 
-// Nhập ISBN thủ công
 std::string NhapISBNThuCong(std::istream& in, std::ostream& out) {
     int soLanThu = 0;
     while (soLanThu < SO_LAN_THU_TOI_DA) {

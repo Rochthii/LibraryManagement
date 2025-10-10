@@ -8,9 +8,6 @@
 extern PTRDS dsDauSach[];
 extern int soLuongDauSach;
 
-// -------------------------
-// Kiểm tra chuỗi / dữ liệu cơ bản
-// -------------------------
 // Kiểm tra chuỗi rỗng
 bool KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTruong, std::ostream& out){
     if(chuoi.empty()) { thongBao(out, tenTruong + " không được rỗng!", LOI); return false; }
@@ -18,9 +15,6 @@ bool KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTruong, st
     return true;
 }
 
-// -------------------------
-// Kiểm tra dạng / ràng buộc dữ liệu
-// -------------------------
 // Kiểm tra trạng thái thẻ
 bool KiemTraTrangThaiThe(int trangThai, std::ostream& out) {
     if (trangThai == 0 || trangThai == 1) return true;
@@ -74,10 +68,6 @@ bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out) {
     if(coMaSach) thongBao(out, "Trùng mã sách!", LOI);
     return coMaSach;
 }
-
-// -------------------------
-// Kiểm tra danh sách / cấu trúc
-// -------------------------
 // Kiểm tra danh sách hợp lệ
 bool KiemTraDanhSachHopLe(void* danhSach, int soLuong, int maxSize, const std::string& tenDS, std::ostream& out) {
     if (!danhSach) {
@@ -95,9 +85,6 @@ bool KiemTraDanhSachHopLe(void* danhSach, int soLuong, int maxSize, const std::s
     return true;
 }
 
-// -------------------------
-// Kiểm tra chuỗi chi tiết
-// -------------------------
 // Kiểm tra chuỗi và độ dài
 bool KiemTraChuoiVaDodai(const std::string& str, const std::string& fieldName, int maxLen, std::ostream& out) {
     if (!KiemTraChuoiRong(str, fieldName, out)) {

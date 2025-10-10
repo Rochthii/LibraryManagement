@@ -9,9 +9,6 @@ if not exist bin\main.exe (
     exit /b 1
 )
 
-REM Nếu bạn đang chạy từ PowerShell, dùng `run_ps.ps1` để có hiển thị UTF-8 tốt hơn:
-REM   powershell -NoProfile -File .\run_ps.ps1 -- args...
-
 REM Đảm bảo console dùng UTF-8
 chcp 65001 >nul
 REM Đặt OutputEncoding cho PowerShell (nếu chạy từ VSCode)
