@@ -19,8 +19,6 @@ bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiCho
 std::string ChuanHoaViTri(const std::string& s);
 bool ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::ostream& out, std::string& ketQua);
 std::string BoDauVaThuong(const std::string& s);
-
-// Prototype cho hàm kiểm tra chuỗi rỗng hoặc chỉ khoảng trắng
 bool laChuoiRongHoacChiKhoangTrang(const std::string& s);
 
 // Struct chuẩn hóa dữ liệu sách

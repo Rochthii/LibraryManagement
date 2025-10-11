@@ -6,8 +6,8 @@
 #include "Constants.h"
 
 enum TrangThaiSach {
-    CHO_MUON_DUOC = 0,  // Co san de cho muon
-    DANG_MUON = 1,      // Dang duoc muon
+    CHO_MUON_DUOC = 0,  
+    DANG_MUON = 1,    
     THANH_LY = 2        // Da thanh ly / loai bo
 };
 
