@@ -1,14 +1,14 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "include/ThaoTacFile.h"
-#include "include/KiemTraDuLieu.h"
-#include "include/XuLyChuoi.h"
-#include "include/QuanLySach.h"
-#include "include/ThongBao.h"
-#include "include/DauSach.h"
-#include "include/Constants.h"
-#include "../include/VietnameseUtils.h"
+#include "ThaoTacFile.h"
+#include "KiemTraDuLieu.h"
+#include "XuLyChuoi.h"
+#include "QuanLySach.h"
+#include "ThongBao.h"
+#include "DauSach.h"
+#include "Constants.h"
+#include "VietnameseUtils.h"
 
 using namespace std;
 

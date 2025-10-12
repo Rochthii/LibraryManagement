@@ -1,8 +1,8 @@
-#include "include/XuLyChuoi.h"
-#include "include/NgayThang.h"
-#include "include/ThongBao.h"
+#include "XuLyChuoi.h"
+#include "NgayThang.h"
+#include "ThongBao.h"
 #include "Constants.h"
-#include "../include/VietnameseUtils.h"
+#include "VietnameseUtils.h"
 #include <stdexcept>
 
 // Tiện ích nhỏ (hỗ trợ)

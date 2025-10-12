@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "../include/DocGia.h"
-#include "../include/DauSach.h"
+#include "DocGia.h"
+#include "DauSach.h"
 
 using namespace std;
 

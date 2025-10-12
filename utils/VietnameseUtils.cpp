@@ -19,15 +19,15 @@
  */
 
 #if defined(__has_include)
-#  if __has_include("../include/VietnameseUtils.h")
-#    include "../include/VietnameseUtils.h"
-#  elif __has_include("include/VietnameseUtils.h")
-#    include "include/VietnameseUtils.h"
+#  if __has_include("VietnameseUtils.h")
+#    include "VietnameseUtils.h"
+#  elif __has_include("VietnameseUtils.h")
+#    include "VietnameseUtils.h"
 #  else
 #    error "VietnameseUtils.h not found"
 #  endif
 #else
-#  include "../include/VietnameseUtils.h"
+#  include "VietnameseUtils.h"
 #endif
 #include <cctype>
 #include <algorithm>

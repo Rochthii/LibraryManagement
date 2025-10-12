@@ -1,4 +1,4 @@
-#include "include/ThongBao.h"
+#include "ThongBao.h"
 
 void thongBao(std::ostream& out, const std::string& msg, LoaiThongBao loai) {
     const char* tienTo[] = {"Lỗi: ", "Thông tin: ", "Cảnh báo: "};

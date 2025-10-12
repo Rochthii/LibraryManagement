@@ -1,6 +1,22 @@
 #include "DocGia.h"
-#include "Utils.h"
+//#include "Utils.h"
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include "NgayThang.h"
+
+static PTRDG InsertDocGiaRec(PTRDG pavtree, PTRDG node);
+static PTRDG xoaDocGiaRec(PTRDG root, int mathe);
+
+int sinhMaTheNgauNhien(PTRDG root) {
+    srand((unsigned int)time(NULL));
+    int ma;
+    do {
+        ma = rand() % 9000 + 1000;
+    } while (timDocGia(root, ma) != NULL);
+    return ma;
+}
 
 //bst-avl
 int DoCao(PTRDG root){
@@ -43,43 +59,39 @@ PTRDG RotateRight(PTRDG p){
     cp->right = p;
     return cp;
 }
-PTRDG Balance(PTRDG& root, PTRDG node) {
-    int balance = bfCalc(root);
-    if(balance > 1 && node->data.MaThe < root->data.MaThe)
-}
 //Them AVL
-PTRDG InsertDocGia(PTRDG pavltree, PTRDG node){    
-//insert node vao
-    if (pavltree == NULL)
-        return node;
+static PTRDG InsertDocGiaRec(PTRDG pavltree, PTRDG node){
+        // insert node vao
+        if (pavltree == nullptr)
+            return node;
 
-    if (node->data.MaThe < pavltree->data.MaThe)
-        pavltree->left = InsertDocGia(pavltree->left, node);
-    else if (node->data.MaThe > pavltree->data.MaThe)
-        pavltree->right = InsertDocGia(pavltree->right, node);
-    else
-        return root;
-//kiem tra chieu cao
-    int balance = bfCalc(pavltree);
-//Logic AVL
-    if (balance > 1 && node->data.MaThe < pavltree->left->data.MaThe) {
-        return RotateRight(pavltree);//LL
-    }
-    if (balance < -1 && node->data.MaThe > pavltree->right->data.MaThe) {
-        return RotateLeft(pavltree);//RR
-    }
-    if (balance > 1 && node->data.MaThe > pavltree->left->data.MaThe) {
-        pavltree->left = RotateLeft(pavltree->left);
-        return RotateRight(pavltree);//LR
-    }
-    if (balance < -1 && node->data.MaThe < pavltree->right->data.MaThe) {
-        pavltree->right = RotateRight(pavltree->right);
-        return RotateLeft(pavltree);//RL
-    }
-    return pavltree;
+        if (node->data.MaThe < pavltree->data.MaThe)
+            pavltree->left = InsertDocGiaRec(pavltree->left, node);
+        else if (node->data.MaThe > pavltree->data.MaThe)
+            pavltree->right = InsertDocGiaRec(pavltree->right, node);
+        else
+            return pavltree;
+        // kiem tra chieu cao
+        int balance = bfCalc(pavltree);
+        // Logic AVL
+        if (balance > 1 && node->data.MaThe < pavltree->left->data.MaThe) {
+            return RotateRight(pavltree);//LL
+        }
+        if (balance < -1 && node->data.MaThe > pavltree->right->data.MaThe) {
+            return RotateLeft(pavltree);//RR
+        }
+        if (balance > 1 && node->data.MaThe > pavltree->left->data.MaThe) {
+            pavltree->left = RotateLeft(pavltree->left);
+            return RotateRight(pavltree);//LR
+        }
+        if (balance < -1 && node->data.MaThe < pavltree->right->data.MaThe) {
+            pavltree->right = RotateRight(pavltree->right);
+            return RotateLeft(pavltree);//RL
+        }
+        return pavltree;
 }
 void InsertDocGia(PTRDG &root, PTRDG node) {
-    pavltree = InsertDocGia(root, node);
+    root = InsertDocGiaRec(root, node);
 }
 
 //quan ly cay doc gia
@@ -118,17 +130,27 @@ PTRDG themDocGia(PTRDG &root, PTRDG node){
     return root;
 }
 
-PTRDG xoaDocGia(PTRDG root, int mathe) {
+void giaiPhongDsmt(MUONTRA& dsmt) {
+    while (dsmt != NULL) {
+        MUONTRA tmp = dsmt;
+        dsmt = dsmt->next;
+        delete tmp;
+    }
+}
+
+static PTRDG xoaDocGiaRec(PTRDG root, int mathe) {
     if (root == NULL) return root;
     //Tim node can xoa
     if (mathe < root->data.MaThe) {
-        root->left = xoaDocGia(root->left, mathe);
+        root->left = xoaDocGiaRec(root->left, mathe);
     }
     else if (mathe > root->data.MaThe) {
-        root->right = xoaDocGia(root->right, mathe);
+        root->right = xoaDocGiaRec(root->right, mathe);
     }
     else {//mathe == root->data.MaThe (tim duoc node can xoa)
         //TH1: khong con hoac 1 con
+        giaiPhongDsmt(root->data.dsmt);
+
         if (root->left == NULL || root->right == NULL) {
             PTRDG temp = root->left ? root->left : root->right;
             delete root;
@@ -141,7 +163,7 @@ PTRDG xoaDocGia(PTRDG root, int mathe) {
         //copy du lieu the mang
         root->data = temp->data;
         //xoa the mang
-        root->right = xoaDocGia(root->right, temp->data.MaThe);
+        root->right = xoaDocGiaRec(root->right, temp->data.MaThe);
     }
     //neu cay chi co mot la
     if (root == NULL) return root;
@@ -170,12 +192,12 @@ PTRDG xoaDocGia(PTRDG root, int mathe) {
     return root;
 }
 void xoaDocGia(PTRDG& root, int mathe) {
-    root = xoaDocGia(root, mathe);
+    root = xoaDocGiaRec(root, mathe);
 }
 
 PTRDG timDocGia(PTRDG root, int mathe){
     while (root != NULL && mathe != root->data.MaThe) {
-        if (x < root->data.MaThe)   
+        if (mathe < root->data.MaThe)   
             root = root->left;
         else
             root = root->right;
@@ -292,11 +314,17 @@ PTRDG loadDocGia(){
         size_t p3 = info.find(',', p2 + 1);
         size_t p4 = info.find(',', p3 + 1);
         //chuyen doi du lieu de cho vao dg
-        mathe = stoi(info.substr(0, p1));
-        ho = info.substr(p1 + 1, p2 - p1 - 1);
-        ten = info.substr(p2 + 1, p3 - p2 - 1);
-        phai = stoi(info.substr(p3 + 1, p4 - p3 - 1));
-        trangthai = stoi(info.substr(p4 + 1));
+        try {
+            mathe = stoi(info.substr(0, p1));
+            ho = info.substr(p1 + 1, p2 - p1 - 1);
+            ten = info.substr(p2 + 1, p3 - p2 - 1);
+            phai = stoi(info.substr(p3 + 1, p4 - p3 - 1));
+            trangthai = stoi(info.substr(p4 + 1));
+        }
+        catch (...) {
+            cerr << "Loi khi parse doc gia:" << info << endl;
+            continue;
+        }
         //tao node tu du lieu tren
         dg = taoDocGia(ho, ten, phai, trangthai, mathe);
         //xu li ds muon tra
@@ -314,11 +342,11 @@ PTRDG loadDocGia(){
             }
             if(!token.empty()){//xu ly token
                 MuonTra mt;
-                if(token.find("(T)") != string::npos){//xet trang thai de xoa (T) va tra ve gia tri dung
+                if(token.size() >= 3 && token.find("(T)") == token.size() - 3) {//xet trang thai de xoa (T) va tra ve gia tri dung
                     mt.MaSach = token.substr(0, token.size() - 3);
                     mt.TrangThai = 1;
                 }
-                else if(token.find("(M)") != string::npos){//xet trang thai de xoa (M) va tra ve gia tri dung
+                else if(token.size() >= 3 && token.find("(M)") == token.size() - 3) {//xet trang thai de xoa (M) va tra ve gia tri dung
                     mt.MaSach = token.substr(0, token.size() - 3);
                     mt.TrangThai = 2;
                 }

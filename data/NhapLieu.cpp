@@ -1,9 +1,9 @@
-#include "include/NhapLieu.h"
-#include "include/KiemTraDuLieu.h"
-#include "../include/VietnameseUtils.h"
-#include "include/XuLyChuoi.h"
-#include "include/ThongBao.h"
-#include "include/Constants.h"
+#include "NhapLieu.h"
+#include "KiemTraDuLieu.h"
+#include "VietnameseUtils.h"
+#include "XuLyChuoi.h"
+#include "ThongBao.h"
+#include "Constants.h"
 
 void thongBaoSoLanThuConLai(int soLanDaThu, std::ostream& out, int maxLanThu) {
     if (soLanDaThu < maxLanThu)

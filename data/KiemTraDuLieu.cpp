@@ -1,9 +1,9 @@
-#include "include/KiemTraDuLieu.h"
-#include "include/ThongBao.h"
-#include "include/XuLyChuoi.h"
-#include "include/QuanLySach.h"
-#include "include/NgayThang.h"
-#include "include/DauSach.h"
+#include "KiemTraDuLieu.h"
+#include "ThongBao.h"
+#include "XuLyChuoi.h"
+#include "QuanLySach.h"
+#include "NgayThang.h"
+#include "DauSach.h"
 
 extern PTRDS dsDauSach[];
 extern int soLuongDauSach;
