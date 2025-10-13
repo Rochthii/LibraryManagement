@@ -177,6 +177,7 @@ void InMotDauSach(PTRDS d, std::ostream& out) {
             thongBao(out, "Phát hiện vòng lặp vô hạn trong danh mục sách!", LOI);
         }
     }
+    std::cout << std::endl;
 }
 
 bool themDauSach(PTRDS dsDauSach[], int& soLuongDauSach, const std::string& ISBN, const std::string& tenSach, int soTrang, const std::string& tacGia, int namXuatBan, const std::string& theLoai, bool anLang) {
@@ -293,12 +294,13 @@ void inDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach) {
     
     // In tung the loai
     for (int i = 0; i < soTheLoai; ++i) {
-        thongBao(std::cout, "Thể loại: " + theLoaiDaIn[i], THONG_TIN);
+        thongBao(std::cout, "Thể loại: " + theLoaiDaIn[i], THONG_TIN); std::cout << std::endl;
         for (int j = 0; j < soLuongDauSach; ++j) {
             if (dsDauSach[j] && dsDauSach[j]->theLoai == theLoaiDaIn[i]) {
                 InMotDauSach(dsDauSach[j], std::cout);
             }
         }
+        std::cout <<std::endl;
     }
 }
 

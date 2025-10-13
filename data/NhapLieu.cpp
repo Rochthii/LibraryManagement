@@ -5,11 +5,6 @@
 #include "ThongBao.h"
 #include "Constants.h"
 
-void thongBaoSoLanThuConLai(int soLanDaThu, std::ostream& out, int maxLanThu) {
-    if (soLanDaThu < maxLanThu)
-        thongBao(out, "Còn " + std::to_string(maxLanThu - soLanDaThu) + " lần thử.", LOI);
-}
-
 // Kiểm tra EOF hoặc lỗi stream
 static inline void kiemTraEOF(std::istream& in) {
     if (in.eof() || in.fail()) {

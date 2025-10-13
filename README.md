@@ -82,10 +82,10 @@ C:/mingw64/bin/g++.exe -std=c++17 -Wall -Wextra -Wno-unused-parameter \
 ```
 
 ## 💾 Data Files
-- `data/dausach.txt` - Danh sách đầu sách
-- `data/danhmucsach.txt` - Danh mục các bản sao
-- `data/docgia.txt` - Thông tin độc giả  
-- `data/muontra.txt` - Lịch sử mượn trả
+- `files/dausach.txt` - Danh sách đầu sách
+- `files/danhmucsach.txt` - Danh mục các bản sao
+- `files/docgia.txt` - Thông tin độc giả  
+- `files/muontra.txt` - Lịch sử mượn trả
 
 ## 🎯 Workflow đơn giản
 1. **Edit code** → Save
@@ -204,7 +204,6 @@ Danh sách liên kết đơn (MASACH, NgayMuon, NgayTra, trạng thái): trạng
 ### 🔍 Đánh giá chi tiết
 - **Code quality**: 
 	- Cấu trúc rõ ràng, tách file hợp lý (utils/, include/, data/).
-	- Comment đã được dọn dẹp và chuẩn hóa: Loại bỏ comment không cần thiết, giữ lại mô tả hàm, thêm comment trong hàm cho chỗ khó hiểu. Tất cả comment bằng tiếng Việt không dấu, dễ hiểu.
 	- Không có lỗi syntax hoặc logic sau chỉnh sửa.
 - **Build & Run**: 
 	- Sử dụng MinGW g++ C++17, hỗ trợ UTF-8.

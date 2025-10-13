@@ -12,7 +12,6 @@
 
 using namespace std;
 
-// Kiểm tra số trang
 static bool KiemTraSoTrang(int soTrang, std::ostream& out) {
     if (soTrang <= 0 || soTrang > MAX_SO_TRANG) {
         thongBao(out, "Số trang phải từ 1-" + to_string(MAX_SO_TRANG) + "!", LOI);
@@ -21,7 +20,6 @@ static bool KiemTraSoTrang(int soTrang, std::ostream& out) {
     return true;
 }
 
-// Nạp danh sách đầu sách
 void NapDanhSachDauSach(const char* path, PTRDS dsDauSach[], int& soLuongDauSach, std::ostream& out) {
     std::ifstream inp(path);
     if (!inp.is_open()) {
@@ -143,7 +141,6 @@ void NapDanhMucSach(const char* path, PTRDS dsDauSach[], int soLuongDauSach, std
         thongBao(out, "Lỗi đọc file danh mục sách!", LOI);
     }
     inp.close();
-    // Sau khi nạp xong danh mục sách, cập nhật lại trường tongBanSao cho toàn bộ đầu sách
     CapNhatTongBanSao(dsDauSach, soLuongDauSach);
 }
 

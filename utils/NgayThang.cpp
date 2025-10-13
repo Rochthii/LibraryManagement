@@ -11,7 +11,7 @@ int LayNamHienTai() {
     return t->tm_year + 1900;
 }
 
-// Lay ngay hien tai dang chuoi
+// Lay ngay hien tai theo dang chuoi
 std::string layNgayHienTai(std::ostream& out) {
     time_t now = time(nullptr);
     struct tm* t = localtime(&now);

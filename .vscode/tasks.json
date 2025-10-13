@@ -41,6 +41,22 @@
 			"label": "Run via run.cmd",
 			"type": "shell",
 			"command": "cmd /c .\\run.cmd",
+			"dependsOn": [
+				"Build testDauSach (minimal)"
+			],
+			"options": {
+				"env": {
+					"LANG": "en_US.UTF-8"
+				}
+			},
+			"group": "none",
+			"problemMatcher": []
+		},
+
+		{
+			"label": "Run via run.cmd (direct)",
+			"type": "shell",
+			"command": "cmd /c .\\run.cmd",
 			"options": {
 				"env": {
 					"LANG": "en_US.UTF-8"

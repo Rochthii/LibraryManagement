@@ -4,12 +4,7 @@
 #include <string>
 #include <iostream>
 #include "ThongBao.h"
-
-// Số lần thử tối đa cho nhập liệu
-extern const int SO_LAN_THU_TOI_DA;
-
-// In thông báo số lần thử còn lại
-void thongBaoSoLanThuConLai(int soLanDaThu, std::ostream& out, int maxLanThu = SO_LAN_THU_TOI_DA);
+#include "Constants.h"
 
 // Nhập dữ liệu
 std::string NhapTen(const char* nhan, size_t minLength, size_t maxLength, std::istream& in = std::cin, std::ostream& out = std::cout);

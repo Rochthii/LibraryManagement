@@ -1,0 +1,7 @@
+[
+    {
+        "key": "f10",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Run via run.cmd (direct)"
+    }
+]

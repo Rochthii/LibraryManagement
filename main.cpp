@@ -34,8 +34,8 @@ void nhapVaThemDauSachTuDong() {
         int namHienTai = LayNamHienTai();
         int namXB = NhapSoNguyen("năm xuất bản", NAM_XUAT_BAN_MIN, namHienTai + NAM_XUAT_BAN_OFFSET_MAX, cin, cout);
         string theLoai = NhapTen("thể loại", MIN_THE_LOAI, MAX_THE_LOAI, cin, cout);
-    int soLuongBanSao = NhapSoNguyen("số lượng bản sao", 1, MAX_BAN_SAO, cin, cout);
-    std::string viTriChung = NhapTen("vị trí ", 0, MAX_VI_TRI_KE, cin, cout);
+        int soLuongBanSao = NhapSoNguyen("số lượng bản sao", 1, MAX_BAN_SAO, cin, cout);
+        string viTriChung = NhapTen("vị trí ", 0, MAX_VI_TRI_KE, cin, cout);
 
         if (!KiemTraTongSoBanSao(isbn, soLuongBanSao, cout)) {
             return;
@@ -87,23 +87,22 @@ int nhapLuaChonMenu(int min, int max) {
     }
 }
 
-// Hàm chính
 int main() {
     VietnameseUtils::initConsoleForUtf8();
     NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach, cout);
     NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach, cout);
     while (true) {
+        try {
+            cout << "\n=== QUẢN LÝ THƯ VIỆN ===\n";
+            cout << "1. Nhập đầu sách\n";
+            cout << "2. In danh sách đầu sách theo thể loại\n";
+            cout << "3. Tìm kiếm sách theo tên\n";
+            cout << "0. Thoát\n";
 
-        cout << "\n=== QUẢN LÝ THƯ VIỆN ===\n";
-        cout << "1. Nhập đầu sách\n";
-        cout << "2. In danh sách đầu sách theo thể loại\n";
-        cout << "3. Tìm kiếm sách theo tên\n";
-        cout << "0. Thoát\n";
+            int luaChon = nhapLuaChonMenu(0, 3);
+            if (luaChon == -1) continue;
 
-        int luaChon = nhapLuaChonMenu(0, 3);
-        if (luaChon == -1) continue;
-
-        switch (luaChon) {
+            switch (luaChon) {
             case 0:
                 if (duLieuDaThayDoi) {
                     GhiDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach, false, cout);
@@ -134,6 +133,13 @@ int main() {
                 thongBao(cout, "Lựa chọn không hợp lệ!", LOI);
                 break;
         }
+    } catch (const std::exception& e) {
+        thongBao(cout, std::string("Lỗi không mong muốn: ") + e.what(), LOI);
+        if (cin.fail()) cin.clear();
+        std::string discard;
+        std::getline(cin, discard);
+        continue;
+    }
     }
     return 0;
 }
