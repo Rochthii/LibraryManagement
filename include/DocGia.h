@@ -47,7 +47,7 @@ PTRDG themDocGia(PTRDG &root, PTRDG node);
 void xoaDocGia(PTRDG &root, int mathe);
 PTRDG timDocGia(PTRDG root, int mathe);
 void inDocGiaInOrder(PTRDG root);
-void hieuChinhDocGia(PTRDG root, int mathe);
+void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int mathe);
 
 //quan ly muon tra
 void themMuonTra(PTRDG root, string maSach);

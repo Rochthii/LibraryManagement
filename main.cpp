@@ -94,9 +94,9 @@ int main() {
     while (true) {
         try {
             cout << "\n=== QUẢN LÝ THƯ VIỆN ===\n";
-            cout << "1. Nhập đầu sách\n";
-            cout << "2. In danh sách đầu sách theo thể loại\n";
-            cout << "3. Tìm kiếm sách theo tên\n";
+            cout << "1. Nhập đầu sách\n";//c
+            cout << "2. In danh sách đầu sách theo thể loại\n";//d
+            cout << "3. Tìm kiếm sách theo tên\n";//e
             cout << "0. Thoát\n";
 
             int luaChon = nhapLuaChonMenu(0, 3);

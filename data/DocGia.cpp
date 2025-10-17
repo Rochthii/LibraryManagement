@@ -204,6 +204,19 @@ PTRDG timDocGia(PTRDG root, int mathe){
     }
     return root;
 }
+
+void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int mathe) {
+    PTRDG p = timDocGia(root, mathe);
+    if (strcmp(p->data.Ho, pAlt->data.Ho) != 0) p->data.Ho = pAlt->data.Ho;
+    if (strcmp(p->data.Ten, pAlt->data.Ten) != 0) p->data.Ten = pAlt->data.Ten;
+    if (p->data.Phai != pAlt->data.Phai) p->data.Phai = pAlt->data.Phai;
+    if (p->data.TrangThai != pAlt->data.TrangThai) p->data.TrangThai = pAlt->data.TrangThai;
+}
+
+/// <summary>
+/// IN DANH SACH DOC GIA
+/// </summary>
+/// <param name="root"></param>
 void display(PTRDG root){
     cout << "MaThe: " << root->data.MaThe
          << " | HoTen: " << root->data.Ho << " " << root->data.Ten
@@ -218,8 +231,11 @@ void inDocGiaInOrder(PTRDG root){
         inDocGiaInOrder(root->right);
     }
 }
-
-//quan ly muon tra
+/// <summary>
+/// MUON SACH
+/// </summary>
+/// <param name="docgia"></param>
+/// <param name="maSach"></param>
 void themMuonTra(PTRDG docgia, string maSach){
     if(docgia == NULL)return;
     
@@ -247,6 +263,37 @@ void themMuonTra(PTRDG docgia, const MuonTra &mt) {
     node->next = docgia->data.dsmt;
     docgia->data.dsmt = node;
 }
+
+bool kiemTraQuaHan(MUONTRA dsmt);
+
+int demSachDangMuon(MUONTRA dsmt);
+
+void muonSach(PTRDG root, int maThe, string maSach);
+
+/// <summary>
+/// TRA SACH
+/// </summary>
+/// <param name="ds"></param>
+/// <param name="out"></param>
+void traSach(PTRDG root, int maThe, string maSach);
+
+MUONTRA timMuonTra(MUONTRA ds, string maSach);
+
+/// <summary>
+/// LIET KE CAC SACH 1 DOC GIA DANG MUON
+/// </summary>
+/// <param name="ds"></param>
+/// <param name="out"></param>
+void lietKeSachDangMuon(PTRDG root, int maThe)
+
+/// <summary>
+/// IN DANH SACH MUON QUA HAN
+/// </summary>
+/// <param name="ds"></param>
+/// <param name="out"></param>
+void lietKeDocGiaQuaHan(PTRDG root);
+
+int tinhSoNgayQuaHan(string ngayMuon);
 
 void saveDsMuonTra(MUONTRA ds, ofstream &out){
     while(ds != NULL){
