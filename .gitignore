@@ -1,3 +1,26 @@
+# Build artifacts
+bin/
+build/
+
+# Compiled binaries
+*.exe
+*.dll
+*.obj
+*.o
+
+# VS Code
+.vscode/
+
+# Logs and temporary files
+*.log
+run_debug.log
+
+# Editor swap / user files
+*.swp
+*.user
+
+# Backup files
+files/backup_* 
 *.exe
 *.o
 main
@@ -8,5 +31,3 @@ DerivedData/
 .DS_Store
 .vs/
 
-# Exclude web-app directory
-web-app/

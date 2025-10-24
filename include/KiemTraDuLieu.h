@@ -2,20 +2,16 @@
 #define KIEMTRADULIEU_H
 
 #include <string>
-#include <iostream>
+#include <iostream> 
 #include "DauSach.h"
-#include "ThongBao.h"
 
-// Kiểm tra dữ liệu
-bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out = std::cout);
-bool KiemTraChuoiRong(const std::string& str, const std::string& fieldName, std::ostream& out = std::cout);
-bool KiemTraTrangThaiThe(int trangThai, std::ostream& out = std::cout);
-bool KiemTraMaThe(const std::string& maThe, std::ostream& out = std::cout);
-bool KiemTraISBN(const std::string& ISBN, std::ostream& out = std::cout);
-bool KiemTraTongSoBanSao(const std::string& isbn, int soLuongSach, std::ostream& out = std::cout);
-bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out = std::cout);
-bool KiemTraDanhSachHopLe(void* danhSach, int soLuong, int maxSize, const std::string& tenDS, std::ostream& out = std::cout);
-bool KiemTraChuoiVaDodai(const std::string& str, const std::string& fieldName, int maxLen, std::ostream& out = std::cout);
-bool KiemTraNamXuatBan(int nam, std::ostream& out = std::cout);
+std::string KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTruong);
+bool KiemTraTrungISBN(const std::string& ISBN, std::ostream& out);
+bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out);
+std::string KiemTraChuoiVaDodai(const std::string& str, const std::string& fieldName, int maxLen);
+std::string KiemTraNamXuatBan(int nam);
+bool KiemTraISBN(const std::string& ISBN, std::ostream& out);
+bool KiemTraDanhSachHopLe(void* danhSach, int soLuong, int maxSize, const std::string& tenDS, std::ostream& out);
+bool KiemTraTongSoBanSao(const std::string& isbn, int soLuongThem, std::ostream& out);
 
-#endif // KIEMTRADULIEU_H
+#endif

@@ -1,104 +1,183 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-
-		{
-			"label": "Build testDauSach (minimal)",
-			"type": "shell",
-			"command": "C:/mingw64/bin/g++.exe",
-			"args": [
-				"-std=c++17",
-				"-Wall",
-				"-Wextra",
-				"-Wno-unused-parameter",
-				"-finput-charset=UTF-8",
-				"-fexec-charset=UTF-8",
-				"-Iinclude",
-				"-g",
-				"main.cpp",
-				"data/KiemTraDuLieu.cpp",
-				"data/QuanLySach.cpp",
-				"data/ThaoTacFile.cpp",
-				"data/NhapLieu.cpp",
-				"utils/ThongBao.cpp",
-				"utils/NgayThang.cpp",
-				"utils/XuLyChuoi.cpp",
-				"utils/VietnameseUtils.cpp",
-				"-I.",
-				"-o",
-				"bin/main.exe"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-
-			"problemMatcher": [
-				"$gcc"
-			]
-		},
-		{
-			"label": "Run via run.cmd",
-			"type": "shell",
-			"command": "cmd /c .\\run.cmd",
-			"dependsOn": [
-				"Build testDauSach (minimal)"
-			],
-			"options": {
-				"env": {
-					"LANG": "en_US.UTF-8"
-				}
-			},
-			"group": "none",
-			"problemMatcher": []
-		},
-
-		{
-			"label": "Run via run.cmd (direct)",
-			"type": "shell",
-			"command": "cmd /c .\\run.cmd",
-			"options": {
-				"env": {
-					"LANG": "en_US.UTF-8"
-				}
-			},
-			"group": "none",
-			"problemMatcher": []
-		},
-
-		{
-			"label": "Run testDauSach",
-			"type": "shell",
-			"command": "chcp 65001; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; .\\bin\\main.exe",
-			"dependsOn": [
-				"Build testDauSach (minimal)"
-			]
-		},
-		{
-			"label": "Run main.exe (UTF-8)",
-			"type": "shell",
-			"command": "chcp 65001; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; .\\bin\\main.exe",
-			"isBackground": false,
-			"group": "build",
-			"dependsOn": [
-				"Build testDauSach (minimal)"
-			]
-		},
-		{
-			"label": "build: gen_dausach",
-			"type": "shell",
-			"command": "C:/mingw64/bin/g++.exe",
-			"args": [
-				"-std=gnu++17",
-				"-O2",
-				"tools/gen_dausach.cpp",
-				"-o",
-				"tools/gen_dausach.exe"
-			],
-			"problemMatcher": [
-				"$gcc"
-			],
-			"group": "build"
-		}
-	]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (MinGW64)",
+            "type": "shell",
+            "command": "C:/msys64/mingw64/bin/g++.exe",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "-Ilib/SFML/include",
+                "-g",
+                "main.cpp",
+                "GiaoDien.cpp",
+                "data/KiemTraDuLieu.cpp",
+                "data/QuanLySach.cpp",
+                "data/ThaoTacFile.cpp",
+                "data/NhapLieu.cpp",
+                "utils/ThongBao.cpp",
+                "utils/NgayThang.cpp",
+                "utils/XuLyChuoi.cpp",
+                "-I.",
+                "-Llib/SFML/lib",
+                "-lsfml-graphics",
+                "-lsfml-window",
+                "-lsfml-system",
+                "-lsfml-audio",
+                "-lsfml-network",
+                "-lgdi32",
+                "-luser32",
+                "-lole32",
+                "-loleaut32",
+                "-lcomdlg32",
+                "-luuid",
+                "-o",
+                "${workspaceFolder}/bin/main.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "detail": "Compile project using MinGW-w64 (C:/msys64/mingw64) and link SFML"
+        },
+        {
+            "label": "Run GUI (integrated)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\bin\\main.exe",
+            "args": [],
+            "dependsOn": "Build (MinGW64)",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe build active file",
+            "command": "C:/msys64/mingw64/bin/g++.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "-Ilib/SFML/include",
+                "-g",
+                "${file}",
+                "-Llib/SFML/lib",
+                "-lsfml-graphics",
+                "-lsfml-window",
+                "-lsfml-system",
+                "-lsfml-audio",
+                "-lsfml-network",
+                "-lgdi32",
+                "-luser32",
+                "-lole32",
+                "-loleaut32",
+                "-lcomdlg32",
+                "-luuid",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "detail": "Task generated by Debugger (updated to include project include paths)."
+        },
+        {
+            "label": "Compile Active File (.o)",
+            "type": "shell",
+            "command": "C:/msys64/mingw64/bin/g++.exe",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "-Ilib/SFML/include",
+                "-g",
+                "-c",
+                "${file}",
+                "-o",
+                "${workspaceFolder}\\build\\objs\\${fileBasenameNoExtension}.o"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "detail": "Compile the active .cpp into an object file (no link)."
+        },
+        {
+            "label": "Build Active File (exe)",
+            "type": "shell",
+            "command": "C:/msys64/mingw64/bin/g++.exe",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "-Ilib/SFML/include",
+                "-g",
+                "${file}",
+                "-Llib/SFML/lib",
+                "-lsfml-graphics",
+                "-lsfml-window",
+                "-lsfml-system",
+                "-lsfml-audio",
+                "-lsfml-network",
+                "-lgdi32",
+                "-luser32",
+                "-lole32",
+                "-loleaut32",
+                "-lcomdlg32",
+                "-luuid",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "detail": "Compile and link the active .cpp to an exe (links libbgi and other libs)."
+        }
+    ]
 }

@@ -4,14 +4,14 @@
 #include <string>
 #include <iostream>
 #include <ctime>
-#include "ThongBao.h"
+#include "ThongBao.h" 
 
-// Ngày tháng
-bool ChuanHoaNgay(std::string& s, std::ostream& out = std::cout);
+// Cac ham xu ly ngay thang
+bool ChuanHoaNgay(std::string& s, std::ostream& out = std::cout); // Chua dinh nghia trong file .cpp ?
 bool phanTichNgay(const std::string& s, int& ngay, int& thang, int& nam);
 int LayNamHienTai();
-bool ChuyenNgaySangTimeT(const std::string& sNgay, time_t& outTime);
-bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out = std::cout);
+time_t ChuyenNgaySangTimeT(const std::string& sNgay, std::ostream& out = std::cout); // Sua kieu tra ve
+bool kiemTraQuaHan(std::string ngayMuon, std::ostream& out = std::cout); // Chua dinh nghia trong file .cpp ?
 std::string layNgayHienTai(std::ostream& out = std::cout);
 int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out = std::cout);
 

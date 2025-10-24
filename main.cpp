@@ -12,7 +12,6 @@
 #include "include/ThaoTacFile.h"
 #include "include/NgayThang.h"
 #include "include/Constants.h"
-#include "include/VietnameseUtils.h"
 
 
 using namespace std;
@@ -88,7 +87,6 @@ int nhapLuaChonMenu(int min, int max) {
 }
 
 int main() {
-    VietnameseUtils::initConsoleForUtf8();
     NapDanhSachDauSach(FILE_DAUSACH, dsDauSach, soLuongDauSach, cout);
     NapDanhMucSach(FILE_DANHMUCSACH, dsDauSach, soLuongDauSach, cout);
     while (true) {
