@@ -1,4 +1,4 @@
-#ifndef DOCGIA_H
+﻿#ifndef DOCGIA_H
 #define DOCGIA_H
 #include <string>
 #include <fstream>
@@ -36,6 +36,24 @@ struct NodeDG{
     NodeDG *left, *right;
 };
 typedef NodeDG* PTRDG;
+
+//danh sach sach dang muon
+struct ThongTinSachDangMuon {
+    string MaSach;
+    string NgayMuon;
+    int SoNgayGiữ;
+    ThongTinSachDangMuon* next;
+};
+typedef ThongTinSachDangMuon* LIST_SACH_DANG_MUON;
+//danh sach doc gia co sach qua han
+struct DocGiaQuaHan {
+    int MaThe;
+    string HoTen;
+    string MaSach;
+    int SoNgayQuaHan;
+    DocGiaQuaHan* next;
+};
+typedef DocGiaQuaHan* LIST_DOCGIA_QUAHAN;
 
 PTRDG RotateLeft(PTRDG root);
 PTRDG RotateRight(PTRDG root);

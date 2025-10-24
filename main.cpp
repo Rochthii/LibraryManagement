@@ -97,6 +97,7 @@ int main() {
             cout << "1. Nhập đầu sách\n";//c
             cout << "2. In danh sách đầu sách theo thể loại\n";//d
             cout << "3. Tìm kiếm sách theo tên\n";//e
+            cout << "4. Nhập thẻ độc giả\n";
             cout << "0. Thoát\n";
 
             int luaChon = nhapLuaChonMenu(0, 3);
@@ -127,6 +128,10 @@ int main() {
                     continue;
                 }
                 timDauSach(dsDauSach, soLuongDauSach, tuKhoa);
+                break;
+            }
+            case 4: {
+
                 break;
             }
             default:

@@ -1,4 +1,4 @@
-#include "DocGia.h"
+﻿#include "DocGia.h"
 //#include "Utils.h"
 #include <iostream>
 #include <cstdlib>
@@ -9,7 +9,7 @@
 static PTRDG InsertDocGiaRec(PTRDG pavtree, PTRDG node);
 static PTRDG xoaDocGiaRec(PTRDG root, int mathe);
 
-int sinhMaTheNgauNhien(PTRDG root) {
+int static sinhMaTheNgauNhien(PTRDG root) {
     srand((unsigned int)time(NULL));
     int ma;
     do {
@@ -19,21 +19,21 @@ int sinhMaTheNgauNhien(PTRDG root) {
 }
 
 //bst-avl
-int DoCao(PTRDG root){
+int static DoCao(PTRDG root){
     if(root == NULL) return 0;
     int trai = DoCao(root->left);
     int phai = DoCao(root->right);
     return 1 + max(trai, phai);
 }
 
-int bfCalc(PTRDG root){
+int static bfCalc(PTRDG root){
     int lh, rh;
     lh = DoCao(root->left);
     rh = DoCao(root->right);
     return lh - rh;
 }
 
-PTRDG vitriImbal(PTRDG root){
+PTRDG static vitriImbal(PTRDG root){
     PTRDG vitri;
     if(root == NULL) return NULL;
     
@@ -207,16 +207,13 @@ PTRDG timDocGia(PTRDG root, int mathe){
 
 void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int mathe) {
     PTRDG p = timDocGia(root, mathe);
-    if (strcmp(p->data.Ho, pAlt->data.Ho) != 0) p->data.Ho = pAlt->data.Ho;
-    if (strcmp(p->data.Ten, pAlt->data.Ten) != 0) p->data.Ten = pAlt->data.Ten;
+    if (p->data.Ho.compare(pAlt->data.Ho) != 0) p->data.Ho = pAlt->data.Ho;
+    if (p->data.Ten.strcmp(pAlt->data.Ten) != 0) p->data.Ten = pAlt->data.Ten;
     if (p->data.Phai != pAlt->data.Phai) p->data.Phai = pAlt->data.Phai;
     if (p->data.TrangThai != pAlt->data.TrangThai) p->data.TrangThai = pAlt->data.TrangThai;
 }
 
-/// <summary>
 /// IN DANH SACH DOC GIA
-/// </summary>
-/// <param name="root"></param>
 void display(PTRDG root){
     cout << "MaThe: " << root->data.MaThe
          << " | HoTen: " << root->data.Ho << " " << root->data.Ten
@@ -231,11 +228,7 @@ void inDocGiaInOrder(PTRDG root){
         inDocGiaInOrder(root->right);
     }
 }
-/// <summary>
 /// MUON SACH
-/// </summary>
-/// <param name="docgia"></param>
-/// <param name="maSach"></param>
 void themMuonTra(PTRDG docgia, string maSach){
     if(docgia == NULL)return;
     
@@ -264,36 +257,191 @@ void themMuonTra(PTRDG docgia, const MuonTra &mt) {
     docgia->data.dsmt = node;
 }
 
-bool kiemTraQuaHan(MUONTRA dsmt);
+bool kiemTraQuaHan(MUONTRA dsmt) {
+    MUONTRA p = dsmt;
+    while (p != NULL) {//dang muon
+        if (p->data.TrangThai == 0) { 
+            int soNgayQuaHan = tinhSoNgayQuaHan(p->data.NgayMuon);
+            if (soNgayQuaHan > 0) return true; //co mot sach qua han
+        }
+        p = p->next;
+    }
+    return false;
+}
 
-int demSachDangMuon(MUONTRA dsmt);
+int demSachDangMuon(MUONTRA dsmt) {
+    int dem = 0;
+    MUONTRA p = dsmt;
+    while (p != NULL) {
+        if (p->data.TrangThai == 0)
+            dem++;
+        p = p->next;
+    }
+    return dem;
+}
 
-void muonSach(PTRDG root, int maThe, string maSach);
+void muonSach(PTRDG root, int maThe, string maSach) {
+    PTRDG docgia = timDocGia(root, maThe);
+    if (docgia == NULL) {
+        cerr << "Khong tim thay doc gia co ma the " << maThe << endl;
+        return;
+    }
 
-/// <summary>
+    if (docgia->data.TrangThai == 0) {
+        cerr << "The doc gia bi khoa, khong duoc muon sach." << endl;
+        return;
+    }
+
+    if (kiemTraQuaHan(docgia->data.dsmt)) {
+        cerr << "Doc gia dang co sach qua han, khong duoc muon tiep." << endl;
+        return;
+    }
+
+    if (demSachDangMuon(docgia->data.dsmt) >= 3) {
+        cerr << "Doc gia da muon toi da 3 sach." << endl;
+        return;
+    }
+    MUONTRA node = new NodeMT;
+    node->data.MaSach = maSach;
+    node->data.NgayMuon = layNgayHienTai();
+    node->data.NgayTra = "";
+    node->data.TrangThai = 0;
+    node->next = docgia->data.dsmt;
+    docgia->data.dsmt = node;
+
+    cout << "Muon sach thanh cong! MaSach: " << maSach
+        << " | Ngay muon: " << node->data.NgayMuon << endl;
+}
 /// TRA SACH
-/// </summary>
-/// <param name="ds"></param>
-/// <param name="out"></param>
-void traSach(PTRDG root, int maThe, string maSach);
+void traSach(PTRDG root, int maThe, string maSach) {
+    PTRDG docgia = timDocGia(root, maThe);
+    if (docgia == NULL) {
+        cout << "Khong tim thay doc gia co ma the " << maThe << endl;
+        return;
+    }
 
-MUONTRA timMuonTra(MUONTRA ds, string maSach);
+    MUONTRA p = docgia->data.dsmt;
+    while (p != NULL) {
+        if (p->data.MaSach == maSach && p->data.TrangThai == 0) {
+            p->data.TrangThai = 1;
+            p->data.NgayTra = layNgayHienTai();
+            cout << "Tra sach thanh cong! MaSach: " << maSach
+                << " | Ngay tra: " << p->data.NgayTra << endl;
+            return;
+        }
+        p = p->next;
+    }
+    cout << "Khong tim thay sach dang muon co ma " << maSach << endl;
+}
 
-/// <summary>
 /// LIET KE CAC SACH 1 DOC GIA DANG MUON
-/// </summary>
-/// <param name="ds"></param>
-/// <param name="out"></param>
-void lietKeSachDangMuon(PTRDG root, int maThe)
+LIST_SACH_DANG_MUON lietKeSachDangMuon(PTRDG root, int maThe) {
+    PTRDG docgia = timDocGia(root, maThe);
+    if (docgia == NULL) return NULL;//neu khong tim duoc
+    //neu tim duoc
+    LIST_SACH_DANG_MUON head = NULL;//khoi tao head moi cho struct danh sach dang muon
+    MUONTRA p = docgia->data.dsmt;
 
-/// <summary>
+    while (p != NULL) {//dua du lieu tu docgia vao list
+        if (p->data.TrangThai == 0) {
+            ThongTinSachDangMuon* node = new ThongTinSachDangMuon;
+            node->MaSach = p->data.MaSach;
+            node->NgayMuon = p->data.NgayMuon;
+            int soNgay = tinhSoNgayQuaHan(p->data.NgayMuon) + 7; // tong so ngay giu qua han, bat dau tu ngay bi qua han
+            node->SoNgayGiữ = soNgay;
+            node->next = head;
+            head = node;
+        }
+        p = p->next;
+    }
+    return head;
+}
+
 /// IN DANH SACH MUON QUA HAN
-/// </summary>
-/// <param name="ds"></param>
-/// <param name="out"></param>
-void lietKeDocGiaQuaHan(PTRDG root);
+void noiDocGiaQuaHan(LIST_DOCGIA_QUAHAN& head, DocGiaQuaHan* node) {
+    if (head == NULL) {
+        head = node;
+    }
+    else {
+        DocGiaQuaHan* p = head;
+        while (p->next != NULL) p = p->next;
+        p->next = node;
+    }
+}
+LIST_DOCGIA_QUAHAN lietKeDocGiaQuaHan(PTRDG root) {
+    if (root == NULL) return NULL;
 
-int tinhSoNgayQuaHan(string ngayMuon);
+    LIST_DOCGIA_QUAHAN listLeft = lietKeDocGiaQuaHan(root->left);
+    LIST_DOCGIA_QUAHAN listRight = lietKeDocGiaQuaHan(root->right);
+
+    LIST_DOCGIA_QUAHAN head = listLeft;
+
+    MUONTRA p = root->data.dsmt;
+    while (p != NULL) {
+        if (p->data.TrangThai == 0) {
+            int quaHan = tinhSoNgayQuaHan(p->data.NgayMuon);
+            if (quaHan > 0) {
+                DocGiaQuaHan* node = new DocGiaQuaHan;
+                node->MaThe = root->data.MaThe;
+                node->HoTen = root->data.Ho + " " + root->data.Ten;
+                node->MaSach = p->data.MaSach;
+                node->SoNgayQuaHan = quaHan;
+                node->next = NULL;
+                noiDocGiaQuaHan(head, node);
+            }
+        }
+        p = p->next;
+    }
+
+    if (head == NULL) head = listRight;
+    else {
+        DocGiaQuaHan* tail = head;
+        while (tail->next != NULL) tail = tail->next;
+        tail->next = listRight;
+    }
+
+    // Sap giam dan
+    if (head != NULL) {
+        bool swapped;
+        do {
+            swapped = false;
+            DocGiaQuaHan* cur = head;
+            while (cur->next != NULL) {
+                if (cur->SoNgayQuaHan < cur->next->SoNgayQuaHan) {
+                    // hoan doi du lieu
+                    DocGiaQuaHan tmp = *cur;
+                    *cur = *(cur->next);
+                    *(cur->next) = tmp;
+                    // phuc hoi con tro lien ket
+                    DocGiaQuaHan* tmpNext = cur->next->next;
+                    cur->next->next = cur;
+                    cur->next = tmpNext;
+                    swapped = true;
+                }
+                cur = cur->next;
+            }
+        } while (swapped);
+    }
+
+    return head;
+}
+
+//Giai phong bo nho de tranh bi trang
+void giaiPhongListQuaHan(LIST_DOCGIA_QUAHAN& head) {
+    while (head != NULL) {
+        DocGiaQuaHan* tmp = head;
+        head = head->next;
+        delete tmp;
+    }
+}
+void giaiPhongListSachDangMuon(LIST_SACH_DANG_MUON& head) {
+    while (head != NULL) {
+        ThongTinSachDangMuon* tmp = head;
+        head = head->next;
+        delete tmp;
+    }
+}
+
 
 void saveDsMuonTra(MUONTRA ds, ofstream &out){
     while(ds != NULL){
@@ -349,7 +497,7 @@ PTRDG loadDocGia(){
         //tach thong tin doc gia va ds muon tra
         size_t posSlash = line.find('|');//tim vi tri dau |
         string info = line.substr(0,posSlash);//thong tin doc gia trc dau |
-        string muontras = (posSlash == string::npos) ? line.substr(posSlash +1) : "";//thong tin muon tra sau dau | neu khong co de rong
+        string muontras = (posSlash != string::npos) ? line.substr(posSlash +1) : "";//thong tin muon tra sau dau | neu khong co de rong
         
         //tach thong tin doc gia theo dau ,
         int mathe, phai, trangthai;
