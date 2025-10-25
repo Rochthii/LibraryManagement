@@ -13,7 +13,7 @@
                 "-Ilib/SFML/include",
                 "-g",
                 "main.cpp",
-                "GiaoDien.cpp",
+                "GiaoDienSFML.cpp",
                 "data/KiemTraDuLieu.cpp",
                 "data/QuanLySach.cpp",
                 "data/ThaoTacFile.cpp",

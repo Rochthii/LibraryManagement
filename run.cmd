@@ -1,82 +1,79 @@
 @echo off
-pushd "%~dp0"
+rem run.cmd — build (if needed) and run the program in this workspace
+pushd "%~dp0" || exit /b 1
 setlocal
 
-echo ==============================
-echo 📚 Library Management System
-echo ==============================
-
-REM Đảm bảo console dùng UTF-8 (Tùy chọn, không ảnh hưởng BGI)
+rem Use UTF-8 console for nice output
 chcp 65001 >nul
 
-REM Tạo thư mục bin nếu chưa có
-if not exist bin mkdir bin
+rem Paths relative to repository root (script dir)
+set "ROOT=%~dp0"
+set "BIN=%ROOT%bin"
+if not exist "%BIN%" mkdir "%BIN%" >nul 2>&1
 
-echo.
-echo 🔧 Building project...
-echo ------------------------------
+set "SFML_BIN=%ROOT%lib\SFML\bin"
+set "SFML_LIB=%ROOT%lib\SFML\lib"
+set "SFML_INCLUDE=%ROOT%lib\SFML\include"
 
-REM Kiểm tra và dừng tiến trình main.exe (Giữ nguyên)
-echo.
-echo 🔍 Checking for running main.exe processes...
-tasklist /FI "IMAGENAME eq main.exe" 2>NUL | find /I "main.exe" >NUL
-if %ERRORLEVEL%==0 (
-    echo ⚠️ Found running main.exe processes — terminating them to allow rebuild...
-    taskkill /F /IM main.exe >nul 2>&1
-    if %ERRORLEVEL%==0 (
-        echo ✅ main.exe processes terminated.
-    ) else (
-        echo ⚠️ Could not terminate main.exe processes. You may need to close them manually.
-    )
-) else (
-    echo ✅ No running main.exe processes found.
+rem Try to find a MinGW-w64 g++ automatically (common locations)
+set "GPP=C:\msys64\mingw64\bin\g++.exe"
+if not exist "%GPP%" (
+    if exist "C:\mingw64\bin\g++.exe" set "GPP=C:\mingw64\bin\g++.exe"
+)
+if not exist "%GPP%" (
+    where g++ >nul 2>&1 && for /f "delims=" %%p in ('where g++') do set "GPP=%%p" && goto :GPP_FOUND
+)
+:GPP_FOUND
+if not exist "%GPP%" (
+    echo ❌ No g++ compiler found. Install MinGW-w64 or set PATH to g++.
+    pause
+    popd
+    endlocal
+    exit /b 1
 )
 
-REM *** LỆNH BIÊN DỊCH HOÀN CHỈNH ***
-g++ -std=c++17 -Wall -Wextra -Wno-unused-parameter ^
--g ^
-main.cpp GiaoDien.cpp data\KiemTraDuLieu.cpp data\QuanLySach.cpp data\ThaoTacFile.cpp ^
-data\NhapLieu.cpp ^
-utils\ThongBao.cpp utils\NgayThang.cpp utils\XuLyChuoi.cpp ^
--Iinclude -Ilib/winbgim ^
--o bin\main.exe ^
--Llib/winbgim ^
--lbgi ^
--lgdi32 -luser32 -lcomdlg32 -luuid -loleaut32 -lole32 ^
--mwindows
+echo Using compiler: %GPP%
 
-REM Kiểm tra lỗi biên dịch (Giữ nguyên)
-if errorlevel 1 (
+rem If executable not present, try to build; otherwise just run
+if not exist "%BIN%\main.exe" (
     echo.
-    echo ❌ Build failed! Please check for errors above.
+    echo 🔧 Building project with %GPP%...
+    "%GPP%" -std=c++17 -Wall -Wextra -Iinclude -I"%SFML_INCLUDE%" -g main.cpp GiaoDienSFML.cpp data\KiemTraDuLieu.cpp data\QuanLySach.cpp data\ThaoTacFile.cpp data\NhapLieu.cpp utils\ThongBao.cpp utils\NgayThang.cpp utils\XuLyChuoi.cpp -I. -L"%SFML_LIB%" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lgdi32 -luser32 -lole32 -loleaut32 -lcomdlg32 -luuid -o "%BIN%\main.exe"
+
+    if errorlevel 1 (
+        echo.
+        echo ❌ Build failed. Fix compilation errors and try again.
+        pause
+        popd
+        endlocal
+        exit /b 1
+    ) else (
+        echo ✅ Build finished: %BIN%\main.exe
+    )
+)
+
+rem Copy SFML DLLs into bin if available so program can run without extra PATH setup
+if exist "%SFML_BIN%\*.dll" (
+    echo Copying SFML DLLs to bin folder...
+    xcopy /Y /Q "%SFML_BIN%\*.dll" "%BIN%\" >nul
+)
+
+rem Ensure bin is on PATH so DLLs are found when launching
+set "PATH=%BIN%;%PATH%"
+
+rem Start the program (non-blocking) — use start so console stays usable
+if exist "%BIN%\main.exe" (
+    echo ▶️ Launching %BIN%\main.exe
+    start "LibraryManagement" "%BIN%\main.exe"
+) else (
+    echo ❌ Executable not found: %BIN%\main.exe
     pause
     popd
     endlocal
     exit /b 1
 )
 
-REM Kiểm tra file thực thi có tồn tại không (Giữ nguyên)
-if not exist bin\main.exe (
-    echo ❌ Binary not found: bin\main.exe
-    pause
-    popd
-    endlocal
-    exit /b 1
-)
-
-echo.
-echo ✅ Build successful!
-echo ------------------------------
-echo.
-
-REM Chạy chương trình (Giữ nguyên cách chạy PowerShell)
-echo ▶️ Running program...
-echo ==============================
-REM Dùng Start-Process để chạy tách biệt, không cần OutputEncoding nữa vì console ẩn
-powershell -NoProfile -Command "Start-Process -FilePath '.\bin\main.exe' -WindowStyle Normal"
-
-echo.
-pause
-popd
+rem Done
 endlocal
+popd
 exit /b 0
