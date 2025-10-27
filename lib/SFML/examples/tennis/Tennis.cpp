@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -12,8 +12,7 @@
 #include <SFML/Main.hpp>
 #endif
 
-std::string resourcesDir()
-{
+std::string resourcesDir() {
 #ifdef SFML_SYSTEM_IOS
     return "";
 #else
@@ -27,8 +26,7 @@ std::string resourcesDir()
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     std::srand(static_cast<unsigned int>(std::time(NULL)));
 
     // Define some constants
@@ -109,26 +107,21 @@ int main()
 
     sf::Clock clock;
     bool isPlaying = false;
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         // Handle events
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             // Window closed or escape key pressed: exit
             if ((event.type == sf::Event::Closed) ||
-               ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape)))
-            {
+               ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))) {
                 window.close();
                 break;
             }
 
             // Space key pressed: play
             if (((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space)) ||
-                (event.type == sf::Event::TouchBegan))
-            {
-                if (!isPlaying)
-                {
+                (event.type == sf::Event::TouchBegan)) {
+                if (!isPlaying) {
                     // (re)start the game
                     isPlaying = true;
                     clock.restart();
@@ -139,8 +132,7 @@ int main()
                     ball.setPosition(gameWidth / 2.f, gameHeight / 2.f);
 
                     // Reset the ball angle
-                    do
-                    {
+                    do {
                         // Make sure the ball initial angle is not too much vertical
                         ballAngle = static_cast<float>(std::rand() % 360) * 2.f * pi / 360.f;
                     }
@@ -149,8 +141,7 @@ int main()
             }
 
             // Window size changed, adjust view appropriately
-            if (event.type == sf::Event::Resized)
-            {
+            if (event.type == sf::Event::Resized) {
                 sf::View view;
                 view.setSize(gameWidth, gameHeight);
                 view.setCenter(gameWidth / 2.f, gameHeight  /2.f);
@@ -158,24 +149,20 @@ int main()
             }
         }
 
-        if (isPlaying)
-        {
+        if (isPlaying) {
             float deltaTime = clock.restart().asSeconds();
 
             // Move the player's paddle
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) &&
-               (leftPaddle.getPosition().y - paddleSize.y / 2 > 5.f))
-            {
+               (leftPaddle.getPosition().y - paddleSize.y / 2 > 5.f)) {
                 leftPaddle.move(0.f, -paddleSpeed * deltaTime);
             }
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) &&
-               (leftPaddle.getPosition().y + paddleSize.y / 2 < gameHeight - 5.f))
-            {
+               (leftPaddle.getPosition().y + paddleSize.y / 2 < gameHeight - 5.f)) {
                 leftPaddle.move(0.f, paddleSpeed * deltaTime);
             }
 
-            if (sf::Touch::isDown(0))
-            {
+            if (sf::Touch::isDown(0)) {
                 sf::Vector2i pos = sf::Touch::getPosition(0);
                 sf::Vector2f mappedPos = window.mapPixelToCoords(pos);
                 leftPaddle.setPosition(leftPaddle.getPosition().x, mappedPos.y);
@@ -183,14 +170,12 @@ int main()
 
             // Move the computer's paddle
             if (((rightPaddleSpeed < 0.f) && (rightPaddle.getPosition().y - paddleSize.y / 2 > 5.f)) ||
-                ((rightPaddleSpeed > 0.f) && (rightPaddle.getPosition().y + paddleSize.y / 2 < gameHeight - 5.f)))
-            {
+                ((rightPaddleSpeed > 0.f) && (rightPaddle.getPosition().y + paddleSize.y / 2 < gameHeight - 5.f))) {
                 rightPaddle.move(0.f, rightPaddleSpeed * deltaTime);
             }
 
             // Update the computer's paddle direction according to the ball position
-            if (AITimer.getElapsedTime() > AITime)
-            {
+            if (AITimer.getElapsedTime() > AITime) {
                 AITimer.restart();
                 if (ball.getPosition().y + ballRadius > rightPaddle.getPosition().y + paddleSize.y / 2)
                     rightPaddleSpeed = paddleSpeed;
@@ -211,24 +196,20 @@ int main()
             #endif
 
             // Check collisions between the ball and the screen
-            if (ball.getPosition().x - ballRadius < 0.f)
-            {
+            if (ball.getPosition().x - ballRadius < 0.f) {
                 isPlaying = false;
                 pauseMessage.setString("You Lost!\n\n" + inputString);
             }
-            if (ball.getPosition().x + ballRadius > gameWidth)
-            {
+            if (ball.getPosition().x + ballRadius > gameWidth) {
                 isPlaying = false;
                 pauseMessage.setString("You Won!\n\n" + inputString);
             }
-            if (ball.getPosition().y - ballRadius < 0.f)
-            {
+            if (ball.getPosition().y - ballRadius < 0.f) {
                 ballSound.play();
                 ballAngle = -ballAngle;
                 ball.setPosition(ball.getPosition().x, ballRadius + 0.1f);
             }
-            if (ball.getPosition().y + ballRadius > gameHeight)
-            {
+            if (ball.getPosition().y + ballRadius > gameHeight) {
                 ballSound.play();
                 ballAngle = -ballAngle;
                 ball.setPosition(ball.getPosition().x, gameHeight - ballRadius - 0.1f);
@@ -239,8 +220,7 @@ int main()
             if (ball.getPosition().x - ballRadius < leftPaddle.getPosition().x + paddleSize.x / 2 &&
                 ball.getPosition().x - ballRadius > leftPaddle.getPosition().x &&
                 ball.getPosition().y + ballRadius >= leftPaddle.getPosition().y - paddleSize.y / 2 &&
-                ball.getPosition().y - ballRadius <= leftPaddle.getPosition().y + paddleSize.y / 2)
-            {
+                ball.getPosition().y - ballRadius <= leftPaddle.getPosition().y + paddleSize.y / 2) {
                 if (ball.getPosition().y > leftPaddle.getPosition().y)
                     ballAngle = pi - ballAngle + static_cast<float>(std::rand() % 20) * pi / 180;
                 else
@@ -254,8 +234,7 @@ int main()
             if (ball.getPosition().x + ballRadius > rightPaddle.getPosition().x - paddleSize.x / 2 &&
                 ball.getPosition().x + ballRadius < rightPaddle.getPosition().x &&
                 ball.getPosition().y + ballRadius >= rightPaddle.getPosition().y - paddleSize.y / 2 &&
-                ball.getPosition().y - ballRadius <= rightPaddle.getPosition().y + paddleSize.y / 2)
-            {
+                ball.getPosition().y - ballRadius <= rightPaddle.getPosition().y + paddleSize.y / 2) {
                 if (ball.getPosition().y > rightPaddle.getPosition().y)
                     ballAngle = pi - ballAngle + static_cast<float>(std::rand() % 20) * pi / 180;
                 else
@@ -269,15 +248,13 @@ int main()
         // Clear the window
         window.clear(sf::Color(50, 50, 50));
 
-        if (isPlaying)
-        {
+        if (isPlaying) {
             // Draw the paddles and the ball
             window.draw(leftPaddle);
             window.draw(rightPaddle);
             window.draw(ball);
         }
-        else
-        {
+        else {
             // Draw the pause message
             window.draw(pauseMessage);
             window.draw(sfmlLogo);
@@ -289,3 +266,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

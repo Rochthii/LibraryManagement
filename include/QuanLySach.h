@@ -16,7 +16,7 @@ int PhanTichTrangThaiSach(const std::string& trangThai, std::ostream& out);
 
 // Nhom 2: Quan Ly Danh Muc Sach (DMS - DSLK)
 
-bool themDanhMucSach(PTRDMS& dms, const std::string& maSach, TrangThaiSach trangThai, const std::string& viTri);
+std::string themDanhMucSach(PTRDMS &dms, const std::string &maSach, TrangThaiSach trangThai, const std::string &viTri);
 void capNhatTrangThaiSach(PTRDMS dms, const std::string& maSach, TrangThaiSach trangThai);
 PTRDMS timDanhMucTheoMaSach(const std::string& maSach, PTRDS ds[], int n, std::ostream& out, bool silent = true);
 
@@ -50,14 +50,15 @@ int TimSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach,
 
 // Nhom 5: Ham Console (Da Refactor)
 
-void inDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach);
-int timDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa);
+void inDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach);  //khong dung
+int timDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa); ///khong dung
 
 
 // Nhom 6: Ham Sap Xep
 
 // Sap xep Dau Sach (QuickSort + InsertionSort)
 void sapXepDauSachTheoTen(PTRDS arr[], int low, int high);
+void SapXepTheLoaiTheoTen(std::string arr[], int n);
 int partition(PTRDS arr[], int low, int high);
 void insertionSort(PTRDS arr[], int low, int high);
 void hoanDoiDauSach(PTRDS& a, PTRDS& b);
@@ -76,7 +77,11 @@ int DemTongSoBanSao(PTRDS dsDauSach[], int soLuongDauSach);
 void CapNhatTongBanSao(PTRDS dsDauSach[], int soLuongDauSach);
 
 //Nhom 8: xoa dau sach
-bool XoaDauSachTheoISBN(PTRDS dsDauSach[], int& soLuongDauSach, const std::string& isbn, std::ostream& out);
+std::string XoaDauSachTheoISBN(PTRDS dsDauSach[], int& soLuongDauSach, const std::string& isbn);
 bool XoaSachTheoMaSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, std::ostream& out);
-
+std::string CapNhatDauSach(
+    PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn,
+    const std::string& tenSachMoi, int soTrangMoi, const std::string& tacGiaMoi,
+    int namXuatBanMoi, const std::string& theLoaiMoi
+);
 #endif

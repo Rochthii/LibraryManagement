@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -11,8 +11,7 @@
 /// Play a sound
 ///
 ////////////////////////////////////////////////////////////
-void playSound()
-{
+void playSound() {
     // Load a sound buffer from a wav file
     sf::SoundBuffer buffer;
     if (!buffer.loadFromFile("resources/killdeer.wav"))
@@ -29,8 +28,7 @@ void playSound()
     sound.play();
 
     // Loop while the sound is playing
-    while (sound.getStatus() == sf::Sound::Playing)
-    {
+    while (sound.getStatus() == sf::Sound::Playing) {
         // Leave some CPU time for other processes
         sf::sleep(sf::milliseconds(100));
 
@@ -46,8 +44,7 @@ void playSound()
 /// Play a music
 ///
 ////////////////////////////////////////////////////////////
-void playMusic(const std::string& filename)
-{
+void playMusic(const std::string& filename) {
     // Load an ogg music file
     sf::Music music;
     if (!music.openFromFile("resources/" + filename))
@@ -63,8 +60,7 @@ void playMusic(const std::string& filename)
     music.play();
 
     // Loop while the music is playing
-    while (music.getStatus() == sf::Music::Playing)
-    {
+    while (music.getStatus() == sf::Music::Playing) {
         // Leave some CPU time for other processes
         sf::sleep(sf::milliseconds(100));
 
@@ -82,8 +78,7 @@ void playMusic(const std::string& filename)
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Play a sound
     playSound();
 
@@ -102,3 +97,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -13,22 +13,17 @@ HWND button;
 /// Function called whenever one of our windows receives a message
 ///
 ////////////////////////////////////////////////////////////
-LRESULT CALLBACK onEvent(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
+LRESULT CALLBACK onEvent(HWND handle, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
         // Quit when we close the main window
-        case WM_CLOSE:
-        {
+        case WM_CLOSE: {
             PostQuitMessage(0);
             return 0;
         }
 
         // Quit when we click the "quit" button
-        case WM_COMMAND:
-        {
-            if (reinterpret_cast<HWND>(lParam) == button)
-            {
+        case WM_COMMAND: {
+            if (reinterpret_cast<HWND>(lParam) == button) {
                 PostQuitMessage(0);
                 return 0;
             }
@@ -47,8 +42,7 @@ LRESULT CALLBACK onEvent(HWND handle, UINT message, WPARAM wParam, LPARAM lParam
 /// \return Error code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     HINSTANCE instance = GetModuleHandle(NULL);
 
     // Define a class for our main window
@@ -92,16 +86,13 @@ int main()
     // Loop until a WM_QUIT message is received
     MSG message;
     message.message = static_cast<UINT>(~WM_QUIT);
-    while (message.message != WM_QUIT)
-    {
-        if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
-        {
+    while (message.message != WM_QUIT) {
+        if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
             // If a message was waiting in the message queue, process it
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
-        else
-        {
+        else {
             float time = clock.getElapsedTime().asSeconds();
 
             // Clear views
@@ -134,3 +125,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

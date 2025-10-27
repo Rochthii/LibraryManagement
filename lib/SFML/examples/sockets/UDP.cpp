@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -10,8 +10,7 @@
 /// Launch a server, wait for a message, send an answer.
 ///
 ////////////////////////////////////////////////////////////
-void runUdpServer(unsigned short port)
-{
+void runUdpServer(unsigned short port) {
     // Create a socket to receive a message from anyone
     sf::UdpSocket socket;
 
@@ -41,12 +40,10 @@ void runUdpServer(unsigned short port)
 /// Send a message to the server, wait for the answer
 ///
 ////////////////////////////////////////////////////////////
-void runUdpClient(unsigned short port)
-{
+void runUdpClient(unsigned short port) {
     // Ask for the server address
     sf::IpAddress server;
-    do
-    {
+    do {
         std::cout << "Type the address or name of the server to connect to: ";
         std::cin  >> server;
     }
@@ -70,3 +67,4 @@ void runUdpClient(unsigned short port)
         return;
     std::cout << "Message received from " << sender << ": \"" << in << "\"" << std::endl;
 }
+

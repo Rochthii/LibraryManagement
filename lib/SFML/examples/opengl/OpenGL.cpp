@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -15,8 +15,7 @@
 #define GL_SRGB8_ALPHA8 0x8C43
 #endif
 
-std::string resourcesDir()
-{
+std::string resourcesDir() {
 #ifdef SFML_SYSTEM_IOS
     return "";
 #else
@@ -30,13 +29,11 @@ std::string resourcesDir()
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     bool exit = false;
     bool sRgb = false;
 
-    while (!exit)
-    {
+    while (!exit) {
         // Request a 24-bits depth buffer when creating the window
         sf::ContextSettings contextSettings;
         contextSettings.depthBits = 24;
@@ -117,8 +114,7 @@ int main()
         sf::Texture::bind(&texture);
 
         // Define a 3D cube (6 faces made of 2 triangles composed by 3 vertices)
-        static const GLfloat cube[] =
-        {
+        static const GLfloat cube[] = {
             // positions    // texture coordinates
             -20, -20, -20,  0, 0,
             -20,  20, -20,  1, 0,
@@ -183,39 +179,32 @@ int main()
         bool mipmapEnabled = true;
 
         // Start game loop
-        while (window.isOpen())
-        {
+        while (window.isOpen()) {
             // Process events
             sf::Event event;
-            while (window.pollEvent(event))
-            {
+            while (window.pollEvent(event)) {
                 // Close window: exit
-                if (event.type == sf::Event::Closed)
-                {
+                if (event.type == sf::Event::Closed) {
                     exit = true;
                     window.close();
                 }
 
                 // Escape key: exit
-                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
-                {
+                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape)) {
                     exit = true;
                     window.close();
                 }
 
                 // Return key: toggle mipmapping
-                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter))
-                {
-                    if (mipmapEnabled)
-                    {
+                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter)) {
+                    if (mipmapEnabled) {
                         // We simply reload the texture to disable mipmapping
                         if (!texture.loadFromFile(resourcesDir() + "logo.png"))
                             return EXIT_FAILURE;
 
                         mipmapEnabled = false;
                     }
-                    else
-                    {
+                    else {
                         texture.generateMipmap();
 
                         mipmapEnabled = true;
@@ -223,15 +212,13 @@ int main()
                 }
 
                 // Space key: toggle sRGB conversion
-                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space))
-                {
+                if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space)) {
                     sRgb = !sRgb;
                     window.close();
                 }
 
                 // Adjust the viewport when the window is resized
-                if (event.type == sf::Event::Resized)
-                {
+                if (event.type == sf::Event::Resized) {
                     sf::Vector2u textureSize = backgroundTexture.getSize();
 
                     // Make the window the active window for OpenGL calls
@@ -308,3 +295,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+
