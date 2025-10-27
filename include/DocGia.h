@@ -33,6 +33,7 @@ struct TheDocGia{
 struct NodeDG{
     TheDocGia data;
     int bf;
+    int height;
     NodeDG *left, *right;
 };
 typedef NodeDG* PTRDG;
@@ -41,7 +42,7 @@ typedef NodeDG* PTRDG;
 struct ThongTinSachDangMuon {
     string MaSach;
     string NgayMuon;
-    int SoNgayGiữ;
+    int SoNgayGiu;
     ThongTinSachDangMuon* next;
 };
 typedef ThongTinSachDangMuon* LIST_SACH_DANG_MUON;
@@ -61,11 +62,14 @@ void InsertDocGia(PTRDG& root, PTRDG node);
 //prototype
 
 //quan ly cay doc gia
-PTRDG themDocGia(PTRDG &root, PTRDG node);
-void xoaDocGia(PTRDG &root, int mathe);
+// PTRDG themDocGia removed - use InsertDocGia (AVL) instead
+void xoaDocGia(PTRDG& root, int mathe);
 PTRDG timDocGia(PTRDG root, int mathe);
 void inDocGiaInOrder(PTRDG root);
 void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int mathe);
+
+// them prototype giai phong cay
+void GiaiPhongCay(PTRDG& root);
 
 //quan ly muon tra
 void themMuonTra(PTRDG root, string maSach);
