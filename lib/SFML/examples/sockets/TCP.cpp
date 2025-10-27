@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -11,8 +11,7 @@
 /// send a message and wait for the answer.
 ///
 ////////////////////////////////////////////////////////////
-void runTcpServer(unsigned short port)
-{
+void runTcpServer(unsigned short port) {
     // Create a server socket to accept new connections
     sf::TcpListener listener;
 
@@ -47,12 +46,10 @@ void runTcpServer(unsigned short port)
 /// welcome message and send an answer.
 ///
 ////////////////////////////////////////////////////////////
-void runTcpClient(unsigned short port)
-{
+void runTcpClient(unsigned short port) {
     // Ask for the server address
     sf::IpAddress server;
-    do
-    {
+    do {
         std::cout << "Type the address or name of the server to connect to: ";
         std::cin  >> server;
     }
@@ -79,3 +76,4 @@ void runTcpClient(unsigned short port)
         return;
     std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
 }
+

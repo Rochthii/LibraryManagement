@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -11,8 +11,7 @@
 /// Print a FTP response into a standard output stream
 ///
 ////////////////////////////////////////////////////////////
-std::ostream& operator <<(std::ostream& stream, const sf::Ftp::Response& response)
-{
+std::ostream& operator <<(std::ostream& stream, const sf::Ftp::Response& response) {
     return stream << response.getStatus() << response.getMessage();
 }
 
@@ -23,12 +22,10 @@ std::ostream& operator <<(std::ostream& stream, const sf::Ftp::Response& respons
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Choose the server address
     sf::IpAddress address;
-    do
-    {
+    do {
         std::cout << "Enter the FTP server address: ";
         std::cin  >> address;
     }
@@ -56,8 +53,7 @@ int main()
 
     // Main menu
     int choice = 0;
-    do
-    {
+    do {
         // Main FTP menu
         std::cout << std::endl;
         std::cout << "Choose an action:"                      << std::endl;
@@ -77,10 +73,8 @@ int main()
         std::cin  >> choice;
         std::cout << std::endl;
 
-        switch (choice)
-        {
-            default:
-            {
+        switch (choice) {
+            default: {
                 // Wrong choice
                 std::cout << "Invalid choice!" << std::endl;
                 std::cin.clear();
@@ -88,8 +82,7 @@ int main()
                 break;
             }
 
-            case 1:
-            {
+            case 1: {
                 // Print the current server directory
                 sf::Ftp::DirectoryResponse response = server.getWorkingDirectory();
                 std::cout << response << std::endl;
@@ -97,8 +90,7 @@ int main()
                 break;
             }
 
-            case 2:
-            {
+            case 2: {
                 // Print the contents of the current server directory
                 sf::Ftp::ListingResponse response = server.getDirectoryListing();
                 std::cout << response << std::endl;
@@ -108,8 +100,7 @@ int main()
                 break;
             }
 
-            case 3:
-            {
+            case 3: {
                 // Change the current directory
                 std::string directory;
                 std::cout << "Choose a directory: ";
@@ -118,8 +109,7 @@ int main()
                 break;
             }
 
-            case 4:
-            {
+            case 4: {
                 // Create a new directory
                 std::string directory;
                 std::cout << "Name of the directory to create: ";
@@ -128,8 +118,7 @@ int main()
                 break;
             }
 
-            case 5:
-            {
+            case 5: {
                 // Remove an existing directory
                 std::string directory;
                 std::cout << "Name of the directory to remove: ";
@@ -138,8 +127,7 @@ int main()
                 break;
             }
 
-            case 6:
-            {
+            case 6: {
                 // Rename a file
                 std::string source, destination;
                 std::cout << "Name of the file to rename: ";
@@ -150,8 +138,7 @@ int main()
                 break;
             }
 
-            case 7:
-            {
+            case 7: {
                 // Remove an existing directory
                 std::string filename;
                 std::cout << "Name of the file to remove: ";
@@ -160,8 +147,7 @@ int main()
                 break;
             }
 
-            case 8:
-            {
+            case 8: {
                 // Download a file from server
                 std::string filename, directory;
                 std::cout << "Filename of the file to download (relative to current directory): ";
@@ -172,8 +158,7 @@ int main()
                 break;
             }
 
-            case 9:
-            {
+            case 9: {
                 // Upload a file to server
                 std::string filename, directory;
                 std::cout << "Path of the file to upload (absolute or relative to working directory): ";
@@ -184,8 +169,7 @@ int main()
                 break;
             }
 
-            case 0:
-            {
+            case 0: {
                 // Disconnect
                 break;
             }
@@ -204,3 +188,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Window.hpp>
@@ -16,8 +16,7 @@
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Request a 24-bits depth buffer when creating the window
     sf::ContextSettings contextSettings;
     contextSettings.depthBits = 24;
@@ -65,8 +64,7 @@ int main()
 #endif
 
     // Define a 3D cube (6 faces made of 2 triangles composed by 3 vertices)
-    GLfloat cube[] =
-    {
+    GLfloat cube[] = {
         // positions    // colors (r, g, b, a)
         -50, -50, -50,  0, 0, 1, 1,
         -50,  50, -50,  0, 0, 1, 1,
@@ -125,12 +123,10 @@ int main()
     sf::Clock clock;
 
     // Start the game loop
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         // Process events
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             // Close window: exit
             if (event.type == sf::Event::Closed)
                 window.close();
@@ -140,8 +136,7 @@ int main()
                 window.close();
 
             // Resize event: adjust the viewport
-            if (event.type == sf::Event::Resized)
-            {
+            if (event.type == sf::Event::Resized) {
                 glViewport(0, 0, static_cast<GLsizei>(event.size.width), static_cast<GLsizei>(event.size.height));
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
@@ -174,3 +169,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

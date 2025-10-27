@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -10,10 +10,8 @@
 #include <map>
 
 
-namespace
-{
-    struct JoystickObject
-    {
+namespace {
+    struct JoystickObject {
         sf::Text label;
         sf::Text value;
     };
@@ -28,16 +26,14 @@ namespace
 
     // Helper to set text entries to a specified value
     template<typename T>
-    void set(const char* label, const T& value)
-    {
+    void set(const char* label, const T& value) {
         sstr.str("");
         sstr << value;
         texts[label].value.setString(sstr.str());
     }
 
     // Update joystick identification
-    void updateIdentification(unsigned int index)
-    {
+    void updateIdentification(unsigned int index) {
         sstr.str("");
         sstr << "Joystick " << index << ":";
         texts["ID"].label.setString(sstr.str());
@@ -45,20 +41,16 @@ namespace
     }
 
     // Update joystick axes
-    void updateAxes(unsigned int index)
-    {
-        for (unsigned int j = 0; j < sf::Joystick::AxisCount; ++j)
-        {
+    void updateAxes(unsigned int index) {
+        for (unsigned int j = 0; j < sf::Joystick::AxisCount; ++j) {
             if (sf::Joystick::hasAxis(index, static_cast<sf::Joystick::Axis>(j)))
                 set(axislabels[j], sf::Joystick::getAxisPosition(index, static_cast<sf::Joystick::Axis>(j)));
         }
     }
 
     // Update joystick buttons
-    void updateButtons(unsigned int index)
-    {
-        for (unsigned int j = 0; j < sf::Joystick::getButtonCount(index); ++j)
-        {
+    void updateButtons(unsigned int index) {
+        for (unsigned int j = 0; j < sf::Joystick::getButtonCount(index); ++j) {
             sstr.str("");
             sstr << "Button " << j;
 
@@ -67,8 +59,7 @@ namespace
     }
 
     // Helper to update displayed joystick values
-    void updateValues(unsigned int index)
-    {
+    void updateValues(unsigned int index) {
         if (sf::Joystick::isConnected(index)) {
             // Update the label-value sf::Text objects based on the current joystick state
             updateIdentification(index);
@@ -85,8 +76,7 @@ namespace
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Create the window of the application
     sf::RenderWindow window(sf::VideoMode(400, 775), "Joystick", sf::Style::Close);
     window.setVerticalSyncEnabled(true);
@@ -118,8 +108,7 @@ int main()
     texts["Threshold"].value.setString(sstr.str());
 
     // Set up our label-value sf::Text objects
-    for (unsigned int i = 0; i < sf::Joystick::AxisCount; ++i)
-    {
+    for (unsigned int i = 0; i < sf::Joystick::AxisCount; ++i) {
         JoystickObject& object = texts[axislabels[i]];
 
         object.label.setPosition(5.f, 5.f + (static_cast<float>(i + 4) * font.getLineSpacing(14)));
@@ -129,8 +118,7 @@ int main()
         object.value.setString("N/A");
     }
 
-    for (unsigned int i = 0; i < sf::Joystick::ButtonCount; ++i)
-    {
+    for (unsigned int i = 0; i < sf::Joystick::ButtonCount; ++i) {
         sstr.str("");
         sstr << "Button " << i;
         JoystickObject& object = texts[sstr.str()];
@@ -142,8 +130,7 @@ int main()
         object.value.setString("N/A");
     }
 
-    for (Texts::iterator it = texts.begin(); it != texts.end(); ++it)
-    {
+    for (Texts::iterator it = texts.begin(); it != texts.end(); ++it) {
         it->second.label.setFont(font);
         it->second.label.setCharacterSize(14);
         it->second.label.setFillColor(sf::Color::White);
@@ -154,38 +141,31 @@ int main()
     }
 
     // Update initially displayed joystick values if a joystick is already connected on startup
-    for (unsigned int i = 0; i < sf::Joystick::Count; ++i)
-    {
-        if (sf::Joystick::isConnected(i))
-        {
+    for (unsigned int i = 0; i < sf::Joystick::Count; ++i) {
+        if (sf::Joystick::isConnected(i)) {
             updateValues(i);
             break;
         }
     }
 
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         // Handle events
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             // Window closed or escape key pressed: exit
             if ((event.type == sf::Event::Closed) ||
-               ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape)))
-            {
+               ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))) {
                 window.close();
                 break;
             }
             else if ((event.type == sf::Event::JoystickButtonPressed) ||
                      (event.type == sf::Event::JoystickButtonReleased) ||
                      (event.type == sf::Event::JoystickMoved) ||
-                     (event.type == sf::Event::JoystickConnected))
-            {
+                     (event.type == sf::Event::JoystickConnected)) {
                 // Update displayed joystick values
                 updateValues(event.joystickConnect.joystickId);
             }
-            else if (event.type == sf::Event::JoystickDisconnected)
-            {
+            else if (event.type == sf::Event::JoystickDisconnected) {
                 // Reset displayed joystick values to empty
                 for (Texts::iterator it = texts.begin(); it != texts.end(); ++it)
                     it->second.value.setString("N/A");
@@ -211,8 +191,7 @@ int main()
 
         newThreshold = std::min(std::max(newThreshold, 0.1f), 100.0f);
 
-        if (newThreshold != threshold)
-        {
+        if (newThreshold != threshold) {
             threshold = newThreshold;
             window.setJoystickThreshold(threshold);
 
@@ -226,8 +205,7 @@ int main()
         window.clear();
 
         // Draw the label-value sf::Text objects
-        for (Texts::const_iterator it = texts.begin(); it != texts.end(); ++it)
-        {
+        for (Texts::const_iterator it = texts.begin(); it != texts.end(); ++it) {
             window.draw(it->second.label);
             window.draw(it->second.value);
         }
@@ -236,3 +214,4 @@ int main()
         window.display();
     }
 }
+

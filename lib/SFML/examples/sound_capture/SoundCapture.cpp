@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -12,11 +12,9 @@
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Check that the device can capture audio
-    if (sf::SoundRecorder::isAvailable() == false)
-    {
+    if (sf::SoundRecorder::isAvailable() == false) {
         std::cout << "Sorry, audio capture is not supported by your system" << std::endl;
         return EXIT_SUCCESS;
     }
@@ -55,8 +53,7 @@ int main()
     std::cin  >> choice;
     std::cin.ignore(10000, '\n');
 
-    if (choice == 's')
-    {
+    if (choice == 's') {
         // Choose the filename
         std::string filename;
         std::cout << "Choose the file to create: ";
@@ -65,15 +62,13 @@ int main()
         // Save the buffer
         buffer.saveToFile(filename);
     }
-    else
-    {
+    else {
         // Create a sound instance and play it
         sf::Sound sound(buffer);
         sound.play();
 
         // Wait until finished
-        while (sound.getStatus() == sf::Sound::Playing)
-        {
+        while (sound.getStatus() == sf::Sound::Playing) {
             // Display the playing position
             std::cout << "\rPlaying... " << sound.getPlayingOffset().asSeconds() << " sec        ";
             std::cout << std::flush;
@@ -92,3 +87,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

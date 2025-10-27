@@ -1,4 +1,4 @@
-// The winbgim library, Version 6.0, August 9, 2004
+﻿// The winbgim library, Version 6.0, August 9, 2004
 // Written by:
 //      Grant Macklem (Grant.Macklem@colorado.edu)
 //      Gregory Schmelter (Gregory.Schmelter@colorado.edu)
@@ -130,8 +130,7 @@ enum font_names { DEFAULT_FONT, TRIPLEX_FONT, SMALL_FONT, SANS_SERIF_FONT,
 // ---------------------------------------------------------------------------
 // This structure records information about the last call to arc.  It is used
 // by getarccoords to get the location of the endpoints of the arc.
-struct arccoordstype
-{
+struct arccoordstype {
     int x, y;                   // Center point of the arc
     int xstart, ystart;         // The starting position of the arc
     int xend, yend;             // The ending position of the arc.
@@ -141,8 +140,7 @@ struct arccoordstype
 // This structure defines the fill style for the current window.  Pattern is
 // one of the system patterns such as SOLID_FILL.  Color is the color to
 // fill with
-struct fillsettingstype
-{
+struct fillsettingstype {
     int pattern;                // Current fill pattern
     int color;                  // Current fill color
 };
@@ -152,8 +150,7 @@ struct fillsettingstype
 // linestyle is one of the line styles such as SOLID_LINE, upattern is a
 // 16-bit pattern for user defined lines, and thickness is the width of the
 // line in pixels.
-struct linesettingstype
-{
+struct linesettingstype {
     int linestyle;              // Current line style
     unsigned upattern;          // 16-bit user line pattern
     int thickness;              // Width of the line in pixels
@@ -161,8 +158,7 @@ struct linesettingstype
 
 
 // This structure records information about the text settings.
-struct textsettingstype
-{
+struct textsettingstype {
     int font;                   // The font in use
     int direction;              // Text direction
     int charsize;               // Character size
@@ -172,8 +168,7 @@ struct textsettingstype
 
 
 // This structure records information about the viewport
-struct viewporttype
-{
+struct viewporttype {
     int left, top,              // Viewport bounding box
         right, bottom;
     int clip;                   // Whether to clip image to viewport
@@ -181,8 +176,7 @@ struct viewporttype
 
 
 // This structure records information about the palette.
-struct palettetype
-{
+struct palettetype {
     unsigned char size;
     signed char colors[MAXCOLORS + 1];
 };
@@ -359,4 +353,5 @@ int COLOR(int r, int g, int b); // No longer a macro
 // ---------------------------------------------------------------------------
 
 #endif // WINBGI_H
+
 

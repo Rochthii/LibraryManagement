@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include "ThongBao.h"
+#include "DauSach.h"
 
 // Xu ly chuoi
 std::string ChuyenInThuong(const std::string& str);
@@ -14,11 +15,11 @@ std::string ChuanHoaKhoangTrang(const std::string& s);
 std::string layChiCacKyTuSo(const std::string& s);
 std::string ChuanHoaPhai(const std::string& raw);
 bool ChuanHoaNgay(std::string& ngayChuoi, std::ostream& out);
-bool ChuanHoaISBNFile(const std::string& raw, std::string& outISBN, std::ostream& out = std::cout);
-bool ChuanHoaISBNCore(const std::string& chuoiGoc, std::string& ketQua, bool tuDong, bool nhapThuCong, bool laDocFile, std::ostream& out);
+std::string ChuanHoaISBNCore(const std::string& chuoiGoc, std::string& ketQua, bool tuDong, bool nhapThuCong, bool laDocFile);
+std::string ChuanHoaISBNFile(const std::string& chuoiGoc, std::string& ketQua);
 bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiChoPhepSoDuong = false);
 std::string ChuanHoaViTri(const std::string& s);
-bool ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::ostream& out, std::string& ketQua);
+std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::string& ketQua);
 std::string BoDauVaThuong(const std::string& s); // Luu y: Chi chuyen thuong, khong bo dau
 bool laChuoiRongHoacChiKhoangTrang(const std::string& s);
 

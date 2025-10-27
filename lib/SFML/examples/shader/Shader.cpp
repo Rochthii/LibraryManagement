@@ -1,4 +1,4 @@
-
+﻿
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
@@ -12,17 +12,14 @@ const sf::Font* Effect::s_font = NULL;
 ////////////////////////////////////////////////////////////
 // "Pixelate" fragment shader
 ////////////////////////////////////////////////////////////
-class Pixelate : public Effect
-{
+class Pixelate : public Effect {
 public:
 
     Pixelate() :
-    Effect("Pixelate")
-    {
+    Effect("Pixelate") {
     }
 
-    bool onLoad()
-    {
+    bool onLoad() {
         // Load the texture and initialize the sprite
         if (!m_texture.loadFromFile("resources/background.jpg"))
             return false;
@@ -36,13 +33,11 @@ public:
         return true;
     }
 
-    void onUpdate(float, float x, float y)
-    {
+    void onUpdate(float, float x, float y) {
         m_shader.setUniform("pixel_threshold", (x + y) / 30);
     }
 
-    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
         states.shader = &m_shader;
         target.draw(m_sprite, states);
     }
@@ -58,17 +53,14 @@ private:
 ////////////////////////////////////////////////////////////
 // "Wave" vertex shader + "blur" fragment shader
 ////////////////////////////////////////////////////////////
-class WaveBlur : public Effect
-{
+class WaveBlur : public Effect {
 public:
 
     WaveBlur() :
-    Effect("Wave + Blur")
-    {
+    Effect("Wave + Blur") {
     }
 
-    bool onLoad()
-    {
+    bool onLoad() {
         // Create the text
         m_text.setString("Praesent suscipit augue in velit pulvinar hendrerit varius purus aliquam.\n"
                          "Mauris mi odio, bibendum quis fringilla a, laoreet vel orci. Proin vitae vulputate tortor.\n"
@@ -99,15 +91,13 @@ public:
         return true;
     }
 
-    void onUpdate(float time, float x, float y)
-    {
+    void onUpdate(float time, float x, float y) {
         m_shader.setUniform("wave_phase", time);
         m_shader.setUniform("wave_amplitude", sf::Vector2f(x * 40, y * 40));
         m_shader.setUniform("blur_radius", (x + y) * 0.008f);
     }
 
-    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
         states.shader = &m_shader;
         target.draw(m_text, states);
     }
@@ -122,21 +112,17 @@ private:
 ////////////////////////////////////////////////////////////
 // "Storm" vertex shader + "blink" fragment shader
 ////////////////////////////////////////////////////////////
-class StormBlink : public Effect
-{
+class StormBlink : public Effect {
 public:
 
     StormBlink() :
-    Effect("Storm + Blink")
-    {
+    Effect("Storm + Blink") {
     }
 
-    bool onLoad()
-    {
+    bool onLoad() {
         // Create the points
         m_points.setPrimitiveType(sf::Points);
-        for (int i = 0; i < 40000; ++i)
-        {
+        for (int i = 0; i < 40000; ++i) {
             float x = static_cast<float>(std::rand() % 800);
             float y = static_cast<float>(std::rand() % 600);
             sf::Uint8 r = static_cast<sf::Uint8>(std::rand() % 255);
@@ -152,8 +138,7 @@ public:
         return true;
     }
 
-    void onUpdate(float time, float x, float y)
-    {
+    void onUpdate(float time, float x, float y) {
         float radius = 200 + std::cos(time) * 150;
         m_shader.setUniform("storm_position", sf::Vector2f(x * 800, y * 600));
         m_shader.setUniform("storm_inner_radius", radius / 3);
@@ -161,8 +146,7 @@ public:
         m_shader.setUniform("blink_alpha", 0.5f + std::cos(time * 3) * 0.25f);
     }
 
-    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
         states.shader = &m_shader;
         target.draw(m_points, states);
     }
@@ -177,17 +161,14 @@ private:
 ////////////////////////////////////////////////////////////
 // "Edge" post-effect fragment shader
 ////////////////////////////////////////////////////////////
-class Edge : public Effect
-{
+class Edge : public Effect {
 public:
 
     Edge() :
-    Effect("Edge Post-effect")
-    {
+    Effect("Edge Post-effect") {
     }
 
-    bool onLoad()
-    {
+    bool onLoad() {
         // Create the off-screen surface
         if (!m_surface.create(800, 600))
             return false;
@@ -206,8 +187,7 @@ public:
         m_backgroundSprite.setPosition(135, 100);
 
         // Load the moving entities
-        for (int i = 0; i < 6; ++i)
-        {
+        for (int i = 0; i < 6; ++i) {
             sf::Sprite entity(m_entityTexture, sf::IntRect(96 * i, 0, 96, 96));
             m_entities.push_back(entity);
         }
@@ -220,13 +200,11 @@ public:
         return true;
     }
 
-    void onUpdate(float time, float x, float y)
-    {
+    void onUpdate(float time, float x, float y) {
         m_shader.setUniform("edge_threshold", 1 - (x + y) / 2);
 
         // Update the position of the moving entities
-        for (std::size_t i = 0; i < m_entities.size(); ++i)
-        {
+        for (std::size_t i = 0; i < m_entities.size(); ++i) {
             sf::Vector2f position;
             position.x = std::cos(0.25f * (time * static_cast<float>(i) + static_cast<float>(m_entities.size() - i))) * 300 + 350;
             position.y = std::sin(0.25f * (time * static_cast<float>(m_entities.size() - i) + static_cast<float>(i))) * 200 + 250;
@@ -241,8 +219,7 @@ public:
         m_surface.display();
     }
 
-    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
         states.shader = &m_shader;
         target.draw(sf::Sprite(m_surface.getTexture()), states);
     }
@@ -261,25 +238,21 @@ private:
 ////////////////////////////////////////////////////////////
 // "Geometry" geometry shader example
 ////////////////////////////////////////////////////////////
-class Geometry : public Effect
-{
+class Geometry : public Effect {
 public:
 
     Geometry() :
         Effect("Geometry Shader Billboards"),
-        m_pointCloud(sf::Points, 10000)
-    {
+        m_pointCloud(sf::Points, 10000) {
     }
 
-    bool onLoad()
-    {
+    bool onLoad() {
         // Check if geometry shaders are supported
         if (!sf::Shader::isGeometryAvailable())
             return false;
 
         // Move the points in the point cloud to random positions
-        for (std::size_t i = 0; i < 10000; i++)
-        {
+        for (std::size_t i = 0; i < 10000; i++) {
             // Spread the coordinates from -480 to +480
             // So they'll always fill the viewport at 800x600
             m_pointCloud[i].position.x = static_cast<float>(rand() % 960) - 480.f;
@@ -301,8 +274,7 @@ public:
         return true;
     }
 
-    void onUpdate(float /*time*/, float x, float y)
-    {
+    void onUpdate(float /*time*/, float x, float y) {
         // Reset our transformation matrix
         m_transform = sf::Transform::Identity;
         // Move to the center of the window
@@ -317,8 +289,7 @@ public:
         m_shader.setUniform("size", sf::Vector2f(size, size));
     }
 
-    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
         // Prepare the render state
         states.shader = &m_shader;
         states.texture = &m_logoTexture;
@@ -343,8 +314,7 @@ private:
 /// \return Application exit code
 ///
 ////////////////////////////////////////////////////////////
-int main()
-{
+int main() {
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Shader",
                             sf::Style::Titlebar | sf::Style::Close);
@@ -389,20 +359,16 @@ int main()
 
     // Start the game loop
     sf::Clock clock;
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         // Process events
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             // Close window: exit
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if (event.type == sf::Event::KeyPressed)
-            {
-                switch (event.key.code)
-                {
+            if (event.type == sf::Event::KeyPressed) {
+                switch (event.key.code) {
                     // Escape key: exit
                     case sf::Keyboard::Escape:
                         window.close();
@@ -462,3 +428,4 @@ int main()
 
     return EXIT_SUCCESS;
 }
+

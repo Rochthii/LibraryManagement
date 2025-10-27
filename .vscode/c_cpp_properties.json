@@ -1,6 +1,26 @@
 {
     "configurations": [
         {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/UI",
+                "${workspaceFolder}/data",
+                "${workspaceFolder}/utils",
+                "${workspaceFolder}/lib/SFML/include",
+                "${workspaceFolder}/*"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        },
+        {
             "name": "MinGW64",
             "includePath": [
                 "${workspaceFolder}/**",
@@ -21,7 +41,7 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64",
+            "intelliSenseMode": "windows-gcc-x64",
             "browse": {
                 "path": [
                     "${workspaceFolder}/include",
