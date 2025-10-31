@@ -1,173 +1,233 @@
-﻿
-#include "DocGia.h"
-#include "ThongBao.h"
+﻿#include "DocGia.h"
+#include "NgayThang.h"
+#include <fstream>
 #include <string>
 
-using namespace std;
+// --------------------------------------------------
+// CAC HAM THAO TAC TREN CAY DOC GIA (AVL TREE)
+// --------------------------------------------------
 
-// -------------------------------------------------
-// Them doc gia moi
-// -------------------------------------------------
-string themDocGia(PTRDG& root, const string& ho, const string& ten, bool phai, int trangThai) {
-    if (ho.empty() || ten.empty()) {
-        return thongBaoLoi(0, "Ho hoac ten khong duoc de trong");
+void giaiPhongDsmt(MUONTRA& dsmt) {
+    while (dsmt != nullptr) {
+        MUONTRA tmp = dsmt;
+        dsmt = dsmt->next;
+        delete tmp;
     }
-
-    PTRDG dg = taoDocGia(ho, ten, phai, trangThai, root);
-    if (dg == nullptr) {
-        return thongBaoLoi(0, "Khong cap phat duoc bo nho cho doc gia");
-    }
-
-    InsertDocGia(root, dg);
-    return "Da them doc gia moi voi ma the " + to_string(dg->data.MaThe);
 }
 
-// -------------------------------------------------
-// Xoa doc gia theo ma
-// -------------------------------------------------
-string xoaDocGiaTheoMa(PTRDG& root, int maThe) {
-    PTRDG p = timDocGia(root, maThe);
-    if (p == nullptr) {
-        return thongBaoLoi(0, "Khong tim thay doc gia co ma the " + to_string(maThe));
-    }
-
-    // Kiem tra neu doc gia con sach dang muon
-    if (demSachDangMuon(p->data.dsmt) > 0) {
-        return thongBaoLoi(0, "Doc gia van con sach chua tra");
-    }
-
-    xoaDocGia(root, maThe);
-    return "Da xoa doc gia co ma the " + to_string(maThe);
-}
-
-// -------------------------------------------------
-// Cap nhat thong tin doc gia
-// -------------------------------------------------
-string capNhatDocGia(PTRDG root, int maThe, const string& ho, const string& ten, bool phai, int trangThai) {
-    PTRDG p = timDocGia(root, maThe);
-    if (p == nullptr) {
-        return thongBaoLoi(0, "Khong tim thay doc gia co ma the " + to_string(maThe));
-    }
-
-    PTRDG temp = new NodeDG;
-    *temp = *p;
-    if (!ho.empty()) temp->data.Ho = ho;
-    if (!ten.empty()) temp->data.Ten = ten;
-    temp->data.Phai = phai;
-    temp->data.TrangThai = trangThai;
-
-    hieuChinhDocGia(root, temp, maThe);
-    delete temp;
-
-    return "Da cap nhat thong tin doc gia " + to_string(maThe);
-}
-
-// -------------------------------------------------
-// Tim doc gia theo ma
-// -------------------------------------------------
-PTRDG timTheoMa(PTRDG root, int maThe) {
-    return timDocGia(root, maThe);
-}
-
-// -------------------------------------------------
-// Tim doc gia theo ten (tra ve linked list tam)
-// -------------------------------------------------
-struct KetQuaTim {
-    PTRDG* ds;
-    int soLuong;
-};
-
-void timTheoTenRec(PTRDG node, const string& ten, KetQuaTim& kq) {
-    if (!node) return;
-    timTheoTenRec(node->left, ten, kq);
-    if (node->data.Ten == ten && kq.soLuong < 1000) {
-        kq.ds[kq.soLuong++] = node;
-    }
-    timTheoTenRec(node->right, ten, kq);
-}
-
-KetQuaTim timTheoTen(PTRDG root, const string& ten) {
-    static PTRDG buffer[1000];
-    KetQuaTim kq;
-    kq.ds = buffer;
-    kq.soLuong = 0;
-    timTheoTenRec(root, ten, kq);
-    return kq;
-}
-
-// -------------------------------------------------
-// Lay danh sach doc gia sap xep theo ten + ho
-// -------------------------------------------------
-struct PtrArr {
-    PTRDG arr[1000];
-    int size;
-};
-
-void duyetSangMang(PTRDG root, PtrArr& list) {
+void GiaiPhongCay(PTRDG& root) {
     if (!root) return;
-    duyetSangMang(root->left, list);
-    if (list.size < 1000)
-        list.arr[list.size++] = root;
-    duyetSangMang(root->right, list);
+    GiaiPhongCay(root->left);
+    GiaiPhongCay(root->right);
+    giaiPhongDsmt(root->data.dsmt);
+    delete root;
+    root = nullptr;
 }
 
-bool cmpTenHo(PTRDG a, PTRDG b) {
-    if (a->data.Ten == b->data.Ten)
-        return a->data.Ho < b->data.Ho;
-    return a->data.Ten < b->data.Ten;
+// ----------------------------------------------
+// CAC HAM CO BAN: TAO / THEM / TIM / XOA DOC GIA
+// ----------------------------------------------
+
+PTRDG taoDocGia(std::string ho, std::string ten, bool phai, int trangthai, PTRDG root) {
+    PTRDG p = new NodeDG;
+    p->data.MaThe = rand() % 9000 + 1000; // Sinh ngau nhien tam thoi
+    p->data.Ho = ho;
+    p->data.Ten = ten;
+    p->data.Phai = phai;
+    p->data.TrangThai = trangthai;
+    p->data.dsmt = nullptr;
+    p->left = p->right = nullptr;
+    p->height = 1;
+    return p;
 }
 
-void sortTenHo(PtrArr& list) {
-    for (int i = 0; i < list.size - 1; ++i) {
-        int minIdx = i;
-        for (int j = i + 1; j < list.size; ++j) {
-            if (cmpTenHo(list.arr[j], list.arr[minIdx]))
-                minIdx = j;
+PTRDG timDocGia(PTRDG root, int maThe) {
+    while (root != nullptr && maThe != root->data.MaThe) {
+        root = (maThe < root->data.MaThe) ? root->left : root->right;
+    }
+    return root;
+}
+
+static inline int getHeight(PTRDG n) { return n ? n->height : 0; }
+static inline void updateHeight(PTRDG n) {
+    if (n) n->height = 1 + (getHeight(n->left) > getHeight(n->right) ? getHeight(n->left) : getHeight(n->right));
+}
+static inline int getBalance(PTRDG n) {
+    return n ? getHeight(n->left) - getHeight(n->right) : 0;
+}
+
+PTRDG RotateLeft(PTRDG p) {
+    PTRDG q = p->right;
+    PTRDG B = q->left;
+    q->left = p;
+    p->right = B;
+    updateHeight(p);
+    updateHeight(q);
+    return q;
+}
+
+PTRDG RotateRight(PTRDG p) {
+    PTRDG q = p->left;
+    PTRDG B = q->right;
+    q->right = p;
+    p->left = B;
+    updateHeight(p);
+    updateHeight(q);
+    return q;
+}
+
+PTRDG InsertDocGiaRec(PTRDG root, PTRDG node) {
+    if (!root) return node;
+    if (node->data.MaThe < root->data.MaThe)
+        root->left = InsertDocGiaRec(root->left, node);
+    else if (node->data.MaThe > root->data.MaThe)
+        root->right = InsertDocGiaRec(root->right, node);
+    else
+        return root;
+
+    updateHeight(root);
+    int balance = getBalance(root);
+
+    if (balance > 1 && node->data.MaThe < root->left->data.MaThe) return RotateRight(root);
+    if (balance < -1 && node->data.MaThe > root->right->data.MaThe) return RotateLeft(root);
+    if (balance > 1 && node->data.MaThe > root->left->data.MaThe) {
+        root->left = RotateLeft(root->left);
+        return RotateRight(root);
+    }
+    if (balance < -1 && node->data.MaThe < root->right->data.MaThe) {
+        root->right = RotateRight(root->right);
+        return RotateLeft(root);
+    }
+    return root;
+}
+
+void InsertDocGia(PTRDG& root, PTRDG node) {
+    if (node) node->height = 1;
+    root = InsertDocGiaRec(root, node);
+}
+
+static PTRDG minValueNode(PTRDG node) {
+    PTRDG cur = node;
+    while (cur->left) cur = cur->left;
+    return cur;
+}
+
+PTRDG xoaDocGiaRec(PTRDG root, int maThe) {
+    if (!root) return root;
+
+    if (maThe < root->data.MaThe)
+        root->left = xoaDocGiaRec(root->left, maThe);
+    else if (maThe > root->data.MaThe)
+        root->right = xoaDocGiaRec(root->right, maThe);
+    else {
+        giaiPhongDsmt(root->data.dsmt);
+        if (!root->left || !root->right) {
+            PTRDG temp = root->left ? root->left : root->right;
+            delete root;
+            return temp;
         }
-        if (minIdx != i) {
-            PTRDG tmp = list.arr[i];
-            list.arr[i] = list.arr[minIdx];
-            list.arr[minIdx] = tmp;
+        else {
+            PTRDG succ = minValueNode(root->right);
+            root->data = succ->data;
+            root->right = xoaDocGiaRec(root->right, succ->data.MaThe);
         }
     }
+
+    updateHeight(root);
+    int balance = getBalance(root);
+
+    if (balance > 1 && getBalance(root->left) >= 0) return RotateRight(root);
+    if (balance > 1 && getBalance(root->left) < 0) {
+        root->left = RotateLeft(root->left);
+        return RotateRight(root);
+    }
+    if (balance < -1 && getBalance(root->right) <= 0) return RotateLeft(root);
+    if (balance < -1 && getBalance(root->right) > 0) {
+        root->right = RotateRight(root->right);
+        return RotateLeft(root);
+    }
+
+    return root;
 }
 
-PtrArr layDanhSachTheoTen(PTRDG root) {
-    PtrArr list;
-    list.size = 0;
-    duyetSangMang(root, list);
-    sortTenHo(list);
-    return list;
+void xoaDocGia(PTRDG& root, int maThe) {
+    root = xoaDocGiaRec(root, maThe);
 }
 
-// -------------------------------------------------
-// Lay danh sach doc gia theo ma (duyet inorder)
-// -------------------------------------------------
-void duyetTheoMa(PTRDG node, PTRDG* buffer, int& count, int maxCount) {
-    if (!node || count >= maxCount) return;
-    duyetTheoMa(node->left, buffer, count, maxCount);
-    if (count < maxCount) buffer[count++] = node;
-    duyetTheoMa(node->right, buffer, count, maxCount);
+void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int maThe) {
+    PTRDG p = timDocGia(root, maThe);
+    if (!p || !pAlt) return;
+    p->data.Ho = pAlt->data.Ho;
+    p->data.Ten = pAlt->data.Ten;
+    p->data.Phai = pAlt->data.Phai;
+    p->data.TrangThai = pAlt->data.TrangThai;
 }
 
-PtrArr layDanhSachTheoMa(PTRDG root) {
-    PtrArr list;
-    list.size = 0;
-    duyetSangMang(root, list);
-    return list;
+// --------------------------------------------------
+// CAC HAM LAM VIEC VOI MUON TRA
+// --------------------------------------------------
+
+int demSachDangMuon(MUONTRA dsmt) {
+    int count = 0;
+    MUONTRA p = dsmt;
+    while (p) {
+        if (p->data.TrangThai == 0) count++;
+        p = p->next;
+    }
+    return count;
 }
 
-// -------------------------------------------------
-// Wrapper luu / tai file
-// -------------------------------------------------
-string luuDocGia(PTRDG root) {
-    saveDocGia(root);
-    return "Da luu file docgia.txt";
+bool coSachQuaHan(PTRDG dg) {
+    if (!dg) return false;
+    MUONTRA mt = dg->data.dsmt;
+    std::string today = layNgayHienTai();
+    while (mt) {
+        if (mt->data.TrangThai == 0) {
+            int days = tinhKhoangCachNgay(mt->data.NgayMuon, today);
+            if (days > 7) return true;
+        }
+        mt = mt->next;
+    }
+    return false;
 }
 
-string taiDocGia(PTRDG& root) {
-    root = loadDocGia();
-    if (root == nullptr)
-        return thongBaoLoi(0, "Khong tai duoc file hoac file rong");
-    return "Tai file docgia.txt thanh cong";
+// --------------------------------------------------
+// LUU / TAI FILE
+// --------------------------------------------------
+
+void saveDocGia(PTRDG root) {
+    std::ofstream out("docgia.txt");
+    if (!out.is_open()) return;
+
+    std::function<void(PTRDG)> traverse = [&](PTRDG node) {
+        if (!node) return;
+        traverse(node->left);
+
+        out << node->data.MaThe << "," << node->data.Ho << ","
+            << node->data.Ten << "," << (node->data.Phai ? 1 : 0) << ","
+            << node->data.TrangThai << "\n";
+
+        traverse(node->right);
+        };
+    traverse(root);
+    out.close();
+}
+
+PTRDG loadDocGia() {
+    std::ifstream in("docgia.txt");
+    if (!in.is_open()) return nullptr;
+
+    PTRDG root = nullptr;
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.empty()) continue;
+        int ma, phai, trangThai;
+        std::string ho, ten;
+        sscanf(line.c_str(), "%d,%[^,],%[^,],%d,%d", &ma, &ho[0], &ten[0], &phai, &trangThai);
+        PTRDG node = taoDocGia(ho, ten, phai, trangThai, root);
+        node->data.MaThe = ma;
+        InsertDocGia(root, node);
+    }
+    in.close();
+    return root;
 }

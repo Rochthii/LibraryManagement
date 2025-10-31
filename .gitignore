@@ -30,3 +30,29 @@ DerivedData/
 .DS_Store
 .vs/
 
+# Visual Studio solution and project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Visual Studio database and cache
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+
+# Visual Studio user-specific files
+*.suo
+*.ncb
+*.pdb
+*.ipch
+*.log
+*.tlog
+
+# Visual Studio folder
+.vs/
+
+# Test results
+TestResults/
+*.trx

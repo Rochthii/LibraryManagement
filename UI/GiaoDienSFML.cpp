@@ -3,6 +3,9 @@
 #include "include/ManHinhMenuChinh.h"
 #include "include/ManHinhThongTin.h"
 #include "include/ManHinhQuanLySach.h"
+//cua binh
+#include "include/GiaoDienQuanLyDocGia.h"
+#include "include/GiaoDienMuonTra.h"
 #include <iostream>
 
 // dinh nghia cac bien toan cuc

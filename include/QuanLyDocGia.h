@@ -1,30 +1,52 @@
-#ifndef QUANLYDOCGIA_H
-#define QUANLYDOCGIA_H
+#ifndef QUAN_LY_DOC_GIA_H
+#define QUAN_LY_DOC_GIA_H
 
-#include "DocGia.h"
 #include <string>
+#include "DocGia.h"
 
-// Ham xu ly nghiep vu doc gia, su dung thong bao thong qua ThongBao.h
-// Moi ham tra ve chuoi de UI co the hien thi
+// ======================================================
+// CAC HAM NGHIEP VU QUAN LY DOC GIA
+// ======================================================
 
-// Them doc gia moi vao cay
+ //Them doc gia moi
+ //- Kiem tra du lieu dau vao
+ //- Tao doc gia moi va chen vao cay
+ //- Luu lai file sau khi them
+ //Tra ve: Chuoi thong bao thanh cong hoac loi
 std::string themDocGia(PTRDG& root, const std::string& ho, const std::string& ten, bool phai, int trangThai);
 
-// Xoa doc gia theo ma the
+// Xoa doc gia theo ma
+// - Kiem tra ton tai
+// - Kiem tra neu con sach dang muon thi khong duoc xoa
+// - Luu file sau khi xoa
+// Tra ve: Chuoi thong bao ket qua
 std::string xoaDocGiaTheoMa(PTRDG& root, int maThe);
 
 // Cap nhat thong tin doc gia
-std::string capNhatDocGia(PTRDG root, int maThe, const std::string& ho, const std::string& ten, bool phai, int trangThai);
+// - Kiem tra ton tai
+// - Cap nhat cac truong duoc chinh sua
+// - Luu file sau khi cap nhat
+std::string capNhatDocGia(PTRDG root, int maThe,
+    const std::string& ho, const std::string& ten,
+    bool phai, int trangThai);
 
-// Tim doc gia theo ma the
-PTRDG timTheoMa(PTRDG root, int maThe);
+// ======================================================
+// DU LIEU DON GIAN PHUC VU GIAO DIEN
+// ======================================================
 
-// Lay danh sach doc gia theo ten + ho tang dan
-void duyetSangMang(PTRDG root, PTRDG* buffer, int& count, int maxCount);
-void sortTheoTen(PTRDG* buffer, int count);
+// Cau truc don gian de truyen du lieu len UI
+struct DocGiaDonGian {
+    int MaThe;
+    std::string Ho;
+    std::string Ten;
+    bool Phai;
+    int TrangThai;
+};
 
-// Luu va tai du lieu doc gia tu file
-std::string luuDocGia(PTRDG root);
-std::string taiDocGia(PTRDG& root);
+// Lay danh sach tat ca doc gia (duyet theo thu tu ma the tang dan)
+// - arr: mang luu ket qua
+// - count: so luong doc gia tra ve
+// - maxCount: gioi han toi da (mac dinh 1000)
+void LayDanhSachDocGia(PTRDG root, DocGiaDonGian arr[], int& count, int maxCount = 1000);
 
-#endif // QUANLYDOCGIA_H
+#endif // QUAN_LY_DOC_GIA_H
