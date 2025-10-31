@@ -26,10 +26,13 @@ struct TheDocGia{
     bool Phai;//0 nam 1 nu
     int TrangThai = 1;//0 = khoa, 1=hoat dong
     
+    // CẢI TIẾN: Thêm trường đếm sách để kiểm tra giới hạn O(1)
+    int soSachDangMuon = 0; 
+    
     MUONTRA dsmt;//danh sach muon tra linked list
 };
 
-//binary search tree
+//binary search tree (AVL)
 struct NodeDG{
     TheDocGia data;
     int bf;
@@ -56,26 +59,36 @@ struct DocGiaQuaHan {
 };
 typedef DocGiaQuaHan* LIST_DOCGIA_QUAHAN;
 
+// Prototype AVL
 PTRDG RotateLeft(PTRDG root);
 PTRDG RotateRight(PTRDG root);
 void InsertDocGia(PTRDG& root, PTRDG node);
-//prototype
 
-//quan ly cay doc gia
-// PTRDG themDocGia removed - use InsertDocGia (AVL) instead
+// Prototype Chức năng chính
 void xoaDocGia(PTRDG& root, int mathe);
 PTRDG timDocGia(PTRDG root, int mathe);
-void inDocGiaInOrder(PTRDG root);
-void hieuChinhDocGia(PTRDG root, PTRDG pAlt, int mathe);
+void inDocGiaInOrder(PTRDG root); // In theo Mã thẻ tăng dần
+void display(PTRDG root); // Hàm in 1 độc giả
 
-// them prototype giai phong cay
+// CẢI TIẾN: Thay đổi prototype để tránh rò rỉ bộ nhớ
+void hieuChinhDocGia(PTRDG root, const TheDocGia& new_data);
+
+// Prototype cho chức năng sắp xếp (b)
+void DuyetCayRaMang(PTRDG root, PTRDG arr[], int &count);
+void InDocGiaTheoTenHo(PTRDG root); // In ra danh sách sắp xếp theo Tên+Họ
+void QuickSortDocGia(PTRDG arr[], int low, int high);
+
+// Prototype Giải phóng bộ nhớ
 void GiaiPhongCay(PTRDG& root);
+void giaiPhongDsmt(MUONTRA& dsmt);
 
-//quan ly muon tra
+// Prototype Quản lý Mượn Trả
 void themMuonTra(PTRDG root, string maSach);
+void themMuonTra(PTRDG docgia, const MuonTra &mt);
+
+// Prototype File I/O
 void saveDocGia(PTRDG root);
 PTRDG loadDocGia();
-
 
 
 #endif
