@@ -20,90 +20,114 @@ static bool KiemTraSoTrangFile(int soTrang, std::ostream &out) {
 }
 
 void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach, std::ostream &out) {
-    std::ifstream inp(path);
-    if (!inp.is_open()) {
+    std::ifstream inp(path);  // mo file tu duong dan
+    if (!inp.is_open()) {     // kiem tra file mo dc khong
         thongBao(out, "Loi: Khong the mo file dau sach: " + std::string(path), LOI);
         return;
     }
+
     int lineNo = 0, bookOk = 0, bookSkip = 0;
-    std::string line;
-    char buffer[DUNG_LUONG_CACHE_MAC_DINH];
+    std::string line; // dung de luu noi dung da doc dc
+    char buffer[DUNG_LUONG_CACHE_MAC_DINH]; // dung bo dem (buffer) de doc file nhanh hon
+
+    // doc tung dong trong file cho den khi het file (eof)
     while (inp.getline(buffer, DUNG_LUONG_CACHE_MAC_DINH)) {
-        line = buffer;
-        ++lineNo;
+        line = buffer; // gan buffer vao string de xu ly
+        ++lineNo;      // tang so thu tu dong (de bao loi cho dung dong)
+
+        // mang tam luu cac truong (isbn, ten,...) sau khi tach
         std::string fields[SO_TRUONG_DAU_SACH];
+        // tach dong hien tai bang ky tu '|'
+        // neu so luong truong tach ra khong dung (SO_TRUONG_DAU_SACH) -> bao loi, bo qua dong
         if (!TachTruong(line, '|', fields, SO_TRUONG_DAU_SACH)) {
             thongBao(out, thongBaoLoi(lineNo, "Sai dinh dang dong: " + line, true), CANH_BAO);
             ++bookSkip;
             continue;
         }
+
+        // khai bao bien tam de luu du lieu da kiem tra va chuan hoa
         int soTrang, namXuatBan;
         std::string isbnChuanHoa, tenChuanHoa, tacGiaChuanHoa, theLoaiChuanHoa;
-        std::string loi;
-        loi = KiemTraChuoiRong(fields[0], "ISBN");
-        std::string loiChuanHoa = ChuanHoaISBNFile(fields[0], isbnChuanHoa);
-        std::string loiTrung = KiemTraTrungISBN(isbnChuanHoa);
+        std::string loi; // bien luu loi tra ve tu ham kiem tra
 
-        if (!loi.empty() || !loiChuanHoa.empty() || !loiTrung.empty()) {
+        // b1: kiem tra isbn
+        loi = KiemTraChuoiRong(fields[0], "ISBN");                           // kiem tra rong
+        std::string loiChuanHoa = ChuanHoaISBNFile(fields[0], isbnChuanHoa); // kiem tra 10 hoac 13 so
+        std::string loiTrung = KiemTraTrungISBN(isbnChuanHoa);               // kiem tra co trung khong
+
+        if (!loi.empty() || !loiChuanHoa.empty() || !loiTrung.empty()) {     // neu co bat ky loi nao (rong, sai dinh dang, hoac trung) -> bo qua dong
+            // lay loi dau tien tim thay de thong bao
             std::string loiTongHop = loi.empty() ? (loiChuanHoa.empty() ? loiTrung : loiChuanHoa) : loi;
             thongBao(out, thongBaoLoi(lineNo, loiTongHop + " ('" + fields[0] + "')", true), CANH_BAO);
             ++bookSkip;
             continue;
         }
 
-        loi = ChuanHoaTenUnicode(fields[1], MIN_TEN_SACH, MAX_TEN_SACH, tenChuanHoa);
+        // b2: kiem tra ten sach
+        loi = ChuanHoaTenUnicode(fields[1], MIN_TEN_SACH, MAX_TEN_SACH, tenChuanHoa); // kiem tra (rong, ky tu, do dai)
         if (!loi.empty()) {
             thongBao(out, thongBaoLoi(lineNo, loi + " ('" + fields[1] + "')", true), CANH_BAO);
             ++bookSkip;
             continue;
         }
 
-        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(fields[2]), soTrang, false) || !KiemTraSoTrangFile(soTrang, out)) {
+        // b3: kiem tra so trang 
+        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(fields[2]), soTrang, false) || !KiemTraSoTrangFile(soTrang, out)) {  // chuyen chuoi thanh so va kiem tra gioi han (vi du: 1-10000)
             thongBao(out, thongBaoLoi(lineNo, "So trang khong hop le: " + fields[2], true), CANH_BAO);
             ++bookSkip;
             continue;
         }
 
-        loi = ChuanHoaTenUnicode(fields[3], MIN_TAC_GIA, MAX_TAC_GIA, tacGiaChuanHoa);
+        // b4: kiem tra tac gia
+        loi = ChuanHoaTenUnicode(fields[3], MIN_TAC_GIA, MAX_TAC_GIA, tacGiaChuanHoa); // kiem tra (rong, ky tu, do dai)
         if (!loi.empty()) {
             thongBao(out, thongBaoLoi(lineNo, loi + " ('" + fields[3] + "')", true), CANH_BAO);
             ++bookSkip;
             continue;
         }
 
-        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(fields[4]), namXuatBan, false)) {
-            thongBao(out, thongBaoLoi(lineNo, "Nam xuat ban phai la so: '" + fields[4] + "'", true), CANH_BAO);
-            ++bookSkip;
-            continue;
+        //b5: kiem tra nam xuat ban
+        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(fields[4]), namXuatBan, false)) {  // kiem tra co phai la so khong
+             thongBao(out, thongBaoLoi(lineNo, "Nam xuat ban phai la so: '" + fields[4] + "'", true), CANH_BAO);
+             ++bookSkip;
+             continue;
         }
-        loi = KiemTraNamXuatBan(namXuatBan);
-        if (!loi.empty()) {
-            thongBao(out, thongBaoLoi(lineNo, loi + " ('" + fields[4] + "')", true), CANH_BAO);
-            ++bookSkip;
-            continue;
+        loi = KiemTraNamXuatBan(namXuatBan); // kiem tra gioi han (1800 - nam hien tai)
+        if(!loi.empty()) {
+             thongBao(out, thongBaoLoi(lineNo, loi + " ('" + fields[4] + "')", true), CANH_BAO);
+             ++bookSkip;
+             continue;
         }
 
-        loi = ChuanHoaTenUnicode(fields[5], MIN_THE_LOAI, MAX_THE_LOAI, theLoaiChuanHoa);
+        //b6: kiem tra the loai
+        loi = ChuanHoaTenUnicode(fields[5], MIN_THE_LOAI, MAX_THE_LOAI, theLoaiChuanHoa); // kiem tra (rong, ky tu, do dai)
         if (!loi.empty()) {
             thongBao(out, thongBaoLoi(lineNo, loi + " ('" + fields[5] + "')", true), CANH_BAO);
             ++bookSkip;
             continue;
         }
 
+        //b7: them vao danh sach
+        // neu tat ca hop le, goi ham themDauSach
         if (themDauSach(dsDauSach, soLuongDauSach, isbnChuanHoa, tenChuanHoa, soTrang, tacGiaChuanHoa, namXuatBan, theLoaiChuanHoa, true)) {
-            ++bookOk;
+            ++bookOk; // tang bien dem them thanh cong
         } else {
+            // bao loi neu day
             thongBao(out, thongBaoLoi(lineNo, "Khong the them dau sach (da day?): " + fields[1], true), CANH_BAO);
             ++bookSkip;
         }
-    }
+    } 
+
+    // kiem tra xem file da doc het (eof) hay bi loi giua chung (fail)
     if (inp.eof()) {
         InTongKet("Doc dau sach", bookOk, lineNo, bookSkip, out);
     } else if (inp.fail()) {
         thongBao(out, "Loi: Gap su co khi doc file dau sach!", LOI);
     }
-    inp.close();
+    inp.close(); // dong file
 }
+
+
 
 void NapDanhMucSach(const char *path, PTRDS dsDauSach[], int soLuongDauSach, std::ostream &out) {
     std::ifstream inp(path);
@@ -203,7 +227,7 @@ bool GhiDanhSachDauSach(const char *path, PTRDS dsDauSach[], int soLuongDauSach,
             ++dem;
         }
     }
-    outf.close(); // Dong file sau khi ghi xong
+    outf.close(); // Dong file
 
     if (!silent)
         InTongKet("Ghi dau sach", dem, soLuongDauSach, soLuongDauSach - dem, out); //

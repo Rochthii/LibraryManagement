@@ -1,4 +1,4 @@
-#ifndef QUANLYSACH_H
+﻿#ifndef QUANLYSACH_H
 #define QUANLYSACH_H
 
 #include <string>
@@ -8,8 +8,8 @@
 
 // Nhom 1: Sinh Ma & Tien Ich
 
-std::string SinhISBN13TuDong(std::ostream& out);
-std::string sinhMaSach(const std::string& chiSo, int& soThuTu, std::ostream& out);
+//std::string SinhISBN13TuDong(std::ostream& out); // neu can thi dung
+std::string sinhMaSach(const std::string &chiSo, int &soThuTu);
 const char* TenTrangThai(TrangThaiSach trangThai);
 int PhanTichTrangThaiSach(const std::string& trangThai, std::ostream& out);
 
@@ -57,6 +57,7 @@ int timDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa)
 // Nhom 6: Ham Sap Xep
 
 // Sap xep Dau Sach (QuickSort + InsertionSort)
+void SapXepBanSaoTheoMa(PTRDMS arr[], int n);
 void sapXepDauSachTheoTen(PTRDS arr[], int low, int high);
 void SapXepTheLoaiTheoTen(std::string arr[], int n);
 int partition(PTRDS arr[], int low, int high);

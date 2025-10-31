@@ -1,5 +1,4 @@
 # Build artifacts
-bin/
 build/
 
 # Compiled binaries
@@ -30,11 +29,4 @@ xcuserdata/
 DerivedData/
 .DS_Store
 .vs/
-
-# Ignore UI source (do not push interface source files)
-UI/
-
-# Ignore UI-related headers in include/ (optional)
-include/ManHinh*.h
-include/TienIchGiaoDien.h
 
