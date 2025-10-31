@@ -74,15 +74,17 @@ int checksumEAN13(const std::string &s12) {
     return isbn;
 } */
 
-std::string sinhMaSach(const std::string &chiSo, int &soThuTu, std::ostream &out) {
+std::string sinhMaSach(const std::string &chiSo, int &soThuTu) {
     std::string ma = chiSo + "-" + std::to_string(soThuTu);
-    if (timDanhMucTheoMaSach(ma, dsDauSach, soLuongDauSach, out, true)) {
-        thongBao(out, "Ma sach da ton tai: " + ma, LOI);
-        return "";
+    std::stringstream dummyStream; // Tao stream ao de truyen vao ham tim (khong dung toi)
+    if (timDanhMucTheoMaSach(ma, dsDauSach, soLuongDauSach, dummyStream, true) != nullptr) {
+        // Neu tim thay (ma da ton tai) -> Tra ve chuoi loi
+        return "Loi: Ma sach da ton tai: " + ma;
     }
+
+    // Neu khong tim thay -> Tra ve ma sach vua tao (thanh cong)
     return ma;
 }
-
 const char *TenTrangThai(TrangThaiSach trangThai) {
     if (trangThai == CHO_MUON_DUOC)
         return "Cho muon duoc";
@@ -371,6 +373,56 @@ int partition(PTRDS arr[], int low, int high) {
     return i + 1;
 }
 
+
+// Ham sap xep mang con tro Ban Sao (PTRDMS) bang Insertion Sort
+// Sap xep theo so hau to cua Ma Sach tang dan
+void SapXepBanSaoTheoMa(PTRDMS arr[], int n) {
+    if (!arr || n <= 1) return; // khong can sap xep
+
+    PTRDMS key; // node hien tai dang xet
+    int i, j;
+    int soCuoiKey, soCuoiJ; // so hau to
+
+    for (i = 1; i < n; i++) {
+        key = arr[i];          // lay node thu i
+        soCuoiKey = LaySoHauToMaSach(key); // lay so hau to cua no
+        j = i - 1;           // bat dau so sanh voi node ben trai no
+
+        // tiep tuc dich phai KHI j van hop le VA arr[j] "lon hon" key
+        while (j >= 0) {
+            soCuoiJ = LaySoHauToMaSach(arr[j]); // lay so hau to cua node j
+
+            // dieu kien de DICH PHAI phan tu arr[j]
+            bool shouldShift = false;
+            if (soCuoiKey == -1) {
+                // Neu key khong hop le (-1), no luon nho hon hoac bang moi node khac
+                // => Khong bao gio can dich phai node j => break
+                break;
+            } else if (soCuoiJ == -1) {
+                // Neu j khong hop le (-1) ma key hop le => j nho hon key
+                // => Khong can dich phai node j => break
+                 break; // Sua: Khong can dich phai khi j la -1
+            } else if (soCuoiJ > soCuoiKey) {
+                // Ca hai deu hop le va j > key => Can dich phai node j
+                shouldShift = true;
+            } else {
+                 // Truong hop soCuoiJ <= soCuoiKey (ca hai hop le)
+                 // => Khong can dich phai node j => break
+                 break;
+            }
+
+            // Thuc hien dich phai neu can
+            if (shouldShift) {
+                 arr[j + 1] = arr[j];
+                 j = j - 1;
+            }
+            // else da break roi
+        } // ket thuc while
+
+        arr[j + 1] = key; // chen key vao vi tri dung cua no
+    } // ket thuc for
+}
+
 void SapXepTheLoaiTheoTen(std::string arr[], int n) { // Da xoa static
     if (!arr || n <= 1)
         return; // Khong can sap xep
@@ -467,7 +519,6 @@ int timKiemLogic(PTRDS dsDauSach[], int soLuongDauSach, const std::string &tuKho
             loaiKhop = 3;
         else if (sachChuanHoa.isbn.find(tuKhoaChuanHoa) != std::string::npos)
             loaiKhop = 4;
-
         if (loaiKhop > 0) {
             ketQua[soKetQua].sach = p;
             ketQua[soKetQua].loaiKhop = loaiKhop;

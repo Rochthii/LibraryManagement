@@ -70,6 +70,7 @@
 9786040000378|Tri Tue Nhan Tao|289|Tran Thi B|2006|Tri Tue Nhan Tao
 9786040000477|Tri Tue Nhan Tao|659|Tran Thi B|2016|Tri Tue Nhan Tao
 9786040000774|Tri Tue Nhan Tao Nang Cao|360|Tran Thi Ha|2021|Tri Tue Nhan Tao
+9876046789465|Trong Nhung Nam Qua|736|Cham Roch Thi|2025|Cuoc Song
 2345673890|Ve Chung Ta|342|Cham Roch Thi|2025|Tinh Yeu
 9786040793225|Vi Em|453|Cham Roch Thi|2025|Tinh Yeu
 9786040000620|Xu Ly Anh|645|Tran Van Loc|2021|Xu Ly Anh

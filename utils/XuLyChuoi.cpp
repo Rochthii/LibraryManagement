@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <cctype>
 
-// --- Tien ich nho (ho tro) ---
+//tien ich nho (ho tro) 
 inline bool laKyTuSo(char c) { return c >= '0' && c <= '9'; }
 inline bool laKyTuChuHoa(char c) { return c >= 'A' && c <= 'Z'; }
 inline bool laKyTuChuThuong(char c) { return c >= 'a' && c <= 'z'; }
@@ -13,7 +13,6 @@ inline bool laKyTuChuCai(char c) { return laKyTuChuHoa(c) || laKyTuChuThuong(c);
 inline bool laKyTuKhoangTrang(char c) { return c==' ' || c=='\t' || c=='\n' || c=='\r' || c=='\f' || c=='\v'; }
 inline char chuyenThanhThuong(char c) { return laKyTuChuHoa(c) ? char(c - 'A' + 'a') : c; }
 
-// --- Dinh nghia ham ---
 
 std::string ChuyenInHoa(const std::string& dauVao){
     std::string ketQua = dauVao;
@@ -157,19 +156,19 @@ std::string ChuanHoaISBNFile(const std::string& chuoiGoc, std::string& ketQua){
 }
 
 std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::string& ketQua) {
-    // B1: Kiem tra rong
+    // kiem tra rong
     if(dauVao.empty()){ return "Loi: Khong duoc de trong!"; }
     std::string chuoiDaCat = CatKhoangTrang(dauVao);
     if(chuoiDaCat.empty() || laChuoiRongHoacChiKhoangTrang(chuoiDaCat)){
         return "Loi: Chi chua khoang trang!";
     }
 
-    //B2: Kiem tra ky tu dau
+    //kiem tra ky tu dau
     if (!laKyTuChuCai(chuoiDaCat[0])) {
         return "Loi: Ky tu dau tien phai la chu cai!";
     }
 
-    // B3: Kiem tra ky tu con lai
+    // kiem tra ky tu con lai
     for (size_t i = 1; i < chuoiDaCat.length(); ++i) {
         char kyTu = chuoiDaCat[i];
         bool kyTuHopLe =
@@ -180,10 +179,10 @@ std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size
         }
     }
 
-    // B4: Chuan hoa khoang trang
+    // chuan hoa khoang trang
     std::string chuan = ChuanHoaKhoangTrang(chuoiDaCat);
 
-    // B5: Kiem tra do dai
+    //kiem tra do dai
     if(chuan.empty()){
         return "Loi: Sau khi chuan hoa bi rong!";
     }
@@ -193,9 +192,9 @@ std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size
         else return "Loi: Qua dai (<= " + std::to_string(maxLength) + ")!";
     }
 
-    // Buoc 6: Gan ket qua
+    // gan ket qua
     ketQua = chuan;
-    return ""; // Thanh cong
+    return ""; 
 }
 
 
@@ -212,6 +211,25 @@ ThongTinSachChuanHoa ChuanHoaDuLieuSach(const std::string& tenSach, const std::s
     ketQua.theLoai = BoDauVaThuong(theLoai);
     ketQua.isbn = BoDauVaThuong(isbn);
     return ketQua;
+}
+
+// Ham trich xuat so hau to tu Ma Sach (vd: "ISBN-12" -> 12)
+// Tra ve -1 neu khong co dang "XXX-YYY" hoac khong phai so
+int LaySoHauToMaSach(PTRDMS node) {
+    if (!node || node->maSach.empty())
+        return -1;
+    size_t lastDash = node->maSach.find_last_of('-');
+    if (lastDash != std::string::npos && lastDash < node->maSach.length() - 1) {
+        try {
+            // Cat chuoi sau dau '-' va chuyen sang so
+            return std::stoi(node->maSach.substr(lastDash + 1));
+        }
+        catch (...) {
+            // Neu khong phai so thi bo qua, tra ve -1
+            return -1;
+        }
+    }
+    return -1;
 }
 
 bool TachTruong(const std::string& line, char sep, std::string out[], int expected){

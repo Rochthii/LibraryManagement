@@ -34,6 +34,7 @@ ThongTinSachChuanHoa ChuanHoaDuLieuSach(const std::string& tenSach, const std::s
                                         const std::string& theLoai, const std::string& isbn);
 
 // Tach chuoi
+int LaySoHauToMaSach(PTRDMS node);
 bool TachTruong(const std::string& line, char sep, std::string out[], int expected);
 int TachTokenKhoangTrang(const std::string& s, std::string tokens[], int maxTok);
 bool ChuaTatCaTuKhoa(const std::string& haystack, const std::string tokens[], int count);
