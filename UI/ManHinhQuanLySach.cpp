@@ -526,7 +526,7 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
     // buoc 2: lay danh sach cac the loai duy nhat va sap xep
     std::string cacTheLoai[MAX_DAUSACH]; // mang tam luu ten the loai
     int soTheLoai = TimTheLoaiDuyNhat(dsDauSach, soLuongDauSach, cacTheLoai, MAX_DAUSACH);
-    SapXepTheLoaiTheoTen(cacTheLoai, soTheLoai); // goi ham sap xep backend
+    SapXepTheLoaiTheoTen(cacTheLoai, soTheLoai);
 
     // buoc 3: tinh toan tong chieu cao noi dung (de biet co can scroll khong)
     totalContentHeightTheLoai = PADDING; // bat dau voi padding top

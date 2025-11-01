@@ -255,23 +255,28 @@ void sapXepDauSachTheoTen(PTRDS a[], int l, int h) {
     } catch (...) { insertionSort(a, l, h); }                           // loi -> insertion
 }
 
-// sap xep ban sao theo so hau to (chi swap khi sai thu tu)
+// sap xep ban sao theo so hau to (tang dan)
 void SapXepBanSaoTheoMa(PTRDMS arr[], int n) {
     if (!arr || n <= 1) return;                                         // khong can sap xep
+
     for (int i = 0; i < n - 1; ++i) {                                   // bubble sort
         bool swapped = false;
         for (int j = 0; j < n - i - 1; ++j) {
             int a = LaySoHauToMaSach(arr[j]);                           // so cua arr[j]
             int b = LaySoHauToMaSach(arr[j + 1]);                       // so cua arr[j+1]
+
+            // CHI SWAP NEU SAI THU TU (a > b)
             if (a == -1 && b != -1) continue;                           // a > b -> dung thu tu
-            if (a != -1 && b == -1) {                                   // a < b -> sai thu tu
-                PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t; swapped = true;
+            if (a != -1 && b == -1) {                                   // a < b -> sai thu tu -> swap
+                PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
+                swapped = true;
             }
-            else if (a != -1 && b != -1 && a > b) {                     // ca hai hop le, a > b
-                PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t; swapped = true;
+            else if (a != -1 && b != -1 && a > b) {                     // a > b -> swap
+                PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
+                swapped = true;
             }
         }
-        if (!swapped) break;                                            // toi uu: da sap xep
+        if (!swapped) break;                                            // toi uu
     }
 }
 
