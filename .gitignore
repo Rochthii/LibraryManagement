@@ -58,9 +58,8 @@ DerivedData/
 *.json
 *.jon
 
-# Ignore third-party libraries directory (can be added to repo if you want)
-# If you want to push `lib/`, remove this line or change accordingly.
-lib/
+# NOTE: previously we ignored `lib/`. Removed so the repository can track the
+# full `lib/` directory. If you later want to ignore it again, re-add `lib/`.
 
 # Build artifacts
 build/
