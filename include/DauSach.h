@@ -38,6 +38,6 @@ typedef DauSach* PTRDS;         // Con tro toi mot DauSach
 // Bien toan cuc (khai bao extern de cac file khac co the truy cap)
 extern PTRDS dsDauSach[MAX_DAUSACH]; // Mang con tro luu tru cac Dau Sach
 extern int soLuongDauSach;           // So luong Dau Sach hien co trong mang
-extern bool duLieuDaThayDoi;         // Co de kiem tra viec luu file khi thoat
+extern bool duLieuDaThayDoi;         // de kiem tra viec luu file khi thoat
 
 #endif // DAUSACH_H

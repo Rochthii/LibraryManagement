@@ -73,5 +73,6 @@
 9876046789465|Trong Nhung Nam Qua|736|Cham Roch Thi|2025|Cuoc Song
 2345673890|Ve Chung Ta|342|Cham Roch Thi|2025|Tinh Yeu
 9786040793225|Vi Em|453|Cham Roch Thi|2025|Tinh Yeu
+9876048888467|Vi Yeu Em|433|Cham Roch Thi|2025|Tinh Yeu
 9786040000620|Xu Ly Anh|645|Tran Van Loc|2021|Xu Ly Anh
 9786040000736|Xu Ly Ngon Ngu Tu Nhien|200|Do Van Cuong|2022|Nlp

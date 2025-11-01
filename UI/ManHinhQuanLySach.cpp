@@ -374,7 +374,6 @@ void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font) {
 }
 
 // Ham logic goi backend de them ban sao
-// Ham logic goi backend de them ban sao
 static void ThucHienThemBanSao() {
     extern PTRDS dsDauSach[];
     extern int soLuongDauSach;
@@ -507,152 +506,197 @@ static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font) {
     TaoNut(font, NUT_HUY_THEM_BS, modalX + paddingNoiBo + nutRong + paddingNoiBo, buttonY, nutRong, NUT_CAO, "HUY", MAU_NEN_NUT, MAU_CHU_NUT);
 }
 
-// Ve danh sach sach gom nhom theo the loai 
 static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font) {
-    float headerY = BANG_Y + 50.f;                  // y bat dau cua khung
-    float contentY = headerY + 40.f;                 // y bat dau cua NOI DUNG ben trong khung
-    float frameBottom = CHIEU_CAO - (PADDING * 3.5f) - (NUT_CAO * 2); // y ket thuc cua KHUNG (dung 3.5f)
+    // buoc 0: dinh nghia vung ve noi dung
+    float headerY = BANG_Y + 50.f;                  // y bat dau cua khung (so voi cua so)
+    float contentY = headerY + 40.f;                 // y bat dau cua NOI DUNG ben trong khung (so voi cua so)
+    float contentBottom = CHIEU_CAO - (PADDING * 3.0f) - (NUT_CAO * 2); // dung 3.0f (day khung)
     float contentWidth = BANG_RONG;                  // chieu rong khung = chieu rong vung noi dung
-    float frameHeight = frameBottom - headerY;       // chieu cao TONG CONG cua khung (bao gom ca header)
-    // Chieu cao vung NOI DUNG = Chieu cao khung - Khoang cach header - Padding duoi (vd: 2px)
-    float contentHeight = frameHeight - 40.f - 2.f; // Giam chieu cao noi dung di 1 chut so voi khung
-    contentHeight = std::max(contentHeight, 10.f); // Dam bao khong am
+    float contentHeight = contentBottom - contentY;    // chieu cao THUC TE cua vung noi dung
+    contentHeight = std::max(contentHeight, 10.f); // dam bao khong am
 
-    // ve khung chua danh sach (Ve khung voi chieu cao frameHeight)
-    VeKhung(window, BANG_X, headerY, contentWidth, frameHeight, "DANH SACH DAU SACH THEO THE LOAI (Cuon chuot de xem)", font);
+    // buoc 1: ve khung chua danh sach (ve truoc)
+    // ve khung voi chieu cao tong cong (bao gom ca header cua khung)
+    VeKhung(window, BANG_X, headerY, contentWidth, contentHeight + (contentY - headerY), "DANH SACH DAU SACH THEO THE LOAI (Cuon chuot de xem)", font);
 
     // lay du lieu tu backend
     extern PTRDS dsDauSach[];
     extern int soLuongDauSach;
 
-    // buoc 1: lay danh sach cac the loai duy nhat va sap xep (Giu nguyen)
-    std::string cacTheLoai[MAX_DAUSACH];
+    // buoc 2: lay danh sach cac the loai duy nhat va sap xep
+    std::string cacTheLoai[MAX_DAUSACH]; // mang tam luu ten the loai
     int soTheLoai = TimTheLoaiDuyNhat(dsDauSach, soLuongDauSach, cacTheLoai, MAX_DAUSACH);
-    SapXepTheLoaiTheoTen(cacTheLoai, soTheLoai);
+    SapXepTheLoaiTheoTen(cacTheLoai, soTheLoai); // goi ham sap xep backend
 
-    // buoc 2: tinh toan tong chieu cao noi dung (de biet co can scroll khong) - Giu nguyen logic tinh
-    totalContentHeightTheLoai = PADDING;
-    float lineSpacing = 8.f;
-    float groupSpacing = 20.f;
-    float afterTitleSpacing = 35.f;
-    float afterGroupSpacing = 10.f;
-    float textBlockHeight = FONT_SIZE_BINH_THUONG * 2 + lineSpacing;
+    // buoc 3: tinh toan tong chieu cao noi dung (de biet co can scroll khong)
+    totalContentHeightTheLoai = PADDING; // bat dau voi padding top
+    float lineSpacing = 8.f;             // khoang cach giua 2 dong chu cua 1 sach
+    float groupSpacing = 20.f;           // khoang cach giua cac nhom the loai (gom duong ke)
+    float afterTitleSpacing = 35.f;      // khoang cach sau tieu de the loai
+    float afterGroupSpacing = 10.f;      // khoang cach duoi cung cua nhom sach
+    float textBlockHeight = FONT_SIZE_BINH_THUONG * 2 + lineSpacing; // chieu cao uoc tinh cua 1 muc sach (2 dong)
+
+    // vong lap nay cong don chieu cao cua tung phan tu
     for (int i = 0; i < soTheLoai; ++i) {
         if (i > 0) totalContentHeightTheLoai += groupSpacing;
         totalContentHeightTheLoai += afterTitleSpacing;
-        PTRDS tempSach[1];
-        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, cacTheLoai[i], tempSach, 1);
-        totalContentHeightTheLoai += (float)soSach * textBlockHeight;
-        totalContentHeightTheLoai += afterGroupSpacing;
+        PTRDS tempSach[1]; // mang tam chi de lay so luong
+        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, cacTheLoai[i], tempSach, 1); // lay so luong sach
+        totalContentHeightTheLoai += (float)soSach * textBlockHeight; // cong them tong chieu cao cua cac sach trong nhom
+        totalContentHeightTheLoai += afterGroupSpacing; // cong them khoang cach duoi nhom
     }
-    totalContentHeightTheLoai += PADDING;
-    totalContentHeightTheLoai = std::max(totalContentHeightTheLoai, contentHeight); // Dam bao khong nho hon vung nhin
+    totalContentHeightTheLoai += PADDING; // cong them padding duoi cung
+    totalContentHeightTheLoai = std::max(totalContentHeightTheLoai, contentHeight); // dam bao khong nho hon vung nhin
 
-    // buoc 3: gioi han scrollOffsetYTheLoai (Dung contentHeight da giam)
-    float maxScroll = 0.f;
-    if (totalContentHeightTheLoai > contentHeight) { // So sanh voi contentHeight da giam
-        maxScroll = totalContentHeightTheLoai - contentHeight; // Tinh maxScroll voi contentHeight da giam
+    // buoc 3: gioi han scrollOffsetYTheLoai (vi tri cuon)
+    float maxScroll = 0.f; // vi tri cuon toi da
+    if (totalContentHeightTheLoai > contentHeight) {
+        maxScroll = totalContentHeightTheLoai - contentHeight; // tong chieu cao - chieu cao nhin thay
     }
-    if (scrollOffsetYTheLoai < 0.f) scrollOffsetYTheLoai = 0.f;
-    if (scrollOffsetYTheLoai > maxScroll) scrollOffsetYTheLoai = maxScroll; // Gioi han theo maxScroll moi
+    if (scrollOffsetYTheLoai < 0.f) scrollOffsetYTheLoai = 0.f; // chan cuon len qua dinh
+    if (scrollOffsetYTheLoai > maxScroll) scrollOffsetYTheLoai = maxScroll; // chan cuon xuong qua day
 
-    // buoc 4: Tao hoac tai su dung RenderTexture (Dung contentWidth va totalContentHeight) - Giu nguyen
-    if (theLoaiRenderTexture.getSize().x != static_cast<unsigned int>(contentWidth) ||
-        theLoaiRenderTexture.getSize().y != static_cast<unsigned int>(totalContentHeightTheLoai)) {
-        if (!theLoaiRenderTexture.create(static_cast<unsigned int>(contentWidth), static_cast<unsigned int>(totalContentHeightTheLoai))) {
-            CapNhatThongBaoSFML("Loi tao render texture!", 1);
-            return;
+
+    // buoc 4: Thiet lap SFML View (camera 2d cho vung cuon)
+    // he toa do viewport cua sfml tinh tu TREN XUONG (0.0 -> 1.0)
+    float viewportTop = contentY / (float)CHIEU_CAO; // y bat dau (tinh tu tren xuong, 0.0 -> 1.0)
+    viewportTop = std::max(0.f, std::min(1.f, viewportTop));
+    float viewportHeight = contentHeight / (float)CHIEU_CAO; // chieu cao (0.0 -> 1.0)
+    viewportHeight = std::max(0.f, std::min(1.f, viewportHeight));
+
+    float rongThanhCuon = 8.f; // chieu rong thanh cuon
+    // chieu rong vung noi dung = chieu rong khung - chieu rong thanh cuon - padding nho
+    float rongNoiDungView = contentWidth - rongThanhCuon - PADDING * 0.6f;
+    rongNoiDungView = std::max(0.f, rongNoiDungView); // dam bao khong am
+
+    // thiet lap "ong kinh" camera
+    theLoaiView.setViewport(sf::FloatRect(
+        BANG_X / (float)CHIEU_RONG,        // left (giong X cua khung)
+        viewportTop,                       // top (da tinh o tren)
+        rongNoiDungView / (float)CHIEU_RONG, // width (da tru cho thanh cuon)
+        viewportHeight                     // height (da tinh o tren)
+    ));
+    
+    // thiet lap "the gioi" ben trong camera
+    theLoaiView.setSize(rongNoiDungView, contentHeight); // kich thuoc "the gioi"
+    // dich chuyen camera theo vi tri cuon
+    theLoaiView.setCenter(rongNoiDungView / 2.f, contentHeight / 2.f + scrollOffsetYTheLoai);
+
+    // buoc 5: Ap dung View (bat camera)
+    window.setView(theLoaiView);
+
+    // ham ho tro cat chuoi theo pixel (dinh nghia noi bo)
+    auto CatChuoiTheoRong = [&](const std::string& src, unsigned int coChu, float rongToiDa) {
+        sf::Text tmp = TaoVanBan(font, src, coChu, MAU_CHU);
+        if (tmp.getLocalBounds().width <= rongToiDa)
+            return src; // tra ve neu da vua
+        std::string s = src;
+        if (s.size() > 3) s = s.substr(0, s.size() - 3); // rut bot de them '...'
+        tmp.setString(s + "...");
+        while (tmp.getLocalBounds().width > rongToiDa && s.size() > 0) { // cat dan
+            s.pop_back();
+            tmp.setString(s + "...");
         }
-    }
+        return s + (s.empty() ? std::string() : std::string("..."));
+    };
 
-    // buoc 5: Ve noi dung vao RenderTexture - Giu nguyen logic ve ben trong
-    theLoaiRenderTexture.clear(MAU_KHUNG);
-    float currentY_tex = PADDING;
-    float contentX_tex = PADDING;
-    float bookIndentX_tex = contentX_tex + 35.f;
-    float lineWidth_tex = contentWidth - 2 * PADDING;
-    for (int i = 0; i < soTheLoai; ++i) {
+    // buoc 6: Ve noi dung ben trong View (toa do tuong doi voi View)
+    // view se tu dong cat moi thu ve ra ngoai khu vuc cua no
+    float currentY = PADDING; // y bat dau tuong doi (so voi view)
+    float contentX = PADDING; // x bat dau tuong doi (so voi view)
+    float bookIndentX = contentX + 35.f; // thut le cho sach
+    float lineWidth = rongNoiDungView - 2 * PADDING; // chieu rong duong ke (theo view)
+
+    for (int i = 0; i < soTheLoai; ++i) { // lap qua tung the loai
         std::string currentTheLoai = cacTheLoai[i];
-         if (i > 0) {
-             sf::RectangleShape separator(sf::Vector2f(lineWidth_tex, 1.f));
-             separator.setPosition(contentX_tex, currentY_tex - 10.f);
+
+        if (i > 0) { // ve duong ke phan cach
+             sf::RectangleShape separator(sf::Vector2f(lineWidth, 1.f));
+             separator.setPosition(contentX, currentY - 10.f);
              separator.setFillColor(MAU_BANG_BORDER);
-             theLoaiRenderTexture.draw(separator);
-             currentY_tex += groupSpacing;
+             window.draw(separator);
+             currentY += groupSpacing;
         }
+
+        // ve tieu de the loai
         sf::Text genreTitle = TaoVanBan(font, "THE LOAI: " + currentTheLoai, FONT_SIZE_TIEU_DE_KHUNG, MAU_NHAN);
-        genreTitle.setPosition(contentX_tex, currentY_tex);
-        theLoaiRenderTexture.draw(genreTitle);
-        currentY_tex += afterTitleSpacing;
+        genreTitle.setPosition(contentX, currentY);
+        window.draw(genreTitle);
+        currentY += afterTitleSpacing;
+
+        // lay danh sach sach cua the loai nay
         PTRDS sachCungTheLoai[MAX_DAUSACH];
         int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, currentTheLoai, sachCungTheLoai, MAX_DAUSACH);
+
+        // ve thong tin tung cuon sach
         sf::Text bookInfo = TaoVanBan(font, "", FONT_SIZE_BINH_THUONG, MAU_CHU);
-        for (int j = 0; j < soSach; ++j) {
-             PTRDS sach = sachCungTheLoai[j];
-             if (!sach) continue;
+        for (int j = 0; j < soSach; ++j) { // lap qua tung cuon sach
+            PTRDS sach = sachCungTheLoai[j];
+            if (!sach) continue;
+
             std::string sttStr = std::to_string(j + 1) + ". ";
-            std::string tenSachSub = sach->tenSach.length() > 60 ? sach->tenSach.substr(0, 57) + "..." : sach->tenSach;
-            std::string tacGiaSub = sach->tacGia.length() > 22 ? sach->tacGia.substr(0, 19) + "..." : sach->tacGia;
+            // tinh chieu rong con lai cho chu
+            float rongChoNoiDung = rongNoiDungView - bookIndentX - PADDING;
+            if (rongChoNoiDung < 20.f) rongChoNoiDung = 20.f;
+
+            // cat chuoi cho vua
+            std::string tenSachSub = CatChuoiTheoRong(sach->tenSach, FONT_SIZE_BINH_THUONG, rongChoNoiDung);
+            std::string metaInfo = "   ISBN: " + sach->ISBN + " | TG: " + sach->tacGia + " | NXB: " + std::to_string(sach->namXuatBan);
+            std::string metaInfoSub = CatChuoiTheoRong(metaInfo, FONT_SIZE_BINH_THUONG, rongChoNoiDung);
             std::string infoLine1 = tenSachSub;
-            std::string infoLine2 = "   ISBN: " + sach->ISBN + " | TG: " + tacGiaSub + " | NXB: " + std::to_string(sach->namXuatBan);
-            float line1Y = currentY_tex;
+            std::string infoLine2 = metaInfoSub;
+            float line1Y = currentY;
+
+            // ve stt
             bookInfo.setString(sttStr);
-            bookInfo.setPosition(contentX_tex + 5.f, line1Y);
-            theLoaiRenderTexture.draw(bookInfo);
+            bookInfo.setPosition(contentX + 5.f, line1Y);
+            window.draw(bookInfo);
+            // ve dong 1 (ten sach)
             bookInfo.setString(infoLine1);
-            bookInfo.setPosition(bookIndentX_tex, line1Y);
-            theLoaiRenderTexture.draw(bookInfo);
+            bookInfo.setPosition(bookIndentX, line1Y);
+            window.draw(bookInfo);
+            // tinh y dong 2
             float line2Y = line1Y + FONT_SIZE_BINH_THUONG + (lineSpacing / 2);
+            // ve dong 2 (thong tin phu)
             bookInfo.setString(infoLine2);
-            bookInfo.setPosition(bookIndentX_tex, line2Y);
-            theLoaiRenderTexture.draw(bookInfo);
-            currentY_tex = line1Y + textBlockHeight;
+            bookInfo.setPosition(bookIndentX, line2Y);
+            window.draw(bookInfo);
+            // cap nhat y cho sach tiep theo
+            currentY = line1Y + textBlockHeight;
         }
-        currentY_tex += afterGroupSpacing;
+        currentY += afterGroupSpacing; // them khoang cach cuoi nhom
     }
-    theLoaiRenderTexture.display();
 
-    // buoc 6: Tao Sprite tu RenderTexture
-    sf::Sprite contentSprite(theLoaiRenderTexture.getTexture());
-    contentSprite.setTextureRect(sf::IntRect(
-        0,                                  // left
-        static_cast<int>(scrollOffsetYTheLoai), // top (dich chuyen theo scroll)
-        static_cast<int>(contentWidth),           // width
-        static_cast<int>(contentHeight)           // height (dung chieu cao noi dung da giam)
-    ));
-    // Dat vi tri cho sprite tren CUA SO (goc tren trai cua vung content)
-    contentSprite.setPosition(BANG_X, contentY);
+    // buoc 7: Reset View (tat camera)
+    window.setView(window.getDefaultView()); // tra ve camera mac dinh de ve thanh cuon
 
-    // buoc 7: Ve Sprite len CUA SO
-    window.draw(contentSprite);
+    // buoc 8: Ve thanh cuon (ben ngoai View, dung toa do cua so)
+    if (totalContentHeightTheLoai > contentHeight) {
+        float scrollBarHeight = contentHeight; // chieu cao thanh cuon = chieu cao vung noi dung
+        // vi tri X cua thanh cuon (ben phai khung noi dung)
+        float scrollBarX = BANG_X + contentWidth - rongThanhCuon - PADDING * 0.4f;
+        float scrollBarY = contentY; // bat dau tu y cua vung content (thay vi headerY)
 
-    // buoc 8: Ve thanh cuon (ben ngoai Sprite, dung toa do cua so)
-    if (totalContentHeightTheLoai > contentHeight) { // So sanh voi contentHeight da giam
-        float scrollBarX = BANG_X + contentWidth - 10.f;
-        float scrollBarY = contentY; // Y bat dau cua vung content
-        float scrollBarHeight = contentHeight; // Chieu cao thanh cuon = chieu cao content da giam
-        // Ve duong ray
-        sf::RectangleShape scrollTrack(sf::Vector2f(5.f, scrollBarHeight));
+        // ve duong ray
+        sf::RectangleShape scrollTrack(sf::Vector2f(rongThanhCuon, scrollBarHeight));
         scrollTrack.setPosition(scrollBarX, scrollBarY);
         scrollTrack.setFillColor(MAU_BANG_HEADER);
         window.draw(scrollTrack);
-        // Tinh toan tay cam
-        float handleHeight = scrollBarHeight * (contentHeight / totalContentHeightTheLoai); // Dung contentHeight da giam
-        handleHeight = std::max(handleHeight, 20.f);
-        // Tinh Y tay cam
+
+        // tinh toan tay cam
+        float handleHeight = scrollBarHeight * (contentHeight / totalContentHeightTheLoai);
+        handleHeight = std::max(handleHeight, 20.f); // chieu cao toi thieu
         float handleY = scrollBarY;
-        if (maxScroll > 0) {
+        if (maxScroll > 0) { // tinh vi tri y cua tay cam
              handleY = scrollBarY + (scrollOffsetYTheLoai / maxScroll) * (scrollBarHeight - handleHeight);
              handleY = std::min(handleY, scrollBarY + scrollBarHeight - handleHeight);
         }
-        // Ve tay cam
-        sf::RectangleShape scrollHandle(sf::Vector2f(5.f, handleHeight));
+        // ve tay cam
+        sf::RectangleShape scrollHandle(sf::Vector2f(rongThanhCuon, handleHeight));
         scrollHandle.setPosition(scrollBarX, handleY);
         scrollHandle.setFillColor(MAU_VIEN);
         window.draw(scrollHandle);
     }
-
-    // Khong can ve lai vien khung vi khung da duoc ve truoc
 }
 
 

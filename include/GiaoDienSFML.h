@@ -11,7 +11,7 @@
 // struct uielement dung chung, va khai bao cac bien/ham toan cuc
 // lien quan den giao dien chinh.
 
-// --- Kich Thuoc & Mau Sac ---
+// kich Thuoc & Mau Sac 
 // dinh nghia kich thuoc cua so va cac mau sac co ban
 const unsigned int CHIEU_RONG = 1600; // chieu rong cua so
 const unsigned int CHIEU_CAO = 900;  // chieu cao cua so
@@ -34,7 +34,7 @@ const sf::Color MAU_THANH_CONG(100, 255, 100);  // mau cho thong bao thanh cong 
 const sf::Color MAU_BANG_HEADER(45, 45, 60);    // mau nen cua dong tieu de bang (xam xanh den rat dam)
 const sf::Color MAU_BANG_BORDER(80, 80, 90);    // mau cua cac duong ke trong bang (xam dam)
 
-// --- Hang so Co Chu ---
+// Hang so Co Chu
 // dinh nghia cac co chu de dam bao dong nhat
 const unsigned int FONT_SIZE_NHO = 16;           // co chu nho (vd: trong modal chi tiet)
 const unsigned int FONT_SIZE_BINH_THUONG = 18;   // co chu mac dinh (nut, input, bang)
@@ -42,7 +42,7 @@ const unsigned int FONT_SIZE_TIEU_DE_KHUNG = 22; // co chu tieu de khung (vd: "t
 const unsigned int FONT_SIZE_TIEU_DE_LON = 32;   // co chu tieu de lon (vd: man hinh thong tin)
 const unsigned int FONT_SIZE_TIEU_DE_MAIN = 42;  // co chu tieu de chinh (vd: man hinh menu)
 
-// --- Hang so Layout cho Man Hinh Quan Ly Sach ---
+// Hang so Layout cho Man Hinh Quan Ly Sach
 // dinh nghia cac kich thuoc va vi tri co dinh cho man hinh quan ly sach
 // giup viec tinh toan toa do ve de dang hon
 const float THANH_TAB_CAO = 40.f;       // chieu cao thanh tieu de man hinh
@@ -62,7 +62,7 @@ const float INPUT_CAO = 40.f;                 // chieu cao mac dinh cua input
 const float INPUT_RONG = FORM_RONG - 2 * PADDING - 110.f;  // chieu rong hop input = rong form - 2 padding - rong label - khoang cach
 const int SACH_MOI_TRANG = 17;                             // so luong sach hien thi tren moi trang cua bang chinh
 
-// --- Trang Thai Man Hinh ---
+//Trang Thai Man Hinh
 // enum de quan ly man hinh nao dang duoc hien thi
 enum TrangThaiManHinh {
     MENU_CHINH,         // man hinh menu ban dau
@@ -71,7 +71,7 @@ enum TrangThaiManHinh {
     //co the them MAN_HINH_DOC_GIA, MAN_HINH_MUON_TRA,...
 };
 
-// --- Ma Dinh Danh UI Elements ---
+// Ma Dinh Danh UI Elements
 // enum de gan id duy nhat cho moi nut bam, o nhap lieu, hoac khu vuc tuong tac khac
 // giup ham xu ly su kien biet duoc element nao vua duoc tuong tac
 enum MaUI {
@@ -104,6 +104,8 @@ enum MaUI {
     NUT_TRANG_SAU,
     NUT_HUY_CHON,         // nut bo chon sach dang highlight
     HANG_SACH,            // id ao dai dien cho viec click vao mot hang trong bang sach
+    NUT_MODAL_TRANG_TRUOC, 
+    NUT_MODAL_TRANG_SAU,
 
     // Nut cho Modal Chi Tiet Ban Sao
     NUT_CHI_TIET_SACH,        // nut mo modal chi tiet
