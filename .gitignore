@@ -52,6 +52,64 @@ DerivedData/
 
 # Visual Studio folder
 .vs/
+## .gitignore for LibraryManagement
+
+# Ignore JSON/JON config/IDE files
+*.json
+*.jon
+
+# Ignore third-party libraries directory (can be added to repo if you want)
+# If you want to push `lib/`, remove this line or change accordingly.
+lib/
+
+# Build artifacts
+build/
+
+# Compiled binaries
+*.exe
+*.dll
+*.obj
+*.o
+
+# VS Code
+.vscode/
+
+# Logs and temporary files
+*.log
+run_debug.log
+
+# Editor swap / user files
+*.swp
+*.user
+
+# Backup files
+files/backup_*
+main
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+.DS_Store
+.vs/
+
+# Visual Studio solution and project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Visual Studio database and cache
+*.sdf
+*.opensdf
+.VC.db
+.VC.VC.opendb
+
+# Visual Studio user-specific files
+*.suo
+*.ncb
+*.pdb
+*.ipch
+*.tlog
 
 # Test results
 TestResults/
