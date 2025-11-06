@@ -65,14 +65,18 @@ bool ChenNodeDMSVaoDauSach(PTRDS d, const std::string &ma, int tt, const std::st
     return true;
 }
 
-// cap nhat trang thai cho ban sao
-void capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt) {
+// cap nhat trang thai cho ban sao (tra ve true neu thanh cong)
+bool capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt) {
     int dem = 0;
     while (dms && dem < SO_VONG_LAP_DMS_MAX) {                          // duyet dms
-        if (dms->maSach == ma) { dms->trangThai = tt; return; }         // tim thay -> cap nhat
+        if (dms->maSach == ma) { 
+            dms->trangThai = tt; 
+            return true;                                                // thanh cong
+        }
         dms = dms->next; ++dem;
     }
     if (dem >= SO_VONG_LAP_DMS_MAX) thongBao(std::cout, "Vong lap vo han trong DMS!", LOI);
+    return false;                                                       // khong tim thay
 }
 
 // tim node ban sao theo ma sach
@@ -135,9 +139,9 @@ bool themDauSach(PTRDS ds[], int &n, const std::string &isbn, const std::string 
 
     ds[n++] = node;                                                     // them vao mang
     sapXepDauSachTheoTen(ds, 0, n - 1);                                 // sap xep lai
+    duLieuDaThayDoi = true;                                             // luon danh dau co thay doi
     if (!anLang) { 
         thongBao(std::cout, "Them thanh cong: " + node->tenSach, THONG_TIN); 
-        duLieuDaThayDoi = true; 
     }
     return true;
 }
@@ -174,12 +178,12 @@ void InMotDauSach(PTRDS d, std::ostream &out) {
 
 //  NHOM 4: LOGIC TIM KIEM & LIET KE 
 
-// tim kiem sach theo tu khoa
-int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[], int max) {
+// tim kiem sach theo tu khoa (check buffer overflow)
+int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]) {
     if (tk.empty() || n == 0) return 0;                                 // rong
     std::string tkChuan = BoDauVaThuong(ChuanHoaKhoangTrang(tk));       // chuan hoa tu khoa
     int dem = 0;
-    for (int i = 0; i < n && dem < max; ++i) {                          // duyet dau sach
+    for (int i = 0; i < n; ++i) {                                       // duyet dau sach
         PTRDS p = ds[i]; if (!p) continue;
         auto chuan = ChuanHoaDuLieuSach(p->tenSach, p->tacGia, p->theLoai, p->ISBN);
         int loai = 0;
@@ -187,29 +191,31 @@ int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[], i
         else if (chuan.tacGia.find(tkChuan) != std::string::npos) loai = 2;
         else if (chuan.theLoai.find(tkChuan) != std::string::npos) loai = 3;
         else if (chuan.isbn.find(tkChuan) != std::string::npos) loai = 4;
-        if (loai > 0) { kq[dem++] = {p, loai}; }                        // them ket qua
+        if (loai > 0 && dem < MAX_DAUSACH) {                            // them + check buffer
+            kq[dem++] = {p, loai};
+        }
     }
     sapXepKetQuaTimKiem(kq, dem);                                       // sap xep ket qua
     return dem;
 }
 
-// lay danh sach the loai duy nhat
-int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[], int max) {
+// lay danh sach the loai duy nhat 
+int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[]) {
     int dem = 0;
-    for (int i = 0; i < n && dem < max; ++i) {                          // duyet dau sach
+    for (int i = 0; i < n; ++i) {                                       // duyet dau sach
         if (!ds[i]) continue;
         bool tonTai = false;
         for (int j = 0; j < dem; ++j) if (tl[j] == ds[i]->theLoai) { tonTai = true; break; }
-        if (!tonTai) tl[dem++] = ds[i]->theLoai;                        // them neu chua co
+        if (!tonTai && dem < MAX_DAUSACH) tl[dem++] = ds[i]->theLoai;   // them 
     }
     return dem;
 }
 
-// tim sach theo the loai
-int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[], int max) {
+// tim sach theo the loai 
+int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[]) {
     int dem = 0;
-    for (int i = 0; i < n && dem < max; ++i)                             // duyet mang
-        if (ds[i] && ds[i]->theLoai == tl) kq[dem++] = ds[i];           // trung the loai
+    for (int i = 0; i < n; ++i)                                         // duyet mang
+        if (ds[i] && ds[i]->theLoai == tl && dem < MAX_DAUSACH) kq[dem++] = ds[i]; // them + check
     return dem;
 }
 
@@ -265,13 +271,18 @@ void SapXepBanSaoTheoMa(PTRDMS arr[], int n) {
             int a = LaySoHauToMaSach(arr[j]);                           // so cua arr[j]
             int b = LaySoHauToMaSach(arr[j + 1]);                       // so cua arr[j+1]
 
-            // CHI SWAP NEU SAI THU TU (a > b)
-            if (a == -1 && b != -1) continue;                           // a > b -> dung thu tu
-            if (a != -1 && b == -1) {                                   // a < b -> sai thu tu -> swap
-                PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
-                swapped = true;
+            // Sap xep: so hop le tang dan, loi (-1) o cuoi
+            bool canSwap = false;
+            if (a == -1 && b != -1) {                                   // a loi, b hop le -> swap
+                canSwap = true;
+            } else if (a != -1 && b == -1) {                            // a hop le, b loi -> giu nguyen
+                canSwap = false;
+            } else if (a != -1 && b != -1 && a > b) {                   // ca 2 hop le -> sap xep tang dan
+                canSwap = true;
             }
-            else if (a != -1 && b != -1 && a > b) {                     // a > b -> swap
+            // Neu a == -1 && b == -1: giu nguyen (ca 2 loi)
+            
+            if (canSwap) {
                 PTRDMS t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
                 swapped = true;
             }
@@ -295,7 +306,12 @@ void sapXepKetQuaTimKiem(KetQuaTimKiem arr[], int n) {
         for (int j = i + 1; j < n; ++j) {
             bool swap = false;
             if (arr[i].loaiKhop > arr[j].loaiKhop) swap = true;         // uu tien loai khop
-            else if (arr[i].loaiKhop == arr[j].loaiKhop && arr[i].sach->tenSach > arr[j].sach->tenSach) swap = true;
+            else if (arr[i].loaiKhop == arr[j].loaiKhop) {
+                // Khi cung loai khop -> so sanh ten (chu thuong de khong phan biet hoa)
+                std::string tenA = ChuyenInThuong(arr[i].sach->tenSach);
+                std::string tenB = ChuyenInThuong(arr[j].sach->tenSach);
+                if (tenA > tenB) swap = true;
+            }
             if (swap) hoanDoiKetQua(arr[i], arr[j]);                    // hoan doi
         }
 }
@@ -378,9 +394,7 @@ bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &o
 }
 
 // cap nhat dau sach
-std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn,
-                           const std::string &ten, int trang, const std::string &tg,
-                           int nam, const std::string &tl) {
+std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn, const std::string &ten, int trang, const std::string &tg, int nam, const std::string &tl) {
     PTRDS d = TimDauSachTheoISBN(ds, n, isbn);
     if (!d) return "Loi: Khong tim thay ISBN!";
     std::string loi;

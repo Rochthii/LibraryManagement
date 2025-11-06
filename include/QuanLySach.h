@@ -18,7 +18,7 @@ int PhanTichTrangThaiSach(const std::string &s, std::ostream &out);            /
 //  NHOM 2: QUAN LY DANH MUC SACH (DMS - DSLK) 
 std::string themDanhMucSach(PTRDMS &dms, const std::string &ma, TrangThaiSach tt, const std::string &vt);  // chen vao dau
 bool ChenNodeDMSVaoDauSach(PTRDS d, const std::string &ma, int tt, const std::string &vt);               // chen vao dau dms
-void capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt);                         // cap nhat trang thai
+bool capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt);                         // cap nhat trang thai (tra ve true neu thanh cong)
 PTRDMS timDanhMucTheoMaSach(const std::string &ma, PTRDS ds[], int n, std::ostream &out, bool silent = false); // tim node
 
 //  NHOM 3: QUAN LY DAU SACH (DS - MANG CON TRO) 
@@ -33,9 +33,9 @@ struct KetQuaTimKiem {
     int loaiKhop;  // 1: ten, 2: tac gia, 3: the loai, 4: isbn
 };
 
-int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[], int max);        // tim + sap xep
-int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[], int max);                           // danh sach the loai
-int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[], int max);         // sach theo the loai
+int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]);                 // tim + sap xep (gia dinh mang du lon)
+int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[]);                                    // danh sach the loai
+int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[]);                  // sach theo the loai 
 
 //  NHOM 5: HAM CONSOLE (KHONG DUNG TRONG SFML) 
 // void inDanhSachTheoTheLoai(PTRDS ds[], int n);     // chi dung console

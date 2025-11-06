@@ -58,7 +58,8 @@ const int SO_SACH_MOI_TRANG_MODAL = 10;
 
 struct NutModal {
     std::string maSach;
-    sf::FloatRect khuVucNhan;
+    sf::FloatRect khuVucNhanThanhLy;
+    sf::FloatRect khuVucNhanXoa;
 };
 
 // mang luu nut dong
@@ -69,9 +70,14 @@ static int soLuongNutModal = 0;
 static bool xacNhanThanhLy = false;
 static std::string maSachCanThanhLy = "";
 
+// Bien cho Xac Nhan Xoa Ban Sao
+static bool xacNhanXoaBanSao = false;
+static std::string maSachCanXoa = "";
+
 // Bien cho Modal Them Ban Sao
 static bool hienThiModalThemBS = false;
 static std::string soLuongBanSaoCanThemStr = "";
+static std::string viTriBanSaoCanThemStr = ""; // Them bien vi tri
 
 
 
@@ -403,27 +409,27 @@ static void ThucHienThemBanSao() {
         return;
     }
 
-    // Lay vi tri tu ban sao cu (neu co) de dam bao dong nhat
-    std::string viTriDeThem = "Ke Chinh"; // Mac dinh
-    if (dauSach->dms != nullptr) { // Kiem tra xem da co ban sao nao chua
-        viTriDeThem = dauSach->dms->viTri; // Lay vi tri cua ban sao dau tien
+    // Lay vi tri tu input hoac tu ban sao cu
+    std::string viTriDeThem = CatKhoangTrang(viTriBanSaoCanThemStr);
+    
+    // Neu khong nhap vi tri, lay tu ban sao cu (neu co)
+    if (viTriDeThem.empty()) {
+        if (dauSach->dms != nullptr) {
+            viTriDeThem = dauSach->dms->viTri;
+        } else {
+            viTriDeThem = "Ke Chinh"; // Mac dinh neu chua co ban sao nao
+        }
+    }
+    
+    // Kiem tra do dai vi tri
+    if (viTriDeThem.length() > MAX_VI_TRI_KE) {
+        CapNhatThongBaoSFML("Loi: Vi tri qua dai (toi da " + std::to_string(MAX_VI_TRI_KE) + " ky tu)!", 1);
+        inputHoatDong = INPUT_VI_TRI_THEM;
+        return;
     }
 
-    // Tim so thu tu lon nhat hien co de bat dau sinh ma moi
-    int maxIndex = 0;
-    PTRDMS p_idx = dauSach->dms; // Dung con tro khac de khong anh huong p
-    while (p_idx != nullptr) {
-        size_t lastDash = p_idx->maSach.find_last_of('-');
-        if (lastDash != std::string::npos && lastDash < p_idx->maSach.length() - 1) { // Dam bao co ky tu sau dau '-'
-            try {
-                int index = std::stoi(p_idx->maSach.substr(lastDash + 1));
-                if (index > maxIndex)
-                    maxIndex = index;
-            } catch (...) { /* Bo qua neu khong phai so */ }
-        }
-        p_idx = p_idx->next;
-    }
-    int soThuTu = maxIndex + 1; // Bat dau tu so lon nhat + 1
+    // Backend sinhMaSach() tu check trung, khong can tim maxIndex
+    int soThuTu = 1; // Bat dau tu 1, backend se tu tang neu trung
 
     // Vong lap them ban sao
     int themThanhCong = 0;
@@ -454,8 +460,8 @@ static void ThucHienThemBanSao() {
         soThuTu++; // Tang so thu tu cho ban sao tiep theo
     }
 
-    // Cap nhat tong so ban sao va bao ket qua
-    dauSach->tongBanSao += themThanhCong; // Cong don vao so luong cu
+    // Cap nhat tong so ban sao tu backend (thay vi cong thu cong)
+    CapNhatTongBanSao(dsDauSach, soLuongDauSach);
     duLieuDaThayDoi = true; // Danh dau de luu file
 
     // Bao loi len UI neu co loi trong vong lap
@@ -469,7 +475,8 @@ static void ThucHienThemBanSao() {
     }
 
     hienThiModalThemBS = false;     // Dong modal
-    soLuongBanSaoCanThemStr = "";   // Xoa input trong modal
+    soLuongBanSaoCanThemStr = "";   // Xoa input so luong
+    viTriBanSaoCanThemStr = "";     // Xoa input vi tri
     inputHoatDong = KHONG_XAC_DINH; // Deactive input
     ThucHienTimKiemNoiBo();         // Tai lai bang chinh de cap nhat cot SL
 }
@@ -481,9 +488,9 @@ static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font) {
     overlay.setFillColor(sf::Color(0, 0, 0, 150));
     window.draw(overlay);
 
-    // Dinh nghia kich thuoc va vi tri modal nho
-    float modalRong = 450.f;
-    float modalCao = 200.f;
+    // Dinh nghia kich thuoc va vi tri modal
+    float modalRong = 500.f; // Tang rong 1 chut
+    float modalCao = 260.f;  // Tang cao de chua 2 input
     float modalX = (CHIEU_RONG - modalRong) / 2.f;
     float modalY = (CHIEU_CAO - modalCao) / 2.f;
     float paddingNoiBo = PADDING;
@@ -493,10 +500,12 @@ static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font) {
 
     // Ve o Input so luong
     float inputY = modalY + 60.f;
-    // Tinh Rong cua hop input
     float inputHopRong = modalRong - 2 * paddingNoiBo;
-    // Goi TaoInput voi label rong "" va chuoi goi y
-    TaoInput(font, INPUT_SO_LUONG_THEM, modalX + paddingNoiBo - 110.f /* X cua label ao */, inputY, inputHopRong /* Rong hop */, INPUT_CAO, "" /* Label rong */, soLuongBanSaoCanThemStr, "So luong (1-" + std::to_string(MAX_BAN_SAO) + ")"); // Them chuoi goi y
+    TaoInput(font, INPUT_SO_LUONG_THEM, modalX + paddingNoiBo - 110.f, inputY, inputHopRong, INPUT_CAO, "", soLuongBanSaoCanThemStr, "So luong (1-" + std::to_string(MAX_BAN_SAO) + ")");
+    
+    // Ve o Input vi tri (ben duoi so luong)
+    inputY += INPUT_CAO + PADDING / 2.f;
+    TaoInput(font, INPUT_VI_TRI_THEM, modalX + paddingNoiBo - 110.f, inputY, inputHopRong, INPUT_CAO, "", viTriBanSaoCanThemStr, "Vi tri (VD: Ke Chinh, Ke A1, Tu 5...)");
 
     // Ve nut Xac Nhan / Huy
     float buttonY = modalY + modalCao - NUT_CAO - paddingNoiBo;
@@ -525,7 +534,7 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
 
     // buoc 2: lay danh sach cac the loai duy nhat va sap xep
     std::string cacTheLoai[MAX_DAUSACH]; // mang tam luu ten the loai
-    int soTheLoai = TimTheLoaiDuyNhat(dsDauSach, soLuongDauSach, cacTheLoai, MAX_DAUSACH);
+    int soTheLoai = TimTheLoaiDuyNhat(dsDauSach, soLuongDauSach, cacTheLoai);
     SapXepTheLoaiTheoTen(cacTheLoai, soTheLoai);
 
     // buoc 3: tinh toan tong chieu cao noi dung (de biet co can scroll khong)
@@ -540,8 +549,8 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
     for (int i = 0; i < soTheLoai; ++i) {
         if (i > 0) totalContentHeightTheLoai += groupSpacing;
         totalContentHeightTheLoai += afterTitleSpacing;
-        PTRDS tempSach[1]; // mang tam chi de lay so luong
-        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, cacTheLoai[i], tempSach, 1); // lay so luong sach
+        PTRDS tempSach[MAX_DAUSACH]; // mang tam de dem so luong sach
+        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, cacTheLoai[i], tempSach); // lay so luong sach
         totalContentHeightTheLoai += (float)soSach * textBlockHeight; // cong them tong chieu cao cua cac sach trong nhom
         totalContentHeightTheLoai += afterGroupSpacing; // cong them khoang cach duoi nhom
     }
@@ -626,7 +635,7 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
 
         // lay danh sach sach cua the loai nay
         PTRDS sachCungTheLoai[MAX_DAUSACH];
-        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, currentTheLoai, sachCungTheLoai, MAX_DAUSACH);
+        int soSach = TimSachTheoTheLoai(dsDauSach, soLuongDauSach, currentTheLoai, sachCungTheLoai);
 
         // ve thong tin tung cuon sach
         sf::Text bookInfo = TaoVanBan(font, "", FONT_SIZE_BINH_THUONG, MAU_CHU);
@@ -747,20 +756,50 @@ static void ThucHienThanhLySach(std::string maSach) {
     extern int soLuongDauSach;
     extern bool duLieuDaThayDoi;
 
-    PTRDMS banSao = timDanhMucTheoMaSach(maSach, dsDauSach, soLuongDauSach, std::cout, true); // true = khong bao loi ra console
-
-    if (banSao) {
-        if (banSao->trangThai == CHO_MUON_DUOC) {
-            banSao->trangThai = THANH_LY;                             // Doi trang thai thanh Thanh Ly
-            duLieuDaThayDoi = true;                                   // Danh dau de luu file
-            CapNhatThongBaoSFML("Da thanh ly ma sach: " + maSach, 2); // Bao thanh cong
+    // Tim dau sach chua ban sao nay
+    std::string isbn = TachISBNTuMaSach(maSach);
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    
+    if (dauSach) {
+        // Truyen dau linked list (dauSach->dms), khong phai 1 node
+        bool thanhCong = capNhatTrangThaiSach(dauSach->dms, maSach, THANH_LY);
+        if (thanhCong) {
+            duLieuDaThayDoi = true;
+            CapNhatThongBaoSFML("Da thanh ly ma sach: " + maSach, 2);
+        } else {
+            CapNhatThongBaoSFML("Loi: Khong tim thay ban sao de thanh ly!", 1);
         }
-        else {
-            CapNhatThongBaoSFML("Loi: Sach dang muon, khong the thanh ly!", 1); // Bao loi neu dang muon
-        }
+    } else {
+        CapNhatThongBaoSFML("Loi: Khong tim thay dau sach!", 1);
     }
-    else {
-        CapNhatThongBaoSFML("Loi: Khong tim thay ma sach de thanh ly!", 1); // Bao loi neu khong tim thay
+}
+
+// Ham xu ly XOA BAN SAO
+static void ThucHienXoaBanSao(std::string maSach) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    extern bool duLieuDaThayDoi;
+
+    PTRDMS banSao = timDanhMucTheoMaSach(maSach, dsDauSach, soLuongDauSach, std::cout, true);
+    
+    if (banSao) {
+        if (banSao->trangThai != DANG_MUON) {
+            // Goi ham backend de xoa ban sao
+            bool thanhCong = XoaSachTheoMaSach(dsDauSach, soLuongDauSach, maSach, std::cout);
+            if (thanhCong) {
+                // Cap nhat lai tong so ban sao
+                CapNhatTongBanSao(dsDauSach, soLuongDauSach);
+                duLieuDaThayDoi = true;
+                CapNhatThongBaoSFML("Da xoa ban sao: " + maSach, 2);
+                // Modal se tu reload khi ve lai (khong can dong)
+            } else {
+                CapNhatThongBaoSFML("Loi: Khong the xoa ban sao!", 1);
+            }
+        } else {
+            CapNhatThongBaoSFML("Loi: Sach dang muon, khong the xoa!", 1);
+        }
+    } else {
+        CapNhatThongBaoSFML("Loi: Khong tim thay ma sach de xoa!", 1);
     }
 }
 
@@ -792,15 +831,27 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font)
 
     // Ve khung modal va nut Dong
     VeKhung(window, modalX, modalY, modalRong, modalCao, "CHI TIET BAN SAO: " + dauSach->tenSach, font);
-    TaoNut(font, NUT_DONG_MODAL_CHITIET, modalX + modalRong - 120.f - paddingNoiBo, modalY + modalCao - 50.f, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
+    
+    // Them ghi chu huong dan cho user (de hieu workflow)
+    sf::Text hintText = TaoVanBan(font, "Luu y: 'Thanh Ly' truoc, sau do 'Xoa' de loai bo khoi he thong", FONT_SIZE_NHO - 2, sf::Color(150, 150, 150));
+    hintText.setPosition(modalX + paddingNoiBo, modalY + 35.f);
+    window.draw(hintText);
+    
+    // Hien thi so luong ban sao
+    int tongBanSao = 0;
+    PTRDMS pCount = dauSach->dms;
+    while (pCount) { tongBanSao++; pCount = pCount->next; }
+    sf::Text infoText = TaoVanBan(font, "Tong: " + std::to_string(tongBanSao) + " ban sao", FONT_SIZE_NHO, MAU_NHAN);
+    infoText.setPosition(modalX + modalRong - 200.f, modalY + 35.f);
+    window.draw(infoText);
 
-    // Dinh nghia toa do cac cot trong modal
+    // Dinh nghia toa do cac cot trong modal (chi can 1 cot hanh dong)
     float currentY = modalY + 60.f;
     float col1X = modalX + paddingNoiBo; // STT
-    float col2X = col1X + 45.f;          // Ma Sach (Gan hon 5px)
-    float col3X = col2X + 240.f;         // Trang Thai (Gan hon 10px)
-    float col4X = col3X + 180.f;         // Vi Tri (Gan hon 20px)
-    float col5X = col4X + 130.f;         // Hanh Dong (Gan hon 20px)
+    float col2X = col1X + 50.f;          // Ma Sach
+    float col3X = col2X + 250.f;         // Trang Thai
+    float col4X = col3X + 150.f;         // Vi Tri
+    float col5X = col4X + 140.f;         // Hanh Dong (1 nut thoi)
 
     // Ve tieu de cot
     sf::Text header = TaoVanBan(font, "STT", FONT_SIZE_BINH_THUONG, MAU_NHAN);
@@ -828,6 +879,9 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font)
         tempBanSao[soLuongBSTrongDSLK++] = p;
         p = p->next;
     }
+    
+    // Sap xep mang theo ma sach (thu tu tang dan)
+    SapXepBanSaoTheoMa(tempBanSao, soLuongBSTrongDSLK);
 
     // Ve noi dung cac hang (duyet MANG TAM thay vi DSLK)
     sf::Text dataText = TaoVanBan(font, "", FONT_SIZE_NHO, MAU_CHU);
@@ -852,11 +906,11 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font)
         const char *trangThaiText = TenTrangThai(p->trangThai);
         sf::Color trangThaiColor = MAU_CHU;
         if (p->trangThai == DANG_MUON)
-            trangThaiColor = MAU_LOI;
+            trangThaiColor = MAU_LOI;           // Do - Canh bao
         else if (p->trangThai == THANH_LY)
-            trangThaiColor = MAU_VIEN;
+            trangThaiColor = MAU_VIEN;          // Vang - Cho xoa
         else if (p->trangThai == CHO_MUON_DUOC)
-            trangThaiColor = MAU_THANH_CONG;
+            trangThaiColor = MAU_THANH_CONG;    // Xanh - San sang
 
         dataText.setString(trangThaiText);
         dataText.setFillColor(trangThaiColor);
@@ -869,31 +923,57 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font)
         dataText.setPosition(col4X, currentY);
         window.draw(dataText);
 
-        // Ve nut "Thanh Ly" (chi ve neu trang thai la 'Cho Muon Duoc')
+        // Ve cac nut hanh dong tuy theo trang thai (LOGIC ROI RAC)
+        float nutY = currentY - 2.f;
+        float nutRong = 100.f;
+        float nutCao = 25.f;
+        
         if (p->trangThai == CHO_MUON_DUOC) {
-            float nutTLX = col5X;
-            float nutTLY = currentY - 2.f; // Dich len 1 chut cho dep
-            float nutTLRong = 100.f;
-            float nutTLCao = 25.f;
-            sf::RectangleShape nutBG(sf::Vector2f(nutTLRong, nutTLCao));
-            nutBG.setPosition(nutTLX, nutTLY);
-            nutBG.setFillColor(MAU_NEN_NUT);
-            nutBG.setOutlineColor(MAU_VIEN);
-            nutBG.setOutlineThickness(1.f);
-            window.draw(nutBG);
-
-            sf::Text nutText = TaoVanBan(font, "Thanh Ly", FONT_SIZE_NHO - 2, MAU_CHU_NUT);
-            CanGiuaGocVanBan(nutText);
-            nutText.setPosition(nutTLX + nutTLRong / 2.f, nutTLY + nutTLCao / 2.f);
-            window.draw(nutText);
-
-            // Luu toa do nut vao mang C-Style de bat click sau
+            // CHO_MUON_DUOC -> Chi hien nut "Thanh Ly"
+            sf::RectangleShape nutTL(sf::Vector2f(nutRong, nutCao));
+            nutTL.setPosition(col5X, nutY);
+            nutTL.setFillColor(MAU_VIEN);
+            nutTL.setOutlineColor(MAU_VIEN);
+            nutTL.setOutlineThickness(1.f);
+            window.draw(nutTL);
+            
+            sf::Text txtTL = TaoVanBan(font, "[!] Thanh Ly", FONT_SIZE_NHO - 2, MAU_CHU_NUT);
+            CanGiuaGocVanBan(txtTL);
+            txtTL.setPosition(col5X + nutRong / 2.f, nutY + nutCao / 2.f);
+            window.draw(txtTL);
+            
+            // Luu nut (chi co Thanh Ly)
             if (soLuongNutModal < SO_SACH_MOI_TRANG_MODAL) {
                 cacNutThanhLyTrongModal[soLuongNutModal].maSach = p->maSach;
-                cacNutThanhLyTrongModal[soLuongNutModal].khuVucNhan = nutBG.getGlobalBounds();
+                cacNutThanhLyTrongModal[soLuongNutModal].khuVucNhanThanhLy = nutTL.getGlobalBounds();
+                cacNutThanhLyTrongModal[soLuongNutModal].khuVucNhanXoa = sf::FloatRect(); // Rong
                 soLuongNutModal++;
             }
         }
+        else if (p->trangThai == THANH_LY) {
+            // THANH_LY -> Chi hien nut "Xoa"
+            sf::RectangleShape nutXoa(sf::Vector2f(nutRong, nutCao));
+            nutXoa.setPosition(col5X, nutY);
+            nutXoa.setFillColor(MAU_LOI);
+            nutXoa.setOutlineColor(MAU_LOI);
+            nutXoa.setOutlineThickness(1.f);
+            window.draw(nutXoa);
+            
+            sf::Text txtXoa = TaoVanBan(font, "[X] Xoa", FONT_SIZE_NHO - 2, MAU_CHU_NUT);
+            CanGiuaGocVanBan(txtXoa);
+            txtXoa.setPosition(col5X + nutRong / 2.f, nutY + nutCao / 2.f);
+            window.draw(txtXoa);
+            
+            // Luu nut (chi co Xoa)
+            if (soLuongNutModal < SO_SACH_MOI_TRANG_MODAL) {
+                cacNutThanhLyTrongModal[soLuongNutModal].maSach = p->maSach;
+                cacNutThanhLyTrongModal[soLuongNutModal].khuVucNhanThanhLy = sf::FloatRect(); // Rong
+                cacNutThanhLyTrongModal[soLuongNutModal].khuVucNhanXoa = nutXoa.getGlobalBounds();
+                soLuongNutModal++;
+            }
+        }
+        // DANG_MUON -> Khong co nut nao (hien dau '-')
+        
         currentY += 30.f; // Xuong hang
     } // Ket thuc vong for
 
@@ -916,6 +996,50 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font)
         TaoNut(font, NUT_XAC_NHAN_THANHLY, confirmX + paddingNoiBo, confirmBtnY, confirmBtnWidth, 40.f, "XAC NHAN", MAU_LOI, MAU_CHU_NUT);
         TaoNut(font, NUT_HUY_THANHLY, confirmX + 2 * paddingNoiBo + confirmBtnWidth, confirmBtnY, confirmBtnWidth, 40.f, "HUY", MAU_NEN_NUT, MAU_CHU_NUT);
     }
+    
+    // Ve Hop Thoai Xac Nhan Xoa Ban Sao
+    if (xacNhanXoaBanSao) {
+        sf::RectangleShape confirmOverlay(sf::Vector2f(modalRong, modalCao));
+        confirmOverlay.setPosition(modalX, modalY);
+        confirmOverlay.setFillColor(sf::Color(0, 0, 0, 100));
+        window.draw(confirmOverlay);
+        float confirmRong = 400.f;
+        float confirmCao = 150.f;
+        float confirmX = modalX + (modalRong - confirmRong) / 2.f;
+        float confirmY = modalY + (modalCao - confirmCao) / 2.f;
+        VeKhung(window, confirmX, confirmY, confirmRong, confirmCao, "XAC NHAN XOA BAN SAO", font);
+        sf::Text confirmText = TaoVanBan(font, "Ban co chac muon xoa ban sao:\n" + maSachCanXoa + "?", FONT_SIZE_BINH_THUONG, MAU_LOI);
+        confirmText.setPosition(confirmX + paddingNoiBo, confirmY + 45.f);
+        window.draw(confirmText);
+        float confirmBtnY = confirmY + confirmCao - 50.f;
+        float confirmBtnWidth = (confirmRong - 3 * paddingNoiBo) / 2.f;
+        TaoNut(font, NUT_XAC_NHAN_XOA_BANSAO, confirmX + paddingNoiBo, confirmBtnY, confirmBtnWidth, 40.f, "XAC NHAN", MAU_LOI, MAU_CHU_NUT);
+        TaoNut(font, NUT_HUY_XOA_BANSAO, confirmX + 2 * paddingNoiBo + confirmBtnWidth, confirmBtnY, confirmBtnWidth, 40.f, "HUY", MAU_NEN_NUT, MAU_CHU_NUT);
+    }
+    
+    // Ve cac nut dieu khien phia duoi modal (Dong + Phan trang)
+    float bottomY = modalY + modalCao - 50.f;
+    
+    // Tinh tong so trang modal
+    int tongBanSaoModal = 0;
+    PTRDMS pCountModal = dauSach->dms;
+    while (pCountModal) { tongBanSaoModal++; pCountModal = pCountModal->next; }
+    int tongSoTrangModal = (tongBanSaoModal + SO_SACH_MOI_TRANG_MODAL - 1) / SO_SACH_MOI_TRANG_MODAL;
+    if (tongSoTrangModal < 1) tongSoTrangModal = 1;
+    
+    // Nut phan trang (neu co nhieu hon 1 trang)
+    if (tongSoTrangModal > 1) {
+        TaoNut(font, NUT_MODAL_TRANG_TRUOC, modalX + paddingNoiBo, bottomY, 80.f, 40.f, "<< Truoc", MAU_NEN_NUT, MAU_CHU_NUT);
+        TaoNut(font, NUT_MODAL_TRANG_SAU, modalX + paddingNoiBo + 90.f, bottomY, 80.f, 40.f, "Sau >>", MAU_NEN_NUT, MAU_CHU_NUT);
+        
+        // Hien thi "Trang X / Y"
+        sf::Text pageInfoModal = TaoVanBan(font, "Trang " + std::to_string(trangModal) + " / " + std::to_string(tongSoTrangModal), FONT_SIZE_NHO, MAU_CHU);
+        pageInfoModal.setPosition(modalX + paddingNoiBo + 180.f, bottomY + 10.f);
+        window.draw(pageInfoModal);
+    }
+    
+    // Nut Dong (ben phai)
+    TaoNut(font, NUT_DONG_MODAL_CHITIET, modalX + modalRong - 120.f - paddingNoiBo, bottomY, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
 }
 
 // Ham Xu Ly Su Kien CHINH
@@ -947,20 +1071,40 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
     // chan tat ca su kien neu modal dang hien
     if (hienThiModalBanSao || hienThiModalThemBS) {
         if (hienThiModalThemBS) { // Xu ly rieng cho Modal Them Ban Sao
-            if (event.type == sf::Event::TextEntered || (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Backspace))) {
+            if (event.type == sf::Event::TextEntered || (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Backspace || event.key.code == sf::Keyboard::Tab))) {
+                // Xu ly input So Luong
                 if (inputHoatDong == INPUT_SO_LUONG_THEM) {
                     if (event.type == sf::Event::TextEntered) {
                         if (event.text.unicode >= '0' && event.text.unicode <= '9' && soLuongBanSaoCanThemStr.length() < 3) {
                             soLuongBanSaoCanThemStr += static_cast<char>(event.text.unicode);
-                            if (loaiThongBao == 1)
-                                CapNhatThongBaoSFML("", 0);
+                            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
                         }
                     }
                     else if (event.key.code == sf::Keyboard::Backspace) {
                         if (!soLuongBanSaoCanThemStr.empty()) {
                             soLuongBanSaoCanThemStr.pop_back();
-                            if (loaiThongBao == 1)
-                                CapNhatThongBaoSFML("", 0);
+                            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::Tab) {
+                        inputHoatDong = INPUT_VI_TRI_THEM; // Chuyen sang input vi tri
+                    }
+                }
+                // Xu ly input Vi Tri
+                else if (inputHoatDong == INPUT_VI_TRI_THEM) {
+                    if (event.type == sf::Event::TextEntered) {
+                        if (event.text.unicode < 128 && event.text.unicode != 8 && event.text.unicode != 9) {
+                            char c = static_cast<char>(event.text.unicode);
+                            if ((isalnum(c) || c == ' ' || c == '-') && viTriBanSaoCanThemStr.length() < MAX_VI_TRI_KE) {
+                                viTriBanSaoCanThemStr += c;
+                                if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
+                            }
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::Backspace) {
+                        if (!viTriBanSaoCanThemStr.empty()) {
+                            viTriBanSaoCanThemStr.pop_back();
+                            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
                         }
                     }
                 }
@@ -974,11 +1118,15 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                     else if (elementNhan == NUT_HUY_THEM_BS) {
                         hienThiModalThemBS = false;
                         soLuongBanSaoCanThemStr = "";
+                        viTriBanSaoCanThemStr = "";
                         inputHoatDong = KHONG_XAC_DINH;
                         CapNhatThongBaoSFML("Da huy them ban sao.", 0);
                     }
                     else if (elementNhan == INPUT_SO_LUONG_THEM) {
                         inputHoatDong = INPUT_SO_LUONG_THEM;
+                    }
+                    else if (elementNhan == INPUT_VI_TRI_THEM) {
+                        inputHoatDong = INPUT_VI_TRI_THEM;
                     }
                     else {
                         inputHoatDong = KHONG_XAC_DINH;
@@ -992,7 +1140,8 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
 
-                    if (xacNhanThanhLy) { // Neu dang hien hop thoai xac nhan
+                    // Xu ly hop thoai xac nhan THANH LY
+                    if (xacNhanThanhLy) {
                         if (elementNhan == NUT_XAC_NHAN_THANHLY) {
                             ThucHienThanhLySach(maSachCanThanhLy);
                             xacNhanThanhLy = false;
@@ -1003,21 +1152,68 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                             maSachCanThanhLy = "";
                             CapNhatThongBaoSFML("Da huy thanh ly.", 0);
                         }
-                        return; // Khong xu ly gi them khi hop thoai con hien
+                        return;
+                    }
+                    
+                    // Xu ly hop thoai xac nhan XOA BAN SAO
+                    if (xacNhanXoaBanSao) {
+                        if (elementNhan == NUT_XAC_NHAN_XOA_BANSAO) {
+                            ThucHienXoaBanSao(maSachCanXoa);
+                            xacNhanXoaBanSao = false;
+                            maSachCanXoa = "";
+                        }
+                        else if (elementNhan == NUT_HUY_XOA_BANSAO) {
+                            xacNhanXoaBanSao = false;
+                            maSachCanXoa = "";
+                            CapNhatThongBaoSFML("Da huy xoa ban sao.", 0);
+                        }
+                        return;
                     }
 
                     if (elementNhan == NUT_DONG_MODAL_CHITIET) {
                         hienThiModalBanSao = false;
                         idModalSachDuocChon = "";
                         trangModal = 1;
-                        return; // Khong xu ly gi them
+                        return;
+                    }
+                    
+                    // Xu ly phan trang modal
+                    if (elementNhan == NUT_MODAL_TRANG_TRUOC) {
+                        if (trangModal > 1) {
+                            trangModal--;
+                        }
+                        return;
+                    }
+                    if (elementNhan == NUT_MODAL_TRANG_SAU) {
+                        // Tinh tong so trang
+                        extern PTRDS dsDauSach[];
+                        extern int soLuongDauSach;
+                        PTRDS dauSachCheck = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, idModalSachDuocChon);
+                        if (dauSachCheck) {
+                            int tongBS = 0;
+                            PTRDMS pC = dauSachCheck->dms;
+                            while (pC) { tongBS++; pC = pC->next; }
+                            int tongTrang = (tongBS + SO_SACH_MOI_TRANG_MODAL - 1) / SO_SACH_MOI_TRANG_MODAL;
+                            if (trangModal < tongTrang) {
+                                trangModal++;
+                            }
+                        }
+                        return;
                     }
 
+                    // Kiem tra click vao nut Thanh Ly hoac Xoa
                     for (int i = 0; i < soLuongNutModal; ++i) {
-                        if (cacNutThanhLyTrongModal[i].khuVucNhan.contains(event.mouseButton.x, event.mouseButton.y)) {
+                        // Nut Thanh Ly
+                        if (cacNutThanhLyTrongModal[i].khuVucNhanThanhLy.contains(event.mouseButton.x, event.mouseButton.y)) {
                             xacNhanThanhLy = true;
                             maSachCanThanhLy = cacNutThanhLyTrongModal[i].maSach;
-                            return; // Khong xu ly gi them
+                            return;
+                        }
+                        // Nut Xoa
+                        if (cacNutThanhLyTrongModal[i].khuVucNhanXoa.contains(event.mouseButton.x, event.mouseButton.y)) {
+                            xacNhanXoaBanSao = true;
+                            maSachCanXoa = cacNutThanhLyTrongModal[i].maSach;
+                            return;
                         }
                     }
                 }
@@ -1139,8 +1335,9 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                     if (cheDoXemHienTai == XEM_TIM_KIEM && !isbnSachDuocChon.empty()) {
                         hienThiModalThemBS = true;
                         soLuongBanSaoCanThemStr = "";
+                        viTriBanSaoCanThemStr = ""; // Reset vi tri
                         inputHoatDong = INPUT_SO_LUONG_THEM;
-                        CapNhatThongBaoSFML("Nhap so luong ban sao can them.", 0);
+                        CapNhatThongBaoSFML("Nhap so luong va vi tri ban sao can them.", 0);
                     }
                     else if (cheDoXemHienTai == XEM_THEO_THE_LOAI) {
                         CapNhatThongBaoSFML("Chuc nang nay khong dung duoc o che do xem theo the loai.", 1);
@@ -1467,9 +1664,21 @@ static void ThucHienTimKiemNoiBo() {
             else
                 break; // Tranh vuot qua mang ket qua
         }
+        
+        // Sap xep tat ca sach theo ten (A->Z)
+        if (soLuongKetQuaTimKiem > 1) {
+            PTRDS tempArr[MAX_DAUSACH];
+            for (int i = 0; i < soLuongKetQuaTimKiem; ++i) {
+                tempArr[i] = ketQuaTimKiem[i].sach;
+            }
+            sapXepDauSachTheoTen(tempArr, 0, soLuongKetQuaTimKiem - 1);
+            for (int i = 0; i < soLuongKetQuaTimKiem; ++i) {
+                ketQuaTimKiem[i].sach = tempArr[i];
+            }
+        }
     }
     else { // Neu co tu khoa -> Goi ham tim kiem logic
-        soLuongKetQuaTimKiem = timKiemLogic(dsDauSach, soLuongDauSach, tuKhoa, ketQuaTimKiem, MAX_DAUSACH);
+        soLuongKetQuaTimKiem = timKiemLogic(dsDauSach, soLuongDauSach, tuKhoa, ketQuaTimKiem);
     }
     trangHienTai = 1;       // Luon ve trang 1 sau khi tim kiem
     CapNhatPhanTrangSFML(); // Tinh lai tong so trang
@@ -1634,14 +1843,12 @@ static void ThucHienThemHoacSuaSachSFML() {
             for (int i = 0; i < soLuong; ++i) {
                 // Dung stream de bat loi tu ham backend (thay cho cout)
                 std::stringstream errorStream;
-                std::string maSach = sinhMaSach(isbnChuan, soThuTu); // Ham backend tra ve Ma Sach hoac "" neu loi
+                std::string maSach = sinhMaSach(isbnChuan, soThuTu); // Ham backend tra ve Ma Sach hoac "Loi:..." neu loi
 
-                // Kiem tra loi tu sinhMaSach
-                if (maSach.empty()) {
+                // Kiem tra loi tu sinhMaSach - SAI: check empty(), DUNG: check "Loi:"
+                if (maSach.rfind("Loi:", 0) == 0) {
                     soThuTu++;                        // Thu sinh so tiep theo
-                    loiTrongLoop = errorStream.str(); // Lay loi tu stream
-                    if (loiTrongLoop.empty())
-                        loiTrongLoop = "Loi: Khong the sinh Ma Sach (bi trung lap?).";
+                    loiTrongLoop = maSach;            // Lay chuoi loi
                     break; // Thoat khoi vong for neu sinh loi
                 }
 
@@ -1658,8 +1865,8 @@ static void ThucHienThemHoacSuaSachSFML() {
                 soThuTu++; // Tang so thu tu cho ban sao tiep theo
             }
 
-            // Cap nhat tong ban sao va danh dau thay doi
-            dauSach->tongBanSao = themThanhCong;
+            // Cap nhat tong ban sao tu backend (thay vi set thu cong)
+            CapNhatTongBanSao(dsDauSach, soLuongDauSach);
             duLieuDaThayDoi = true;
 
             // Bao loi len UI neu co loi trong vong lap

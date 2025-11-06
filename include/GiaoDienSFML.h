@@ -112,9 +112,12 @@ enum MaUI {
     NUT_DONG_MODAL_CHITIET,   // nut dong modal chi tiet
     NUT_XAC_NHAN_THANHLY,     // nut xac nhan thanh ly trong hop thoai con
     NUT_HUY_THANHLY,          // nut huy thanh ly trong hop thoai con
+    NUT_XAC_NHAN_XOA_BANSAO,  // nut xac nhan xoa ban sao
+    NUT_HUY_XOA_BANSAO,       // nut huy xoa ban sao
     // Nut cho modal Them Ban Sao 
     NUT_THEM_BAN_SAO,         // Nut mo modal
     INPUT_SO_LUONG_THEM,      // O nhap so luong trong modal
+    INPUT_VI_TRI_THEM,        // O nhap vi tri trong modal
     NUT_XAC_NHAN_THEM_BS,     // Nut xac nhan them trong modal
     NUT_HUY_THEM_BS,          // Nut huy them trong modal
     KHONG_XAC_DINH            // id mac dinh khi khong click vao element nao

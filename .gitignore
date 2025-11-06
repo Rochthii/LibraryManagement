@@ -1,36 +1,30 @@
-# Không đẩy thư mục lib lên github
+
+# 1. Không đẩy thư mục thư viện bên ngoài lên GitHub
 lib/
 
-# LibraryManagement .gitignore (cleaned)
+# 2. Không đẩy các file cấu hình, dữ liệu tạm
+*.json      # File cấu hình JSON
+*.jon       # File cấu hình JON
 
-# Ignore all files in lib/ (do not push lib/ to remote)
-lib/
+# 3. Không đẩy file build, binary
+build/      # Thư mục build
+*.exe       # File thực thi
+*.dll       # Thư viện động
+*.obj       # Object file
+*.o         # Object file
 
-# Ignore config files
-*.json
-*.jon
-
-# Build artifacts
-build/
-
-# Compiled binaries
-*.exe
-*.dll
-*.obj
-*.o
-
-# VS Code
+# 4. Không đẩy file/thư mục của VS Code
 .vscode/
 
-# Logs and temporary files
+# 5. Không đẩy file log, file tạm
 *.log
 run_debug.log
 
-# Editor swap / user files
+# 6. Không đẩy file swap, file user
 *.swp
 *.user
 
-# Backup files
+# 7. Không đẩy file backup, file IDE
 files/backup_*
 main
 *.xcodeproj
@@ -40,25 +34,25 @@ DerivedData/
 .DS_Store
 .vs/
 
-# Visual Studio solution and project files
+# 8. Không đẩy file dự án/giải pháp Visual Studio
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
 
-# Visual Studio database and cache
+# 9. Không đẩy file database/cache của Visual Studio
 *.sdf
 *.opensdf
 .VC.db
 .VC.VC.opendb
 
-# Visual Studio user-specific files
+# 10. Không đẩy file user/cá nhân của Visual Studio
 *.suo
 *.ncb
 *.pdb
 *.ipch
 *.tlog
 
-# Test results
+# 11. Không đẩy file kết quả test
 TestResults/
 *.trx
