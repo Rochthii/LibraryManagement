@@ -1,65 +1,14 @@
-# Build artifacts
-build/
+# Không đẩy thư mục lib lên github
+lib/
 
-# Compiled binaries
-*.exe
-*.dll
-*.obj
-*.o
+# LibraryManagement .gitignore (cleaned)
 
-# VS Code
-.vscode/
+# Ignore all files in lib/ (do not push lib/ to remote)
+lib/
 
-# Logs and temporary files
-*.log
-run_debug.log
-
-# Editor swap / user files
-*.swp
-*.user
-
-# Backup files
-files/backup_* 
-*.exe
-*.o
-main
-*.xcodeproj
-*.xcworkspace
-xcuserdata/
-DerivedData/
-.DS_Store
-.vs/
-
-# Visual Studio solution and project files
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-
-# Visual Studio database and cache
-*.sdf
-*.opensdf
-*.VC.db
-*.VC.VC.opendb
-
-# Visual Studio user-specific files
-*.suo
-*.ncb
-*.pdb
-*.ipch
-*.log
-*.tlog
-
-# Visual Studio folder
-.vs/
-## .gitignore for LibraryManagement
-
-# Ignore JSON/JON config/IDE files
+# Ignore config files
 *.json
 *.jon
-
-# NOTE: previously we ignored `lib/`. Removed so the repository can track the
-# full `lib/` directory. If you later want to ignore it again, re-add `lib/`.
 
 # Build artifacts
 build/
