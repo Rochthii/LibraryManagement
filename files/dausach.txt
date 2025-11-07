@@ -61,6 +61,7 @@
 9780306406157|Song Het Doi Thanh Xuan|235|Cham Roch Thi|2025|Cuoc Song
 9786045765074|Song Het Thanh Xuan|286|Cham Roch Thi|2025|Cuoc Song
 9786041219403|Song The Nao Cho Dang Gia|762|Cham Roch Thi|2025|Cuoc Song
+9876067873676|Song The Nao Cho Tron Ven|451|Cham Roch Thi|2025|Cuoc Song
 9876045324|The Gioi Co Em|342|Cham Roch Thi|2025|Tinh Yeu
 9786040000576|Thuat Toan Nang Cao|432|Pham Thu Hang|2021|Thuat Toan
 9786040000835|Thuat Toan Ung Dung|600|Pham Hung|2022|Thuat Toan

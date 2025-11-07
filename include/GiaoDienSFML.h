@@ -117,7 +117,6 @@ enum MaUI {
     // Nut cho modal Them Ban Sao 
     NUT_THEM_BAN_SAO,         // Nut mo modal
     INPUT_SO_LUONG_THEM,      // O nhap so luong trong modal
-    INPUT_VI_TRI_THEM,        // O nhap vi tri trong modal
     NUT_XAC_NHAN_THEM_BS,     // Nut xac nhan them trong modal
     NUT_HUY_THEM_BS,          // Nut huy them trong modal
     KHONG_XAC_DINH            // id mac dinh khi khong click vao element nao
