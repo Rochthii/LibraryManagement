@@ -31,6 +31,7 @@ struct DauSach {
     std::string theLoai;
     PTRDMS dms = NULL;          // con tro toi dau danh sach lien ket cac ban sao (DanhMucSach)
     int tongBanSao;             // Tong so luong ban sao hien co
+    int soLuotMuon;             // them de de tim top 10 sach
 };
 
 typedef DauSach* PTRDS;         // Con tro toi mot DauSach

@@ -2,15 +2,16 @@
 #define DOCGIA_H
 #include <string>
 #include <fstream>
+#include "DauSach.h"
 using namespace std;
 
 
 //danh sach muon tra
 struct MuonTra{
-    string MaSach;
+    PTRDMS banSaoSach;// thay the string maSach thanh con tro chi toi DanhMucSach* va khai bao trang thai 
     string NgayMuon;
     string NgayTra;
-    int TrangThai;//0= dang muon, 1 da tra, 2 la lam mat
+    int TrangThai;//0: dang muon, 1: da tra, 2: lam mat sach
 };
 struct NodeMT{
     MuonTra data;
@@ -41,54 +42,69 @@ struct NodeDG{
 };
 typedef NodeDG* PTRDG;
 
-//danh sach sach dang muon
-struct ThongTinSachDangMuon {
-    string MaSach;
-    string NgayMuon;
-    int SoNgayGiu;
-    ThongTinSachDangMuon* next;
+struct ThongTinQuaHan{
+    PTRDG docGia;
+    int soNgayQuaHanMax;
 };
-typedef ThongTinSachDangMuon* LIST_SACH_DANG_MUON;
-//danh sach doc gia co sach qua han
-struct DocGiaQuaHan {
-    int MaThe;
-    string HoTen;
-    string MaSach;
-    int SoNgayQuaHan;
-    DocGiaQuaHan* next;
+//struct tu them
+struct ThongTinSachDangMuon_DTO {
+    string maSach;
+    string tenSach;     // <== Thêm trường này
+    string ngayMuon;
+    int soNgayGiu;    // <== Thêm trường này
 };
-typedef DocGiaQuaHan* LIST_DOCGIA_QUAHAN;
 
+struct TopSachDTO {
+    PTRDS dauSach;//dung con tro thay vi tao mot field da co san
+};
 // Prototype AVL
 PTRDG RotateLeft(PTRDG root);
 PTRDG RotateRight(PTRDG root);
 void InsertDocGia(PTRDG& root, PTRDG node);
 
-// Prototype Chức năng chính
+// Prototype Chức năng chính (a)
+PTRDG taoDocGia(std::string ho, std::string ten, bool phai, int trangthai, PTRDG root);
+PTRDG taoDocGia(std::string ho, std::string ten, bool phai, int trangthai, int mathe);
 void xoaDocGia(PTRDG& root, int mathe);
 PTRDG timDocGia(PTRDG root, int mathe);
 void inDocGiaInOrder(PTRDG root); // In theo Mã thẻ tăng dần
 void display(PTRDG root); // Hàm in 1 độc giả
 
-// CẢI TIẾN: Thay đổi prototype để tránh rò rỉ bộ nhớ
+// CẢI TIẾN: Thay đổi prototype để tránh rò rỉ bộ nhớ (a)
 void hieuChinhDocGia(PTRDG root, const TheDocGia& new_data);
 
 // Prototype cho chức năng sắp xếp (b)
 void DuyetCayRaMang(PTRDG root, PTRDG arr[], int &count);
 void InDocGiaTheoTenHo(PTRDG root); // In ra danh sách sắp xếp theo Tên+Họ
-void QuickSortDocGia(PTRDG arr[], int low, int high);
 
 // Prototype Giải phóng bộ nhớ
 void GiaiPhongCay(PTRDG& root);
 void giaiPhongDsmt(MUONTRA& dsmt);
 
-// Prototype Quản lý Mượn Trả
-void themMuonTra(PTRDG root, string maSach);
-void themMuonTra(PTRDG docgia, const MuonTra &mt);
+// Prototype Quản lý Mượn Trả (f) (g)
+std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach);
+std::string TraSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
+void themMuonTra(PTRDG docgia, PTRDMS banSaoSach);//khi muon sach
+void themMuonTra(PTRDG docgia, const MuonTra &mt);//khi load file
+PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach);
+PTRDMS TimBanSaoTheoMa(PTRDS dauSach, const std::string& maSach);
+int DemBanSaoCoTheMuon(PTRDS dauSach);
+// Prototype (h)
+int LayDSSachDangMuon(PTRDG docGia, ThongTinSachDangMuon_DTO ketQua[], int maxKetQua, PTRDS dsDauSach[], int soLuongDauSach);
+
+// Prototype Danh sách độc giả mượn quá hạn (i)
+int TinhSoNgayQuaHanLonNhat(PTRDG docgia);
+int LayDSDocGiaQuaHan(PTRDG root, ThongTinQuaHan arr[]);
+int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]);
 
 // Prototype File I/O
+string PTRDMS_to_String(PTRDMS p);
+PTRDMS MaSach_to_PTRDMS(const string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
+void LuuGiaoDich(MUONTRA dsmt, std::ofstream& file);
+void NapGiaoDich(PTRDG docGia, std::ifstream& file, PTRDS dsDauSach[], int n);
+
 void saveDocGia(PTRDG root);
-PTRDG loadDocGia();
+PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS);
 
 
 #endif

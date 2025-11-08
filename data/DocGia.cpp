@@ -1,8 +1,10 @@
 ﻿#include "DocGia.h"
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include "QuanLySach.h"
 #include "Constants.h"
 #include "NgayThang.h"
 // Cần thêm thư viện XuLyChuoi.h cho hàm BoDauVaThuong()
@@ -56,8 +58,7 @@ int static sinhMaTheNgauNhien(PTRDG root) {
     while (ma <= MA_THE_MAX && timDocGia(root, ma) != nullptr) ++ma;
     return (ma <= MA_THE_MAX) ? ma : -1;
 }
-
-// ---- AVL with stored height ----
+//AVL
 // get/update height and balance helpers
 static inline int getHeight(PTRDG n) {
     return (n == nullptr) ? 0 : n->height;
@@ -307,8 +308,7 @@ void inDocGiaInOrder(PTRDG root) {
     }
 }
 
-// --- LOGIC CHO CHỨC NĂNG (b): SẮP XẾP ĐỘC GIẢ ---
-
+//B.In danh sach doc gia
 // Helper: So sánh hai chuỗi theo Tên + Họ (sử dụng BoDauVaThuong)
 static int SoSanhTenHo(PTRDG dg1, PTRDG dg2) {
     // 1. So sánh theo Tên (không dấu, không phân biệt hoa/thường)
@@ -369,54 +369,204 @@ void DuyetCayRaMang(PTRDG root, PTRDG arr[], int &count) {
         DuyetCayRaMang(root->right, arr, count);
     }
 }
-
-// Triển khai hàm chính cho chức năng b: In DS theo Tên+Họ
-void InDocGiaTheoTenHo(PTRDG root) {
-    PTRDG arr[MAX_DAUSACH]; 
-    int count = 0;
-    
-    DuyetCayRaMang(root, arr, count); 
-    
-    if (count == 0) {
-        std::cout << "\nDanh sách độc giả rỗng." << std::endl;
-        return;
-    }
-    
-    QuickSortDocGia(arr, 0, count - 1);
-
-    std::cout << "\n=== DANH SÁCH ĐỘC GIẢ (" << count << " ĐỘC GIẢ) ===\n";
-    std::cout << "--- SẮP XẾP THEO TÊN + HỌ TĂNG DẦN ---\n";
-    for (int i = 0; i < count; ++i) {
-        display(arr[i]);
-    }
-}
 // --- HẾT LOGIC SẮP XẾP ---
 
-
+//F.Muon Sach
 // quan ly muon tra
-void themMuonTra(PTRDG docgia, std::string maSach) {
-    if (docgia == nullptr) return;
+// tim ban sao co the muon cua 1 dau sach (O(M) - M: so ban sao)
+PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach) {
+    if (dauSach == nullptr) return nullptr;
     
-    // Kiểm tra giới hạn mượn
-    if (docgia->data.soSachDangMuon >= SO_LAN_THU_TOI_DA) { // SO_LAN_THU_TOI_DA = 3
+    PTRDMS p = dauSach->dms;
+    int dem = 0;
+    
+    while (p != nullptr && dem < SO_VONG_LAP_DMS_MAX) {
+        // chi lay ban sao co trang thai CHO_MUON_DUOC (0)
+        if (p->trangThai == CHO_MUON_DUOC) {
+            return p;  // tra ve ban sao dau tien co the muon
+        }
+        p = p->next;
+        dem++;
+    }
+    
+    if (dem >= SO_VONG_LAP_DMS_MAX) {
+        thongBao(std::cout, "Vong lap vo han DMS!", LOI);
+    }
+    
+    return nullptr;  // khong co ban sao nao san sang
+}
+
+// tim ban sao theo ma sach trong 1 dau sach (O(M))
+PTRDMS TimBanSaoTheoMa(PTRDS dauSach, const std::string& maSach) {
+    if (dauSach == nullptr) return nullptr;
+    
+    PTRDMS p = dauSach->dms;
+    int dem = 0;
+    
+    while (p != nullptr && dem < SO_VONG_LAP_DMS_MAX) {
+        if (p->maSach == maSach) {
+            return p;  // tim thay
+        }
+        p = p->next;
+        dem++;
+    }
+    
+    if (dem >= SO_VONG_LAP_DMS_MAX) {
+        thongBao(std::cout, "Vong lap vo han DMS!", LOI);
+    }
+    
+    return nullptr;  // khong tim thay
+}
+
+// dem so ban sao co the muon (O(M))
+int DemBanSaoCoTheMuon(PTRDS dauSach) {
+    if (dauSach == nullptr) return 0;
+    
+    int dem = 0;
+    PTRDMS p = dauSach->dms;
+    int vong = 0;
+    
+    while (p != nullptr && vong < SO_VONG_LAP_DMS_MAX) {
+        if (p->trangThai == CHO_MUON_DUOC) {
+            dem++;
+        }
+        p = p->next;
+        vong++;
+    }
+    
+    if (vong >= SO_VONG_LAP_DMS_MAX) {
+        thongBao(std::cout, "Vong lap vo han DMS!", LOI);
+    }
+    
+    return dem;
+}
+
+// ham backend: muon sach (O(log N) + O(M))
+std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach) {
+    if (docGia == nullptr) return "Loi: Doc gia khong hop le!";
+    
+    // B1: Kiem tra gioi han muon (3 cuon)
+    if (docGia->data.soSachDangMuon >= 3) {
+        return "Loi: Doc gia da muon toi da 3 cuon!";
+    }
+    
+    // B2: Tim dau sach
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    if (dauSach == nullptr) {
+        return "Loi: Khong tim thay dau sach!";
+    }
+    
+    // B3: Tim ban sao co the muon
+    PTRDMS banSao =  TimBanSaoCoTheMuon(dauSach);
+    if (banSao == nullptr) {
+        return "Loi: Tat ca ban sao dang duoc muon!";
+    }
+    
+    // B4: Cap nhat trang thai sach
+    banSao->trangThai = DANG_MUON;
+    
+    // B5: Them vao lich su muon tra
+    MuonTra mt;
+    //gan con tro truc tiep, khong truy cap truong con
+    mt.banSaoSach = banSao;
+    mt.NgayMuon = layNgayHienTai(std::cout);
+    mt.NgayTra = "";
+    mt.TrangThai = 0;  // dang muon
+    
+    themMuonTra(docGia, mt);
+    
+    duLieuDaThayDoi = true;
+
+    dauSach->soLuotMuon++;
+    return "";  // thanh cong
+}
+
+// ham backend: tra sach (O(log N) + O(L))
+std::string TraSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach) {
+    if (docGia == nullptr) return "Loi: Doc gia khong hop le!";
+    
+    // B1: Tim giao dich muon trong lich su
+    MUONTRA curr = docGia->data.dsmt;
+    MUONTRA found = nullptr;
+    
+    while (curr != nullptr) {
+        if (curr->data.banSaoSach != nullptr && // 1. Kiem tra con tro
+            curr->data.banSaoSach->maSach == maSach && // 2. So sanh maSach
+            curr->data.TrangThai == 0) {  // dang muon
+            found = curr;
+            break;
+        }
+        curr = curr->next;
+    }
+    
+    if (found == nullptr) {
+        return "Loi: Doc gia khong muon sach nay!";
+    }
+    
+    // B2: Cap nhat trang thai sach (thong qua con tro)
+    if (found->data.banSaoSach != nullptr) {
+        found->data.banSaoSach->trangThai = CHO_MUON_DUOC;
+    } else {
+        // Fallback: tim theo ma sach neu con tro bi null
+        std::string isbn = TachISBNTuMaSach(maSach);
+        PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+        if (dauSach != nullptr) {
+            PTRDMS banSao = TimBanSaoTheoMa(dauSach, maSach);
+            if (banSao != nullptr) {
+                banSao->trangThai = CHO_MUON_DUOC;
+            }
+        }
+    }
+    
+    // B3: Cap nhat lich su muon tra
+    found->data.NgayTra = layNgayHienTai();
+    found->data.TrangThai = 1;  // da tra
+    
+    docGia->data.soSachDangMuon--;
+    
+    duLieuDaThayDoi = true;
+    return "";  // thanh cong
+}
+
+//dung cho MaSach_to_PTRDMS
+void themMuonTra(PTRDG docgia, PTRDMS banSaoSach) {
+    if (docgia == nullptr) return;
+    // Giả định SO_LAN_THU_TOI_DA là hằng số cho số sách mượn tối đa (ví dụ: 3)
+    if (docgia->data.soSachDangMuon >= SO_LAN_THU_TOI_DA) { 
         std::cerr << "Lỗi: Độc giả đã mượn tối đa 3 cuốn sách." << std::endl;
         return;
     }
 
     MUONTRA node = new NodeMT;
-    node->data.MaSach = maSach;
+
+    // 1. Gán con trỏ trực tiếp (Fix lỗi crash)
+    node->data.banSaoSach = banSaoSach; 
+    
+    // 2. Gán dữ liệu giao dịch
     node->data.NgayMuon = layNgayHienTai();
     node->data.NgayTra = "";
-    node->data.TrangThai = 0;
-    node->next = nullptr;
+    
+    // 3. Gán trạng thái GIAO DỊCH, không phải trạng thái SÁCH (Fix lỗi logic)
+    // 0 = Đang mượn
+    node->data.TrangThai = 0; 
 
     node->next = docgia->data.dsmt;
     docgia->data.dsmt = node;
     
-    // Cập nhật trường mới
+    // Cập nhật số lượng sách đang mượn
     docgia->data.soSachDangMuon++;
+    // Cap nhat so Luot Muon
+    std::string isbn = TachISBNTuMaSach(node->data.banSaoSach->maSach);
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    if(dauSach != nullptr){
+        dauSach->soLuotMuon++;//neu tim thay dauSach
+    } else {
+        std::cerr << "Canh bao: khong tim thay dau sach cho ma sach da muon";
+    }
+   
 }
 
+//dùng cho (NapGiaoDich)
 void themMuonTra(PTRDG docgia, const MuonTra &mt) {
     if (docgia == nullptr) return;
 
@@ -424,105 +574,372 @@ void themMuonTra(PTRDG docgia, const MuonTra &mt) {
     node->data = mt;
     node->next = docgia->data.dsmt;
     docgia->data.dsmt = node;
-    
-    // Cập nhật trường mới khi load file
+    // Cập nhật bộ đếm dựa trên TRẠNG THÁI GIAO DỊCH (mt.TrangThai)
+    // Chỉ tăng bộ đếm nếu giao dịch đó đang ở trạng thái "Đang mượn" (0)
     if (mt.TrangThai == 0) {
         docgia->data.soSachDangMuon++;
     }
 }
 
-// loadDocGia
-PTRDG loadDocGia() {
-    std::ifstream in("docgia.txt");
-    if (!in.is_open()) {
-        std::cout << "khong mo duoc file docgia.txt de doc!" << std::endl;
+//G.Tra Sach
+string PTRDMS_to_String(PTRDMS p){
+    return (p != nullptr)? p->maSach : "";
+}
+
+PTRDMS MaSach_to_PTRDMS(const string& maSach, PTRDS dsDauSach[], int soLuongDauSach){
+    std::stringstream dummyStream;
+    return timDanhMucTheoMaSach(maSach, dsDauSach,soLuongDauSach,dummyStream, true);
+}
+
+void LuuGiaoDich(MUONTRA dsmt, std::ofstream& file){
+    MUONTRA p = dsmt;
+    while(p != nullptr){
+        std::string maSach = PTRDMS_to_String(p->data.banSaoSach);
+        
+        file << "MT|"
+             << maSach << "|"
+             << p->data.NgayMuon << "|"
+             << p->data.NgayTra << "|"
+             << p->data.TrangThai << "\n";
+        p = p->next;
+    }
+}
+
+void NapGiaoDich(PTRDG docGia, std::ifstream& file, PTRDS dsDauSach[], int n){
+    std::string line;
+    while(getline(file, line)){
+        string fields[4];
+        if(!TachTruong(line, '|', fields, 4)) continue;
+
+        MuonTra mt;
+        //Gan cac truong gia tri truc tiep(NgayMuon, NgayTra, TrangThai)
+        mt.NgayMuon = fields[1];
+        mt.NgayTra = fields[2];
+
+        try{
+        mt.TrangThai = stoi(fields[3]);
+        } catch(...){
+            cerr << "Loi chuyen doi trang thai giao dich: " << fields[3] << endl;
+            continue;
+        }
+        //Khoi phuc con tro tu ma sach
+        mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, n);
+        
+        if(mt.banSaoSach == nullptr){
+            //canh bao neu con tra khong khoi phuc duoc
+            cerr << "Canh bao: khong tim thay sach " << fields[0] << " de khoi phuc con tro"<< endl;
+        }
+
+        themMuonTra(docGia, mt);
+    }
+}
+
+//H.Liet ke danh sach cac ma sach, ten sach ma 1 doc gia co so the X dang muon
+// lay danh sach sach dang muon cua doc gia (O(L) - L: so giao dich)
+// ham backend: lay danh sach sach dang muon (O(L))
+int LayDSSachDangMuon(PTRDG docGia, ThongTinSachDangMuon_DTO ketQua[], int maxKetQua, PTRDS dsDauSach[], int soLuongDauSach) {
+    if (docGia == nullptr || ketQua == nullptr) return -1;  // loi: khong tim thay doc gia
+    
+    MUONTRA curr = docGia->data.dsmt;
+    if (curr == nullptr) return 0;  // doc gia chua muon cuon nao
+    
+    int dem = 0;
+    
+    // duyet toan bo danh sach muon
+    while (curr != nullptr) {
+        // chi xu ly sach dang muon (TrangThai = 0)
+        if (curr->data.TrangThai == 0) {
+            // kiem tra con tro banSaoSach an toan
+            if (curr->data.banSaoSach != nullptr) {
+                std::string maSach = curr->data.banSaoSach->maSach;
+                std::string isbn = TachISBNTuMaSach(maSach);
+                
+                // tim dau sach de lay ten sach
+                PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+                
+                // luu vao mang ket qua
+                if (dem < maxKetQua) {
+                    ketQua[dem].maSach = maSach;
+                    ketQua[dem].tenSach = (dauSach != nullptr) ? dauSach->tenSach : "";
+                    ketQua[dem].ngayMuon = curr->data.NgayMuon;
+                    dem++;
+                }
+            }
+        }
+        curr = curr->next;
+    }
+    
+    return dem;  // tra ve so luong sach dang muon
+}
+
+//I.In Doc Gia Qua Han 
+// tinh so ngay qua han lon nhat cua 1 doc gia (O(L))
+int TinhSoNgayQuaHanLonNhat(PTRDG docgia) {
+    if (docgia == nullptr) return 0;
+    
+    int maxQuaHan = 0;
+    int quaHan = 0;
+    MUONTRA curr = docgia->data.dsmt;
+    
+    while (curr != nullptr) {
+        if (curr->data.TrangThai == 0) {
+            std::stringstream dummy;  // thay std::cout bang stream ao
+            quaHan = tinhSoNgayQuaHan(curr->data.NgayMuon, dummy);
+            
+            if (quaHan > maxQuaHan)
+                maxQuaHan = quaHan;
+        }
+        curr = curr->next;
+    }
+    return maxQuaHan;
+}
+
+// so sanh qua han (giam dan)
+static int SoSanhQuaHan(const ThongTinQuaHan& a, const ThongTinQuaHan& b) {
+    if (a.soNgayQuaHanMax != b.soNgayQuaHanMax) {
+        return (a.soNgayQuaHanMax > b.soNgayQuaHanMax) ? -1 : 1;
+    }
+    return SoSanhTenHo(a.docGia, b.docGia);
+}
+
+// thu thap doc gia qua han (duyet inorder)
+static void ThuThapDocGiaQuaHanRec(PTRDG root, ThongTinQuaHan arr[], int& count) {
+    if (root == nullptr) return;
+    
+    // duyet InOrder (LNR)
+    ThuThapDocGiaQuaHanRec(root->left, arr, count);
+    
+    // xu ly node hien tai
+    int maxQuaHan = TinhSoNgayQuaHanLonNhat(root);  // O(L)
+    
+    if (maxQuaHan > 0) {
+        if (count < MAX_DAUSACH) {
+            arr[count].docGia = root;
+            arr[count].soNgayQuaHanMax = maxQuaHan;
+            count++;
+        }
+    }
+    
+    ThuThapDocGiaQuaHanRec(root->right, arr, count);
+}
+
+// ham ho tro sap xep
+static void SwapQH(ThongTinQuaHan& a, ThongTinQuaHan& b) {
+    ThongTinQuaHan temp = a; a = b; b = temp;
+}
+
+static int PartitionQH(ThongTinQuaHan arr[], int low, int high) {
+    ThongTinQuaHan pivot = arr[high];
+    int i = low - 1;
+    
+    for (int j = low; j <= high - 1; j++) {
+        if (SoSanhQuaHan(arr[j], pivot) < 0) {
+            i++;
+            SwapQH(arr[j], arr[i]);
+        }
+    }
+    SwapQH(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+static void QuickSortQuaHan(ThongTinQuaHan arr[], int low, int high) {
+    if (low < high) {
+        int pi = PartitionQH(arr, low, high);
+        QuickSortQuaHan(arr, low, pi - 1);
+        QuickSortQuaHan(arr, pi + 1, high);
+    }
+}
+
+// ham backend chinh: lay ds doc gia qua han
+int LayDSDocGiaQuaHan(PTRDG root, ThongTinQuaHan arr[]) {
+    if (root == nullptr || arr == nullptr) return 0;
+    
+    int count = 0;
+    
+    // 1. thu thap du lieu
+    ThuThapDocGiaQuaHanRec(root, arr, count);  // O(N * L)
+    
+    // 2. sap xep mang quicksort
+    if (count > 1) {
+        QuickSortQuaHan(arr, 0, count - 1);  // O(N log N)
+    }
+    return count;
+}
+
+//ham backend chinh: lay top 10 sach dang muon
+static int SoSanhLM(const TopSachDTO& a, const TopSachDTO& b){
+    //Sap xep soLuotMuon (giam dan)
+    int LuotMuonA = (a.dauSach != nullptr) ? a.dauSach->soLuotMuon : 0;
+    int LuotMuonB = (b.dauSach != nullptr) ? b.dauSach->soLuotMuon : 0;
+
+    if(LuotMuonA != LuotMuonB){
+        return (LuotMuonA > LuotMuonB) ? -1 : 1;
+    }
+
+    //Sap xep tenSach (tang dan)
+    std::string tenA = (a.dauSach != nullptr) ? BoDauVaThuong(a.dauSach->tenSach) : "";
+    std::string tenB = (b.dauSach != nullptr) ? BoDauVaThuong(b.dauSach->tenSach) : "";
+    
+    if (tenA != tenB) {
+        return (tenA < tenB) ? -1 : 1;
+    }
+    return 0;//trung nhau
+}
+
+static void SwapTS(TopSachDTO& a, TopSachDTO& b){
+    TopSachDTO temp = a; a = b; b = temp;
+}
+
+static int PartitionTS(TopSachDTO arr[], int low, int high){
+    TopSachDTO pivot = arr[high];
+    int i = (low - 1);
+
+    for(int j = low; j < high - 1; j++){
+        if (SoSanhLM(arr[j], pivot) < 0){
+            i++;
+            SwapTS(arr[i], arr[j]);
+        }
+    }
+    SwapTS(arr[i + 1], arr[high]);
+    return (i + 1);
+}
+
+static void QuickSortTS(TopSachDTO arr[], int low, int high){
+    if(low < high){
+        int pi = PartitionTS(arr, low, high);
+        QuickSortTS(arr, low, pi - 1);
+        QuickSortTS(arr, pi + 1, high);
+    }
+}
+int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]){
+    if(arr == nullptr || dsDauSach == nullptr || soLuongDS == 0)  return 0;
+
+    int count = 0;
+    //B1: lay so luot muon cua tat ca dau sach, bo qua cac dau sach khong duoc muon(O(N_DS))
+    for(int i = 0; i < soLuongDS; i++){
+        if(dsDauSach[i] != nullptr && dsDauSach[i]->soLuotMuon > 0){
+            if(count < MAX_DAUSACH){
+                arr[count].dauSach = dsDauSach[i];
+                count++;
+            }
+        }
+    }
+    
+    if(count == 0) return 0; //khong co danh sach nao duoc chon (tat ca deu bang 0)
+
+    if(count > 1){
+        QuickSortTS(arr, 0, count - 1);
+    }
+
+    return (count < 10) ? count : 10;
+}
+
+//Save
+//ham de quy
+static void LuuNodeVaoFile(PTRDG node, std::ofstream& file){
+    if(node == nullptr) return;
+
+    // (N) Ghi thong tin Doc Gia
+    file << "DG|"
+         << node->data.MaThe << "|"
+         << node->data.Ho << "|"
+         << node->data.Ten << "|"
+         << node->data.Phai << "|"
+         << node->data.TrangThai << "\n";
+
+    // (N) Ghi danh sach muon tra
+    LuuGiaoDich(node->data.dsmt, file);
+
+    // Ghi dau hieu ket thuc
+    file << "END_DG\n";
+
+    // (L) De quy sang trai
+    LuuNodeVaoFile(node->left, file);
+    // (R) De quy sang phai
+    LuuNodeVaoFile(node->right, file);
+}
+
+void saveDocGia(PTRDG root){
+    std::ofstream file("file/docgia.txt");
+
+    if(!file.is_open()){
+        std::cerr << "Loi: khong the mo file 'file/docgia.txt' de ghi!" << std::endl;
+        return;
+    }
+
+    LuuNodeVaoFile(root, file);
+
+    file.close();
+
+    std::cout << "Thong tin: Da Luu flie docgia.txt thanh cong." << std::endl;
+}
+//Load
+PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS){
+    std::ifstream file("files/docgia.txt");
+    if(!file.is_open()){
+        std::cerr << "Khong mo duoc file docgia.txt de doc!" << std::endl;
         return nullptr;
     }
 
     PTRDG root = nullptr;
     std::string line;
-    while (std::getline(in, line)) {
-        if (line.empty()) continue;
-        
-        // Cần phải chuẩn hóa logic phân tích file docgia.txt mẫu: 10001|Nguyen|Van A|Nam|1
-        size_t posSlash = line.find('|');
-        std::string info;
-        std::string muontras;
-        if (posSlash != std::string::npos) {
-            info = line.substr(0, posSlash);
-            muontras = line.substr(posSlash + 1);
+    PTRDG docGiaHienTai = nullptr;
+    std::string fields[6];//mang tam cho DG hoac MT
+
+    while(std::getline(file, line)){
+        if(line.empty()) continue;
+
+        // Tach tien to (DG, MT, END_DG)
+        std::string prefix;
+        std::string data;
+        size_t pos = line.find("|");
+        if(pos != std::string::npos){
+            prefix = line.substr(0, pos);
+            data = line.substr(pos + 1);
         } else {
-            info = line;
-            muontras = "";
+            prefix = line; // truong hop END_DG
         }
+        
+        //bat dau doc Doc Gia 
+        if(prefix == "DG"){
+            if(!TachTruong(data, '|', fields, 5)) continue; //Tach 5 truong con lai
 
-        int mathe, phai, trangthai;
-        std::string ho, ten;
-        PTRDG dg;
+            int mathe, phai, trangthai;
+            std::string ho, ten;
 
-        // Phân tích thông tin độc giả (tách bằng '|')
-        std::string parts[5];
-        size_t last = 0;
-        int idx = 0;
-        for (size_t i = 0; i < info.size(); ++i) {
-            if (info[i] == '|' && idx < 4) {
-                parts[idx++] = info.substr(last, i - last);
-                last = i + 1;
+            try{
+                mathe = std::stoi(fields[0]);
+                ho = fields[1];
+                ten = fields[2];
+                phai = std::stoi(fields[3]);
+                trangthai = std::stoi(fields[4]);
+            } catch(...){
+                continue; //Loi parsing
             }
+
+            // Tao node moi va gan no la node hien tai
+            docGiaHienTai = taoDocGia(ho, ten, phai != 0, trangthai, mathe);
+
+            // Chen vao cay AVL
+            InsertDocGia(root, docGiaHienTai);
+        } else if(prefix == "MT") {
+            if(docGiaHienTai == nullptr) continue;//Bo qua neu chua co Doc Gia
+            if(!TachTruong(data, '|', fields, 4)) continue;//Tach 4 truong con lai
+
+            MuonTra mt;
+            mt.NgayMuon = fields[1];
+            mt.NgayTra = fields[2];
+            mt.TrangThai = std::stoi(fields[3]);
+
+            //Khoi phuc con tro
+            mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, soLuongDS);
+
+            //Them vao DSLK
+            themMuonTra(docGiaHienTai, mt);
+        } else if(prefix == "END_DG"){
+            docGiaHienTai = nullptr; //reset
         }
-        parts[idx] = info.substr(last);
-
-        if (idx < 4) {
-             // Thử phân tích lại bằng ký tự phân cách (comma) cũ
-             // Bỏ qua nếu vẫn lỗi
-             std::cerr << "Dong doc gia bi loi dinh dang: " << info << std::endl;
-             continue;
-        }
-
-        try {
-            mathe = std::stoi(parts[0]);
-            ho = parts[1];
-            ten = parts[2];
-            phai = (parts[3] == "Nu" || parts[3] == "Nữ"); 
-            trangthai = std::stoi(parts[4]);
-        } catch (...) {
-            std::cerr << "Loi khi parse doc gia: " << info << std::endl;
-            continue;
-        }
-
-        dg = taoDocGia(ho, ten, phai != 0, trangthai, mathe);
-
-        size_t start = 0;
-        while (start < muontras.size()) {
-            size_t posComma = muontras.find(',', start);
-            std::string token;
-            if (posComma == std::string::npos) {
-                token = muontras.substr(start);
-                start = muontras.size();
-            } else {
-                token = muontras.substr(start, posComma - start);
-                start = posComma + 1;
-            }
-            if (!token.empty()) {
-                MuonTra mt;
-                // logic parse MaSach, TrangThai
-                if (token.size() >= 3 && token.find("(T)") == token.size() - 3) {
-                    mt.MaSach = token.substr(0, token.size() - 3);
-                    mt.TrangThai = 1;
-                } else if (token.size() >= 3 && token.find("(M)") == token.size() - 3) {
-                    mt.MaSach = token.substr(0, token.size() - 3);
-                    mt.TrangThai = 2;
-                } else {
-                    mt.MaSach = token;
-                    mt.TrangThai = 0;
-                }
-                themMuonTra(dg, mt);
-            }
-        }
-
-        // insert vao cay AVL de giu can bang
-        InsertDocGia(root, dg);
     }
-    in.close();
+    file.close();
     return root;
 }
