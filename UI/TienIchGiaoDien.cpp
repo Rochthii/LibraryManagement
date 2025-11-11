@@ -155,3 +155,94 @@ void TaoInput(const sf::Font& font, MaUI idInput, float x, float y, float rong, 
         soLuongElement++;
     }
 }
+
+// Ham xu ly word wrap cho text (cat text thanh nhieu dong neu qua dai)
+// Tra ve chuoi da format voi ky tu xuong dong '\n'
+// KHONG DUNG VECTOR, chi dung string va ky tu '\n' de xuong dong
+std::string WordWrapText(const sf::Font& font, const std::string& text, unsigned int fontSize, float maxWidth) {
+    if (text.empty() || maxWidth <= 0) {
+        return text;
+    }
+
+    // Tao text tam de do chieu rong
+    sf::Text tempText;
+    tempText.setFont(font);
+    tempText.setCharacterSize(fontSize);
+    
+    std::string result = "";      // Ket qua cuoi cung
+    std::string currentLine = ""; // Dong hien tai dang xu ly
+    std::string currentWord = ""; // Tu hien tai dang xu ly
+    
+    for (size_t i = 0; i < text.length(); ++i) {
+        char c = text[i];
+        
+        // Neu gap ky tu xuong dong, them dong hien tai vao ket qua
+        if (c == '\n') {
+            if (!currentWord.empty()) {
+                if (!currentLine.empty()) currentLine += " ";
+                currentLine += currentWord;
+                currentWord = "";
+            }
+            if (!currentLine.empty()) {
+                if (!result.empty()) result += "\n";
+                result += currentLine;
+                currentLine = "";
+            } else {
+                if (!result.empty()) result += "\n";
+                result += " "; // Dong trong
+            }
+            continue;
+        }
+        
+        // Neu gap khoang trang, kiem tra xem co can xuong dong khong
+        if (c == ' ') {
+            std::string testLine = currentLine;
+            if (!testLine.empty() && !currentWord.empty()) testLine += " ";
+            testLine += currentWord;
+            tempText.setString(testLine);
+            
+            if (tempText.getLocalBounds().width > maxWidth && !currentLine.empty()) {
+                // Dong hien tai da day, them vao ket qua va bat dau dong moi
+                if (!result.empty()) result += "\n";
+                result += currentLine;
+                currentLine = currentWord;
+                currentWord = "";
+            } else {
+                // Them tu vao dong hien tai
+                if (!currentLine.empty()) currentLine += " ";
+                currentLine += currentWord;
+                currentWord = "";
+            }
+        } else {
+            // Them ky tu vao tu hien tai
+            currentWord += c;
+        }
+    }
+    
+    // Them tu cuoi cung
+    if (!currentWord.empty()) {
+        std::string testLine = currentLine;
+        if (!testLine.empty()) testLine += " ";
+        testLine += currentWord;
+        tempText.setString(testLine);
+        
+        if (tempText.getLocalBounds().width > maxWidth && !currentLine.empty()) {
+            // Dong hien tai da day
+            if (!result.empty()) result += "\n";
+            result += currentLine;
+            currentLine = currentWord;
+        } else {
+            // Them vao dong hien tai
+            if (!currentLine.empty()) currentLine += " ";
+            currentLine += currentWord;
+        }
+    }
+    
+    // Them dong cuoi cung
+    if (!currentLine.empty()) {
+        if (!result.empty()) result += "\n";
+        result += currentLine;
+    }
+    
+    return result.empty() ? text : result;
+}

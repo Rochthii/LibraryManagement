@@ -226,30 +226,20 @@ bool GhiDanhMucSach(const char *path, PTRDS dsDauSach[], int soLuongDauSach, boo
     for (int i = 0; i < soLuongDauSach; ++i) {                                  // duyet tung dau sach
         if (dsDauSach[i]) {
             PTRDMS dms = dsDauSach[i]->dms;                                     // lay dslk ban sao
-            int demVong = 0;                                                    // phong vong lap vo han
 
-            while (dms && demVong < SO_VONG_LAP_DMS_MAX) {                       // duyet tung ban sao
+            while (dms) {                                                       // duyet DSLK don
                 outf << dms->maSach << "|"                                      // ma sach
                      << dms->trangThai << "|"                                   // trang thai (0/1/2)
                      << dms->viTri << "\n";                                     // vi tri ke
                 ++thanhCong;
-                dms = dms->next;                                                // sang ban sao tiep
-                ++demVong;
-            }
-
-            if (demVong >= SO_VONG_LAP_DMS_MAX) {                               // phat hien vong lap
-                if (!silent)
-                    thongBao(out, "Loi: Phat hien vong lap vo han trong DMS cua ISBN: " + dsDauSach[i]->ISBN, LOI);
-                outf.close();
-                return false;
+                dms = dms->next;                                                // node tiep theo
             }
         }
     }
     outf.close();                                                               // dong file
 
-    int tongBanSao = DemTongSoBanSao(dsDauSach, soLuongDauSach);                // dem lai chinh xac
     if (!silent)
-        InTongKet("Ghi danh muc sach", thanhCong, tongBanSao, tongBanSao - thanhCong, out);
+        InTongKet("Ghi danh muc sach", thanhCong, thanhCong, 0, out);
     return true;
 }
 

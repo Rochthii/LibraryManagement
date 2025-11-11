@@ -1,6 +1,7 @@
 ﻿#include "NgayThang.h"
 #include "ThongBao.h"
 #include "Constants.h"
+#include "XuLyChuoi.h" 
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -65,19 +66,17 @@ int tinhSoNgayQuaHan(const std::string &ngayMuon, std::ostream &out){
 bool phanTichNgay(const std::string &ngay, int &d, int &m, int &y){
     if (ngay.length() != 10 || ngay[2] != '/' || ngay[5] != '/') // kiem tra do dai va dinh dang co ban (co dau '/')
         return false;
-    try{
-        // su dung std::stoi de chuyen doi chuoi con sang so nguyen
-        d = std::stoi(ngay.substr(0, 2));
-        m = std::stoi(ngay.substr(3, 2));
-        y = std::stoi(ngay.substr(6, 4));
-        // kiem tra gia tri ngay thang nam co hop le khong
-        if (d < 1 || d > 31 || m < 1 || m > 12 || y < NAM_XUAT_BAN_MIN)
-            return false;
-        // chua kiem tra ngay cuoi thang (vd: 31/02), mktime se xu ly sau
-        return true;
-    }
-    catch (...){
-        // bat loi neu std::stoi khong chuyen doi duoc (vd: "aa/bb/cccc")
+    std::string dayStr = ngay.substr(0, 2);
+    std::string monthStr = ngay.substr(3, 2);
+    std::string yearStr = ngay.substr(6, 4);
+    if (!chuyenChuoiThanhSoNguyen(dayStr, d, true) ||
+        !chuyenChuoiThanhSoNguyen(monthStr, m, true) ||
+        !chuyenChuoiThanhSoNguyen(yearStr, y, false)) {
         return false;
     }
+    // kiem tra gia tri ngay thang nam co hop le khong
+    if (d < 1 || d > 31 || m < 1 || m > 12 || y < NAM_XUAT_BAN_MIN)
+        return false;
+    // chua kiem tra ngay cuoi thang (vd: 31/02), mktime se xu ly sau
+    return true;
 }

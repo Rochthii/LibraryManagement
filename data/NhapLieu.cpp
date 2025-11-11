@@ -30,7 +30,6 @@ std::string NhapTen(const char* nhan, size_t minLength, size_t maxLength, std::i
         }
         std::string ketQua;
         
-        // *** SUA CACH GOI HAM ***
         std::string loiTen = ChuanHoaTenUnicode(gocCat, minLength, maxLength, ketQua);
         if (!loiTen.empty()) { // Kiem tra chuoi loi
             thongBao(out, loiTen, LOI); // In loi tra ve

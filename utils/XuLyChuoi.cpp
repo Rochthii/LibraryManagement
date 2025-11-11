@@ -51,17 +51,6 @@ std::string layChiCacKyTuSo(const std::string& s){
     return ketQua;
 }
 
-/* // Ham nay khong duoc su dung, co the xoa hoac de lai (gay warning)
-static bool hopLeTheoDoDai(const std::string& s, size_t minL, size_t maxL, std::ostream& out, bool themTienToSauLoc){
-    int cmp = soSanhDoDaiChuoi(s, minL, maxL);
-    if(cmp == 0) return true;
-    const char* tienTo = themTienToSauLoc ? "Sau loc " : "";
-    if(cmp < 0) thongBao(out, std::string(tienTo) + "qua ngan (>= " + std::to_string(minL) + ")!", LOI);
-    else        thongBao(out, std::string(tienTo) + "qua dai (<= " + std::to_string(maxL) + ")!", LOI);
-    return false;
-}
-*/
-
 bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiChoPhepSoDuong){
     if(chuoi.empty()) return false;
     long long dau = 1;
@@ -109,7 +98,7 @@ std::string ChuanHoaKhoangTrang(const std::string& s){
     return loaiBoKhoangTrangDauCuoi(out);
 }
 
-std::string ChuyenThanhTitleCase(const std::string& s) {
+std::string ChuyenThanhTitleCase(const std::string& s) {    // in hoa chu cai dau
     std::string out = ChuyenInThuong(s);
     bool laDauTu = true;
     for (size_t i = 0; i < out.length(); ++i) {
@@ -138,12 +127,12 @@ std::string ChuanHoaPhai(const std::string& raw){
 std::string ChuanHoaISBNCore(const std::string& chuoiGoc, std::string& ketQua, bool tuDong, bool nhapThuCong, bool laDocFile) {
     std::string chuoi = CatKhoangTrang(chuoiGoc);
     if (chuoi.empty()) {
-        return "Loi: ISBN khong duoc rong!";
+        return "Loi: ISBN khong duoc de trong!\nVui long nhap ISBN (10 hoac 13 chu so).";
     }
     if (tuDong || nhapThuCong || laDocFile) {
         std::string so = layChiCacKyTuSo(chuoi);
         if (so.length() != 10 && so.length() != 13) {
-            return "Loi: ISBN phai co 10 hoac 13 chu so!";
+            return "Loi: ISBN phai co 10 hoac 13 chu so!\nHien tai co " + std::to_string(so.length()) + " chu so.\nVi du: 9780123456789 (13 so) hoac 0123456789 (10 so).";
         }
         ketQua = so;
         return ""; // Thanh cong
@@ -157,10 +146,12 @@ std::string ChuanHoaISBNFile(const std::string& chuoiGoc, std::string& ketQua){
 
 std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::string& ketQua) {
     // kiem tra rong
-    if(dauVao.empty()){ return "Loi: Khong duoc de trong!"; }
+    if(dauVao.empty()){ 
+        return "Loi: Khong duoc de trong!\nVui long nhap thong tin hop le."; 
+    }
     std::string chuoiDaCat = CatKhoangTrang(dauVao);
     if(chuoiDaCat.empty() || laChuoiRongHoacChiKhoangTrang(chuoiDaCat)){
-        return "Loi: Chi chua khoang trang!";
+        return "Loi: Chi chua khoang trang!\nVui long nhap ky tu hop le, khong chi co khoang trang.";
     }
 
     //kiem tra ky tu dau
@@ -199,8 +190,35 @@ std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size
 
 
 std::string BoDauVaThuong(const std::string& s){
-    std::string lower = ChuyenInThuong(s);
-    return ChuanHoaKhoangTrang(lower);
+    std::string ketQua; 
+    ketQua.reserve(s.size());
+    
+    bool prevSpace = false;
+    bool daBatDau = false;  // Cho phep cat khoang trang dau
+    
+    for(size_t i = 0; i < s.length(); ++i) {
+        char c = s[i];
+        char lower = std::tolower(static_cast<unsigned char>(c));  // chuyen thuong
+        char x = laKyTuKhoangTrang(lower) ? ' ' : lower;
+        
+        if(x == ' '){
+            if(!prevSpace && daBatDau){  // Chi them space neu da co ky tu truoc do
+                ketQua.push_back(' '); 
+                prevSpace = true; 
+            }
+        } else {
+            ketQua.push_back(x); 
+            prevSpace = false;
+            daBatDau = true;
+        }
+    }
+    
+    // Cat khoang trang cuoi (neu co)
+    while(!ketQua.empty() && ketQua.back() == ' ') {
+        ketQua.pop_back();
+    }
+    
+    return ketQua;
 }
 
 ThongTinSachChuanHoa ChuanHoaDuLieuSach(const std::string& tenSach, const std::string& tacGia,
@@ -220,11 +238,11 @@ int LaySoHauToMaSach(PTRDMS node) {
         return -1;
     size_t lastDash = node->maSach.find_last_of('-');
     if (lastDash != std::string::npos && lastDash < node->maSach.length() - 1) {
-        try {
-            // Cat chuoi sau dau '-' va chuyen sang so
-            return std::stoi(node->maSach.substr(lastDash + 1));
-        }
-        catch (...) {
+        std::string soStr = node->maSach.substr(lastDash + 1);
+        int ketQua = -1;
+        if (chuyenChuoiThanhSoNguyen(soStr, ketQua, true)) {
+            return ketQua;
+        } else {
             // Neu khong phai so thi bo qua, tra ve -1
             return -1;
         }

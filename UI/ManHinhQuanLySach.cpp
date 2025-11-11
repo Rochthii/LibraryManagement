@@ -12,7 +12,7 @@
 #include <sstream>
 
 
-// Bien trang thai duy nhat cho toan bo man hinh, giup quan ly tap trung
+// Bien trang thai duy nhat cho toan bo man hinh
 static SachState state;
 
 // khai bao ham noi bo (static)
@@ -34,6 +34,11 @@ static void ThucHienThemBanSao(SachState& currentState);
 static void XoaFormNhapLieuSFML(SachState& currentState);
 static void DienFormVoiSachDuocChon(SachState& currentState);
 static void CapNhatPhanTrangSFML(SachState& currentState);
+
+//Ham tien ich cat chuoi + "..." de tai su dung
+static inline std::string CatChuoiVoiDauCham(const std::string& str, size_t maxLen) {
+    return (str.length() > maxLen) ? str.substr(0, maxLen - 3) + "..." : str;
+}
 
 static void KhoiTaoStack(UndoStack *s) {
     s->top = -1;
@@ -142,10 +147,10 @@ static void VeBangSach(sf::RenderWindow &window, const sf::Font &font, const Sac
         }
         dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
 
-        // Cat chuoi neu qua dai
-        std::string tenSachSub = d->tenSach.length() > 25 ? d->tenSach.substr(0, 22) + "..." : d->tenSach;
-        std::string tacGiaSub = d->tacGia.length() > 15 ? d->tacGia.substr(0, 12) + "..." : d->tacGia;
-        std::string theLoaiSub = d->theLoai.length() > 8 ? d->theLoai.substr(0, 5) + "..." : d->theLoai;
+        // TOI UU #7: Dung ham tien ich de cat chuoi
+        std::string tenSachSub = CatChuoiVoiDauCham(d->tenSach, 25);
+        std::string tacGiaSub = CatChuoiVoiDauCham(d->tacGia, 15);
+        std::string theLoaiSub = CatChuoiVoiDauCham(d->theLoai, 8);
 
         float textY = currentY + (rowHeight - dataText.getCharacterSize()) / 2.f;
 
@@ -292,16 +297,75 @@ static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, 
         TaoNut(font, NUT_HUY_XOA, FORM_X + PADDING + nutRong + PADDING, buttonY, nutRong, NUT_CAO, "HUY", MAU_NEN_NUT, MAU_CHU_NUT);
     }
     else {
-        // Ve thong bao binh thuong
+        // Ve thong bao binh thuong (co word wrap)
+        if (noiDungThongBao.empty()) {
+            return; // Khong ve gi neu khong co noi dung
+        }
+
         sf::Color mauChuThongBao = MAU_CHU;
         if (loaiThongBao == 1)
             mauChuThongBao = MAU_LOI;
         else if (loaiThongBao == 2)
             mauChuThongBao = MAU_THANH_CONG;
-        sf::Text txtMsg = TaoVanBan(font, noiDungThongBao, FONT_SIZE_BINH_THUONG, mauChuThongBao);
 
-        // Can giua thong bao
-        txtMsg.setPosition(FORM_X + PADDING, KHUNG_THONG_BAO_Y + (KHUNG_THONG_BAO_CAO - txtMsg.getCharacterSize()) / 2.f - 10.f);
+        // Tinh chieu rong toi da cho text (tru padding)
+        float maxTextWidth = FORM_RONG - 2 * PADDING - 10.f; // Tru them 10px de an toan
+        
+        // Xu ly word wrap cho text
+        std::string wrappedText = WordWrapText(font, noiDungThongBao, FONT_SIZE_BINH_THUONG, maxTextWidth);
+        
+        // Ve text (SFML tu dong xu ly '\n' de xuong dong)
+        sf::Text txtMsg = TaoVanBan(font, wrappedText, FONT_SIZE_BINH_THUONG, mauChuThongBao);
+        
+        // Tinh vi tri Y de can giua theo chieu doc
+        // Lay chieu cao thuc te cua text (bao gom nhieu dong)
+        float textHeight = txtMsg.getLocalBounds().height;
+        float startY = KHUNG_THONG_BAO_Y + 35.f; // Bat dau tu duoi tieu de
+        float availableHeight = KHUNG_THONG_BAO_CAO - 35.f - PADDING; // Chieu cao co the dung
+        
+        // Gioi han so dong toi da (tranh tran ra ngoai)
+        float maxLines = 4.f; // Toi da 4 dong
+        float lineHeight = static_cast<float>(FONT_SIZE_BINH_THUONG) * 1.3f; // Chieu cao 1 dong (co khoang cach)
+        float maxTextHeight = maxLines * lineHeight;
+        
+        // Neu text qua cao, cat bot (chi lay phan dau)
+        if (textHeight > maxTextHeight) {
+            // Dem so dong hien tai
+            int soDong = 1;
+            for (size_t i = 0; i < wrappedText.length(); ++i) {
+                if (wrappedText[i] == '\n') soDong++;
+            }
+            
+            // Neu nhieu hon maxLines, cat bot
+            if (soDong > static_cast<int>(maxLines)) {
+                int dongDaCat = 0;
+                std::string textDaCat = "";
+                for (size_t i = 0; i < wrappedText.length(); ++i) {
+                    if (wrappedText[i] == '\n') {
+                        dongDaCat++;
+                        if (dongDaCat >= static_cast<int>(maxLines)) {
+                            textDaCat += "..."; // Them "..." de bao hieu bi cat
+                            break;
+                        }
+                    }
+                    textDaCat += wrappedText[i];
+                }
+                wrappedText = textDaCat;
+                txtMsg.setString(wrappedText);
+                textHeight = txtMsg.getLocalBounds().height;
+            }
+        }
+        
+        // Can giua text trong khung thong bao (neu text nho hon khung)
+        float textY = startY;
+        if (textHeight < availableHeight) {
+            textY = startY + (availableHeight - textHeight) / 2.f;
+        } else {
+            // Neu text cao hon khung, dat o vi tri dau
+            textY = startY;
+        }
+        
+        txtMsg.setPosition(FORM_X + PADDING, textY);
         window.draw(txtMsg);
     }
 }
@@ -315,9 +379,13 @@ static void ThucHienThemBanSao(SachState& currentState) {
     int soLuongThem = 0;
     // Kiem tra chuoi so luong nhap vao
     if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(currentState.soLuongBanSaoCanThemStr), soLuongThem, true) || soLuongThem <= 0) {
-        std::string thongBao = "Loi: So luong '";
-        thongBao += currentState.soLuongBanSaoCanThemStr.empty() ? "(trong)" : CatKhoangTrang(currentState.soLuongBanSaoCanThemStr);
-        thongBao += "' khong hop le! Nhap so nguyen duong (vi du: 1, 5, 10).";
+        std::string thongBao = "Loi: So luong ban sao khong hop le!\n";
+        if (currentState.soLuongBanSaoCanThemStr.empty()) {
+            thongBao += "Vui long nhap so luong ban sao can them.\n";
+        } else {
+            thongBao += "Gia tri nhap vao: '" + CatKhoangTrang(currentState.soLuongBanSaoCanThemStr) + "'\n";
+        }
+        thongBao += "So luong phai la so nguyen duong tu 1 den " + std::to_string(MAX_BAN_SAO) + ".\nVi du: 1, 5, 10.";
         CapNhatThongBaoSFML(thongBao, 1);
         inputHoatDong = INPUT_SO_LUONG_THEM; // Focus lai vao o input
         return;
@@ -350,77 +418,42 @@ static void ThucHienThemBanSao(SachState& currentState) {
         thongBaoViTri = " (vi tri: 'Ke Chinh' - mac dinh)";
     }
 
-    // Tim so thu tu bat dau (tim so lon nhat hien co + 1)
-    int soThuTu = 1;
-    PTRDMS pTemp = dauSach->dms;
-    int demVongLap = 0; // Bien bao ve tranh vong lap vo han
-    const int MAX_VONG_LAP = 1000; // Gioi han toi da
-    
-    while (pTemp && demVongLap < MAX_VONG_LAP) {
-        // Tach so thu tu tu ma sach (vi du: "ISBN123-5" -> lay "5")
-        std::string maSachHienTai = pTemp->maSach;
-        size_t viTriGachNgang = maSachHienTai.rfind('-');
-        if (viTriGachNgang != std::string::npos) {
-            std::string phanSo = maSachHienTai.substr(viTriGachNgang + 1);
-            int soHienTai = 0;
-            if (chuyenChuoiThanhSoNguyen(phanSo, soHienTai, true)) {
-                if (soHienTai >= soThuTu) {
-                    soThuTu = soHienTai + 1; // Cap nhat so thu tu
-                }
+    // Tan dung so thu tu tang dan - chi kiem tra node dau tien
+    // Vi themDanhMucSach() luon chen vao DAU DSLK, node dau = node moi nhat = so lon nhat
+    int soThuTu = 1; // Mac dinh neu chua co ban sao nao
+    if (dauSach->dms) { // Neu co ban sao
+        int soLonNhat = LaySoHauToMaSach(dauSach->dms); // Lay so tu node dau
+        if (soLonNhat > 0) { // Neu hop le
+            soThuTu = soLonNhat + 1; // So tiep theo = so lon nhat + 1
+        } else { // Neu khong lay duoc (loi format), duyet het de tim (fallback)
+            PTRDMS pTemp = dauSach->dms;
+            int dem = 0;
+            while (pTemp && dem < MAX_BAN_SAO) { // Bao ve vong lap
+                int soHienTai = LaySoHauToMaSach(pTemp);
+                if (soHienTai >= soThuTu) soThuTu = soHienTai + 1;
+                pTemp = pTemp->next;
+                dem++;
             }
         }
-        pTemp = pTemp->next;
-        demVongLap++; // Tang bien dem
-    }
-    
-    // Canh bao neu vuot qua gioi han (loi lien ket vong)
-    if (demVongLap >= MAX_VONG_LAP) {
-        CapNhatThongBaoSFML("Loi: Danh sach lien ket bi loi!", 1);
-        currentState.hienThiModalThemBS = false;
-        return;
     }
 
-    // Vong lap them ban sao
+    //vong lap them ban sao - Bo kiem tra trung vi da tinh so dung
     int themThanhCong = 0;
     std::string loiTrongLoop = "";
-    int soLanThuLai = 0; // Dem so lan thu lai khi trung ma
-    const int MAX_THU_LAI = 100; // Gioi han so lan thu lai
     
     for (int i = 0; i < soLuongThem; ++i) {
-        // Tao ma sach moi (khong can goi sinhMaSach vi ta da tim so thu tu hop le)
+        // Tao ma sach moi (soThuTu da dam bao khong trung)
         std::string maSach = currentState.isbnSachDuocChon + "-" + std::to_string(soThuTu);
         
-        // Kiem tra trung lap (phong ngua)
-        extern PTRDS dsDauSach[];
-        extern int soLuongDauSach;
-        std::stringstream dummyStream;
-        if (timDanhMucTheoMaSach(maSach, dsDauSach, soLuongDauSach, dummyStream, true)) {
-            // Neu trung, tang soThuTu va thu lai
-            soThuTu++;
-            i--; // Giam i de thu lai lan nay
-            soLanThuLai++;
-            
-            // Phong tranh vong lap vo han
-            if (soLanThuLai >= MAX_THU_LAI) {
-                loiTrongLoop = "Vuot qua gioi han thu lai (ma bi trung lien tuc)!";
-                break;
-            }
-            continue;
-        }
-        
-        soLanThuLai = 0; // Reset dem khi tim duoc ma hop le
-
-        // Goi backend them ban sao vao DSLK (dung viTriDeThem)
+        // Goi backend them ban sao vao DSLK (chen vao dau)
         std::string loiThemDMS = themDanhMucSach(dauSach->dms, maSach, CHO_MUON_DUOC, viTriDeThem);
-        // Kiem tra loi tu themDanhMucSach
-        if (!loiThemDMS.empty()) {
+        if (!loiThemDMS.empty()) { // Kiem tra loi
             loiTrongLoop = loiThemDMS;
-            break; // Thoat vong lap for neu them loi
+            break; // Thoat neu loi
         }
 
-        // Neu khong co loi
         themThanhCong++;
-        soThuTu++; // Tang so thu tu cho ban sao tiep theo
+        soThuTu++; // Tang so cho ban sao tiep theo
     }
 
     // Cap nhat tong so ban sao tu backend (thay vi cong thu cong)
@@ -690,7 +723,8 @@ void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font) {
     // ve nut quay ve menu
     TaoNut(font, NUT_BACK, CHIEU_RONG - PADDING - 100.f, PADDING / 4.f, 100.f, NUT_CAO * 0.8f, "< MENU", MAU_NUT_BACK, MAU_CHU_NUT);
     // ve o tim kiem va cac nut lien quan
-    TaoInput(font, INPUT_TIM_SACH, BANG_X, BANG_Y, 500.f, INPUT_CAO, "Tim Kiem:", state.chuoiTimKiem);
+    std::string goiYTimKiem = "Nhap ten sach, tac gia, ISBN hoac the loai de tim kiem...";
+    TaoInput(font, INPUT_TIM_SACH, BANG_X, BANG_Y, 500.f, INPUT_CAO, "Tim Kiem:", state.chuoiTimKiem, goiYTimKiem);
     TaoNut(font, NUT_TIM, BANG_X + 110.f + 500.f + 10.f, BANG_Y, 100.f, NUT_CAO, "TIM", MAU_NHAN, MAU_CHU_NUT);
     TaoNut(font, NUT_XOA_TIM, BANG_X + 110.f + 500.f + 10.f + 100.f + 10.f, BANG_Y, 100.f, NUT_CAO, "XOA TIM", MAU_NEN_NUT, MAU_CHU_NUT);
 
@@ -799,11 +833,8 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
     }
 
     // Ve khung modal va nut Dong
-    // Cat ngan ten sach cho tieu de modal (tranh tran ra ngoai)
-    std::string tieuDeModal = dauSach->tenSach;
-    if (tieuDeModal.length() > 45) {
-        tieuDeModal = tieuDeModal.substr(0, 42) + "...";
-    }
+    // cat ngan ten sach cho tieu de modal
+    std::string tieuDeModal = CatChuoiVoiDauCham(dauSach->tenSach, 45);
     VeKhung(window, modalX, modalY, modalRong, modalCao, "CHI TIET BAN SAO: " + tieuDeModal, font);
     
     // Them ghi chu huong dan cho user (de hieu workflow)
@@ -811,16 +842,9 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
     hintText.setPosition(modalX + paddingNoiBo, modalY + 35.f);
     window.draw(hintText);
     
-    // Hien thi so luong ban sao (co bao ve vong lap)
-    int tongBanSao = 0;
-    PTRDMS pCount = dauSach->dms;
-    int demBaoVe = 0;
-    const int MAX_DEM = 1000;
-    while (pCount && demBaoVe < MAX_DEM) { 
-        tongBanSao++; 
-        pCount = pCount->next; 
-        demBaoVe++;
-    }
+    // Tan dung field tongBanSao thay vi duyet DSLK
+    int tongBanSao = dauSach->tongBanSao;
+    
     sf::Text infoText = TaoVanBan(font, "Tong: " + std::to_string(tongBanSao) + " ban sao", FONT_SIZE_NHO, MAU_NHAN);
     infoText.setPosition(modalX + modalRong - 200.f, modalY + 35.f);
     window.draw(infoText);
@@ -1000,16 +1024,8 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
     // Ve cac nut dieu khien phia duoi modal (Dong + Phan trang)
     float bottomY = modalY + modalCao - 50.f;
     
-    // Tinh tong so trang modal (co bao ve vong lap)
-    int tongBanSaoModal = 0;
-    PTRDMS pCountModal = dauSach->dms;
-    int demBaoVeModal = 0;
-    const int MAX_DEM_MODAL = 1000;
-    while (pCountModal && demBaoVeModal < MAX_DEM_MODAL) { 
-        tongBanSaoModal++; 
-        pCountModal = pCountModal->next; 
-        demBaoVeModal++;
-    }
+    // TOI UU: Tan dung field tongBanSao thay vi duyet DSLK dem lai
+    int tongBanSaoModal = dauSach->tongBanSao;                         // O(1) - da co san
     int tongSoTrangModal = (tongBanSaoModal + SO_SACH_MOI_TRANG_MODAL - 1) / SO_SACH_MOI_TRANG_MODAL;
     if (tongSoTrangModal < 1) tongSoTrangModal = 1;
     
@@ -1057,29 +1073,14 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
     // chan tat ca su kien neu modal dang hien
     if (state.hienThiModalBanSao || state.hienThiModalThemBS) {
         if (state.hienThiModalThemBS) { // Xu ly rieng cho Modal Them Ban Sao
-            if (event.type == sf::Event::TextEntered || (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Backspace || event.key.code == sf::Keyboard::Tab))) {
-                // Xu ly input So Luong
+            if (event.type == sf::Event::TextEntered || 
+                (event.type == sf::Event::KeyPressed && 
+                 (event.key.code == sf::Keyboard::Backspace || 
+                  event.key.code == sf::Keyboard::Tab ||
+                  event.key.code == sf::Keyboard::Z))) { // Them Z de xu ly Ctrl+Z
+                // Xu ly input So Luong - goi XuLyTextInput de co Ctrl+Z
                 if (inputHoatDong == INPUT_SO_LUONG_THEM) {
-                    if (event.type == sf::Event::TextEntered) {
-                        if (event.text.unicode >= '0' && event.text.unicode <= '9' && state.soLuongBanSaoCanThemStr.length() < 3) {
-                            state.soLuongBanSaoCanThemStr += static_cast<char>(event.text.unicode);
-                            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
-                        }
-                        // Neu nhap ky tu khong hop le, bao loi
-                        else if ((event.text.unicode < '0' || event.text.unicode > '9') && event.text.unicode >= 32 && event.text.unicode < 128) {
-                            CapNhatThongBaoSFML("Loi: So luong chi duoc nhap so (0-9)!", 1);
-                        }
-                    }
-                    else if (event.key.code == sf::Keyboard::Backspace) {
-                        if (!state.soLuongBanSaoCanThemStr.empty()) {
-                            state.soLuongBanSaoCanThemStr.pop_back();
-                            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
-                        }
-                    }
-                    else if (event.key.code == sf::Keyboard::Return || event.key.code == sf::Keyboard::Enter) {
-                        // Enter = Xac nhan them ban sao
-                        ThucHienThemBanSao(state);
-                    }
+                    XuLyTextInput(event, state);
                 }
             }
             if (event.type == sf::Event::MouseButtonPressed) {
@@ -1198,8 +1199,13 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
     }
 
     // Code xu ly binh thuong (khi modal khong hien)
-    // Xu ly nhap lieu van ban (go phim, xoa...)
-    if (event.type == sf::Event::TextEntered || (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Backspace || event.key.code == sf::Keyboard::Enter || event.key.code == sf::Keyboard::Tab))) {
+    // Xu ly nhap lieu van ban (go phim, xoa, undo...)
+    if (event.type == sf::Event::TextEntered || 
+        (event.type == sf::Event::KeyPressed && 
+         (event.key.code == sf::Keyboard::Backspace || 
+          event.key.code == sf::Keyboard::Enter || 
+          event.key.code == sf::Keyboard::Tab ||
+          event.key.code == sf::Keyboard::Z))) { // Them Z de xu ly Ctrl+Z
         if (inputHoatDong != KHONG_XAC_DINH) {
             XuLyTextInput(event, state);
         }
@@ -1219,9 +1225,18 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                 elementNhan == INPUT_TAC_GIA ||
                 elementNhan == INPUT_NAM_XB ||
                 elementNhan == INPUT_THE_LOAI ||
-                elementNhan == INPUT_SO_LUONG) {
+                elementNhan == INPUT_SO_LUONG ||
+                elementNhan == INPUT_SO_LUONG_THEM) {
                 if (!(state.dangSua && elementNhan == INPUT_ISBN)) {
+                    // Neu chuyen sang input khac, reset stack undo
                     if (inputHoatDong != elementNhan) {
+                        // Luu trang thai cu vao stack truoc khi chuyen (neu co)
+                        if (inputHoatDong != KHONG_XAC_DINH && state.stackDaKhoiTao) {
+                            // Khong can lam gi, vi stack se duoc reset khi chuyen input
+                        }
+                        // Reset stack cho input moi
+                        KhoiTaoStack(&state.undoStack);
+                        state.stackDaKhoiTao = false; // Danh dau chua khoi tao stack cho input moi
                         inputHoatDong = elementNhan;
                         CapNhatThongBaoSFML("", 0);
                     }
@@ -1233,6 +1248,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
             if (!clickedInput && inputHoatDong != KHONG_XAC_DINH) {
                 inputHoatDong = KHONG_XAC_DINH;
                 KhoiTaoStack(&state.undoStack);
+                state.stackDaKhoiTao = false; // Reset flag
                 CapNhatThongBaoSFML("", 0);
             }
 
@@ -1358,11 +1374,8 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                             PTRDS sachCanXoa = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, state.isbnSachDuocChon);
 
                             if (sachCanXoa && sachCanXoa->dms != nullptr) { // kiem tra con ban sao
-                                // Cat ngan ten sach neu qua dai de tranh tran khung thong bao
-                                std::string tenNgan = sachCanXoa->tenSach;
-                                if (tenNgan.length() > 30) {
-                                    tenNgan = tenNgan.substr(0, 27) + "...";
-                                }
+                                // cat ngan ten sach neu qua dai
+                                std::string tenNgan = CatChuoiVoiDauCham(sachCanXoa->tenSach, 30);
                                 CapNhatThongBaoSFML("Khong the xoa '" + tenNgan + "' (con ban sao)!", 1);
                             }
                             else if (sachCanXoa) {
@@ -1420,11 +1433,8 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                             state.isbnSachDuocChon = state.isbnRowClicked;
                             state.dangSua = false;
                             state.xacNhanXoa = false;
-                            // Cat ngan ten sach neu qua dai
-                            std::string tenSachHienThi = state.ketQuaTimKiem[actualIndex].sach->tenSach;
-                            if (tenSachHienThi.length() > 35) {
-                                tenSachHienThi = tenSachHienThi.substr(0, 32) + "...";
-                            }
+                            // cat ngan ten sach
+                            std::string tenSachHienThi = CatChuoiVoiDauCham(state.ketQuaTimKiem[actualIndex].sach->tenSach, 35);
                             CapNhatThongBaoSFML("Da chon: " + tenSachHienThi, 0);
                             inputHoatDong = KHONG_XAC_DINH;
                             XoaFormNhapLieuSFML(state);
@@ -1498,17 +1508,32 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
         default: return; // Thoat neu khong phai input hop le
     }
 
-    // Xu ly Ctrl + Z (Undo)
-    if (event.type == sf::Event::KeyPressed && event.key.control && event.key.code == sf::Keyboard::Z) {
-        if (!KiemTraStackRong(&currentState.undoStack) && targetString != nullptr) { // Kiem tra stack khong rong
-            *targetString = PopStack(&currentState.undoStack); // Pop trang thai cu va gan lai
-            if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0); // Xoa thong bao loi (neu co)
-        }
-        return; // Da xu ly Undo, khong lam gi them
-    }
-
     bool changed = false; // Co de kiem tra xem noi dung co thay doi khong
     std::string currentInputContent = (targetString != nullptr) ? *targetString : ""; // Luu noi dung hien tai TRUOC KHI thay doi
+
+    // Xu ly Ctrl + Z (Undo) - XU LY TRUOC cac event khac
+    // Dung sf::Keyboard::isKeyPressed vi event.key.control khong on dinh tren Windows
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z && 
+        (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))) {
+        
+        if (!KiemTraStackRong(&currentState.undoStack) && targetString != nullptr) {
+            // Pop trang thai cu va gan lai
+            std::string previousState = PopStack(&currentState.undoStack);
+            *targetString = previousState;
+            changed = true; // Danh dau da thay doi de chay validation
+            
+            // Xoa thong bao loi (neu co)
+            if (loaiThongBao == 1) {
+                CapNhatThongBaoSFML("", 0);
+            }
+        } else {
+            // Stack rong, khong co gi de undo
+            if (targetString != nullptr) {
+                CapNhatThongBaoSFML("Khong co gi de undo!", 0);
+            }
+        }
+        return; // Return sau khi xu ly de tranh xu ly tiep
+    }
 
     // Xu ly Enter cho INPUT_SO_LUONG_THEM (xac nhan them ban sao)
     if (event.type == sf::Event::KeyPressed && inputHoatDong == INPUT_SO_LUONG_THEM) {
@@ -1518,8 +1543,8 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
         }
     }
 
-    // Xu ly go phim
-    if (event.type == sf::Event::TextEntered) {
+    // Xu ly go phim (CHI khi khong phai Ctrl+Z da duoc xu ly)
+    if (event.type == sf::Event::TextEntered && !(event.type == sf::Event::KeyPressed && event.key.control && event.key.code == sf::Keyboard::Z)) {
         // Chi lay ky tu ASCII, khong lay Backspace, Enter, Tab
         if (event.text.unicode < 128 && event.text.unicode != 8 && event.text.unicode != 13 && event.text.unicode != 9) {
             char enteredChar = static_cast<char>(event.text.unicode);
@@ -1554,58 +1579,204 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
                 
                 // Neu ky tu hop le
                 if (allowChar) {
-                    PushStack(&currentState.undoStack, currentInputContent); // Push trang thai cu vao stack TRUOC KHI them ky tu moi
-                    *targetString += enteredChar;        // Them ky tu vao chuoi
-                    changed = true;                      // Danh dau da thay doi
-                    if(loaiThongBao == 1) CapNhatThongBaoSFML("", 0); // Xoa loi neu co
+                    // Dam bao stack da duoc khoi tao
+                    if (!currentState.stackDaKhoiTao) {
+                        KhoiTaoStack(&currentState.undoStack);
+                        currentState.stackDaKhoiTao = true;
+                    }
+                    
+                    // Push trang thai cu vao stack TRUOC KHI them ky tu moi
+                    PushStack(&currentState.undoStack, currentInputContent);
+                    
+                    // Them ky tu vao chuoi
+                    *targetString += enteredChar;
+                    changed = true; // Danh dau da thay doi
+                    
+                    // Xoa loi neu co (validation se chay lai o phan duoi)
+                    if(loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
                 }
             } else if (event.text.unicode >= 32 && event.text.unicode < 128) { // Vuot qua gioi han
-                CapNhatThongBaoSFML("Loi: " + fieldName + " da dat gioi han " + std::to_string(maxLen) + " ky tu!", 1);
+                CapNhatThongBaoSFML("Loi: " + fieldName + " da dat gioi han " + std::to_string(maxLen) + " ky tu!\nHien tai: " + std::to_string(targetString->length()) + " ky tu. Vui long rut ngan.", 1);
             }
         }
-    } else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Backspace) { // Xu ly Backspace
-        if (!targetString->empty()) {            // Chi xoa neu chuoi khong rong
-            PushStack(&currentState.undoStack, currentInputContent); // Push trang thai CU vao stack TRUOC KHI xoa
-            targetString->pop_back();            // Xoa ky tu cuoi
-            changed = true;                      // Danh dau da thay doi
-            if(loaiThongBao == 1) CapNhatThongBaoSFML("", 0); // Xoa loi neu co
+    } else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Backspace && 
+               !sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && !sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) { // Xu ly Backspace (khong phai khi giu Ctrl)
+        if (!targetString->empty() && targetString != nullptr) {
+            // Dam bao stack da duoc khoi tao
+            if (!currentState.stackDaKhoiTao) {
+                KhoiTaoStack(&currentState.undoStack);
+                currentState.stackDaKhoiTao = true;
+            }
+            
+            // Push trang thai CU vao stack TRUOC KHI xoa
+            PushStack(&currentState.undoStack, currentInputContent);
+            
+            // Xoa ky tu cuoi
+            targetString->pop_back();
+            changed = true; // Danh dau da thay doi
+            
+            // Xoa loi neu co (validation se chay lai o phan duoi)
+            if(loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
         }
     }
 
     // Kiem tra loi ngay khi dang go (realtime validation)
-    // Khong can kiem tra realtime cho o tim kiem va o so luong them
-    if (changed && inputHoatDong != INPUT_TIM_SACH && inputHoatDong != INPUT_SO_LUONG_THEM) {
-         std::string loi = "";
+    // Validate cho TAT CA cac truong (ke ca khi xoa text)
+    if (changed) {
+        std::string loi = "";
         std::string tempStr = *targetString;
+        
         switch (inputHoatDong) {
-            case INPUT_ISBN:
-                loi = KiemTraChuoiRong(tempStr, fieldName);
-                if (loi.empty() && tempStr.length() > 0) {
-                    for(char c : tempStr) { if (!isdigit(c)) { loi = "ISBN chi duoc chua so!"; break; } }
-                }
+            case INPUT_TIM_SACH:
+                // Khong hien thi loi cho o tim kiem, chi validate format (neu can)
+                // Co the them validation sau neu can
                 break;
-            case INPUT_TEN_SACH: case INPUT_TAC_GIA: case INPUT_THE_LOAI:
-                loi = KiemTraChuoiVaDodai(tempStr, fieldName, maxLen);
-                if (loi.empty() && !tempStr.empty() && !isalpha(tempStr[0])) loi = "Ky tu dau phai la chu cai!";
-                break;
-            case INPUT_SO_TRANG: case INPUT_NAM_XB: case INPUT_SO_LUONG:
-                loi = KiemTraChuoiRong(tempStr, fieldName);
-                if (loi.empty() && !tempStr.empty()) {
-                    for(char c : tempStr) { if (!isdigit(c)) { loi = fieldName + " phai la so!"; break; } }
-                    if (loi.empty()) {
+            case INPUT_SO_LUONG_THEM:
+                // Validate so luong them ban sao
+                if (!tempStr.empty()) {
+                    bool isValidNumber = true;
+                    for(char c : tempStr) {
+                        if (!isdigit(c)) {
+                            isValidNumber = false;
+                            loi = "Loi: So luong phai la so nguyen!\nKy tu '" + std::string(1, c) + "' khong hop le.";
+                            break;
+                        }
+                    }
+                    if (isValidNumber && !tempStr.empty()) {
                         int value;
                         if (chuyenChuoiThanhSoNguyen(tempStr, value, true)) {
-                            if (inputHoatDong == INPUT_SO_TRANG && (value <= 0 || value > MAX_SO_TRANG)) loi = "So trang phai tu 1-" + std::to_string(MAX_SO_TRANG) + "!";
-                            else if (inputHoatDong == INPUT_NAM_XB && tempStr.length() == 4) loi = KiemTraNamXuatBan(value);
-                            else if (inputHoatDong == INPUT_SO_LUONG && (value <= 0 || value > MAX_BAN_SAO)) loi = "So luong phai tu 1-" + std::to_string(MAX_BAN_SAO) + "!";
-                        } else loi = fieldName + " khong hop le!";
+                            if (value <= 0) {
+                                loi = "Loi: So luong phai lon hon 0!\nVui long nhap so nguyen duong.\nVi du: 1, 5, 10.";
+                            } else if (value > MAX_BAN_SAO) {
+                                loi = "Loi: So luong '" + std::to_string(value) + "' vuot qua gioi han!\nSo luong toi da: " + std::to_string(MAX_BAN_SAO) + " ban sao.\nVi du: 1, 5, 10.";
+                            }
+                        }
+                    }
+                }
+                break;
+            case INPUT_ISBN:
+                // Realtime validation cho ISBN
+                // Luu y: Khi SUA thi ISBN la readonly, nen khong can validate realtime
+                // Nhung neu user van go duoc (bug) thi van validate de dam bao
+                if (!currentState.dangSua) {
+                    // CHI VALIDATE KHI THEM (dangSua = false)
+                    loi = KiemTraChuoiRong(tempStr, fieldName);
+                    if (loi.empty() && tempStr.length() > 0) {
+                        // Check chi chua so
+                        for(char c : tempStr) { 
+                            if (!isdigit(c)) { 
+                                loi = "Loi: ISBN chi duoc chua so (0-9)!\nKy tu '" + std::string(1, c) + "' khong hop le.\nVi du: 9780123456789 hoac 0123456789."; 
+                                break; 
+                            } 
+                        }
+                        // Check do dai (10 hoac 13 chu so)
+                        if (loi.empty()) {
+                            if (tempStr.length() != 10 && tempStr.length() != 13) {
+                                loi = "Loi: ISBN phai co 10 hoac 13 chu so!\nHien tai co " + std::to_string(tempStr.length()) + " chu so.\nVi du: 9780123456789 (13 so) hoac 0123456789 (10 so).";
+                            }
+                        }
+                    }
+                }
+                // Khi SUA (dangSua = true): Khong validate realtime vi ISBN readonly
+                break;
+            case INPUT_TEN_SACH:
+            case INPUT_TAC_GIA:
+            case INPUT_THE_LOAI:
+                // Validate chuoi text
+                loi = KiemTraChuoiVaDodai(tempStr, fieldName, maxLen);
+                if (loi.empty() && !tempStr.empty() && !isalpha(tempStr[0])) {
+                    loi = "Loi: " + fieldName + " phai bat dau bang chu cai!\nKy tu dau '" + std::string(1, tempStr[0]) + "' khong hop le.\nVi du: 'Tieu De' thay vi '123 Tieu De'.";
+                }
+                break;
+            case INPUT_SO_TRANG:
+                // Validate so trang
+                if (!tempStr.empty()) {
+                    bool isValidNumber = true;
+                    for(char c : tempStr) { 
+                        if (!isdigit(c)) { 
+                            isValidNumber = false;
+                            loi = "Loi: So trang phai la so nguyen!\nKy tu '" + std::string(1, c) + "' khong hop le.\nChi duoc nhap so (0-9)."; 
+                            break; 
+                        } 
+                    }
+                    if (isValidNumber && !tempStr.empty()) {
+                        int value;
+                        if (chuyenChuoiThanhSoNguyen(tempStr, value, true)) {
+                            if (value <= 0) {
+                                loi = "Loi: So trang phai lon hon 0!\nVui long nhap so nguyen duong.\nVi du: 250, 500, 1000.";
+                            } else if (value > MAX_SO_TRANG) {
+                                loi = "Loi: So trang '" + std::to_string(value) + "' vuot qua gioi han!\nSo trang toi da: " + std::to_string(MAX_SO_TRANG) + ".\nVi du: 250, 500, 1000.";
+                            }
+                        } else {
+                            loi = "Loi: So trang khong hop le!\nVui long nhap so nguyen dung dinh dang.";
+                        }
+                    }
+                }
+                break;
+            case INPUT_NAM_XB:
+                // Validate nam xuat ban
+                if (!tempStr.empty()) {
+                    bool isValidNumber = true;
+                    for(char c : tempStr) { 
+                        if (!isdigit(c)) { 
+                            isValidNumber = false;
+                            loi = "Loi: Nam xuat ban phai la so!\nKy tu '" + std::string(1, c) + "' khong hop le.\nChi duoc nhap so (0-9)."; 
+                            break; 
+                        } 
+                    }
+                    if (isValidNumber && !tempStr.empty()) {
+                        int value;
+                        if (chuyenChuoiThanhSoNguyen(tempStr, value, true)) {
+                            // Chi validate khi da du 4 chu so
+                            if (tempStr.length() == 4) {
+                                loi = KiemTraNamXuatBan(value);
+                            } else if (tempStr.length() > 4) {
+                                loi = "Loi: Nam xuat ban phai co 4 chu so!\nVui long nhap nam hop le.\nVi du: 2020, 2021, 2024.";
+                            }
+                            // Neu chua du 4 chu so thi khong bao loi (dang nhap)
+                        } else {
+                            loi = "Loi: Nam xuat ban khong hop le!\nVui long nhap so nguyen 4 chu so.\nVi du: 2020, 2021, 2024.";
+                        }
+                    }
+                }
+                break;
+            case INPUT_SO_LUONG:
+                // Validate so luong ban sao (khi them dau sach)
+                if (!tempStr.empty()) {
+                    bool isValidNumber = true;
+                    for(char c : tempStr) { 
+                        if (!isdigit(c)) { 
+                            isValidNumber = false;
+                            loi = "Loi: So luong phai la so nguyen!\nKy tu '" + std::string(1, c) + "' khong hop le.\nChi duoc nhap so (0-9)."; 
+                            break; 
+                        } 
+                    }
+                    if (isValidNumber && !tempStr.empty()) {
+                        int value;
+                        if (chuyenChuoiThanhSoNguyen(tempStr, value, true)) {
+                            if (value <= 0) {
+                                loi = "Loi: So luong phai lon hon 0!\nVui long nhap so nguyen duong.\nVi du: 1, 5, 10 ban sao.";
+                            } else if (value > MAX_BAN_SAO) {
+                                loi = "Loi: So luong '" + std::to_string(value) + "' vuot qua gioi han!\nSo luong toi da: " + std::to_string(MAX_BAN_SAO) + " ban sao.\nVi du: 1, 5, 10.";
+                            }
+                        } else {
+                            loi = "Loi: So luong khong hop le!\nVui long nhap so nguyen dung dinh dang.";
+                        }
                     }
                 }
                 break;
             default: break;
         }
-        if (!loi.empty()) CapNhatThongBaoSFML(loi, 1);
-        else if (loaiThongBao == 1) CapNhatThongBaoSFML("", 0);
+        
+        // Chi hien thi loi cho cac truong khac INPUT_TIM_SACH
+        if (inputHoatDong != INPUT_TIM_SACH) {
+            if (!loi.empty()) {
+                CapNhatThongBaoSFML(loi, 1);
+            } else if (loaiThongBao == 1) {
+                // Xoa loi neu khong con loi
+                CapNhatThongBaoSFML("", 0);
+            }
+        }
     }
 
     // Xu ly nhan Enter/Tab de nhay input (khong ap dung cho modal)
@@ -1614,35 +1785,70 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
         std::string tempStrCuoi = *targetString;
         tempStrCuoi = CatKhoangTrang(tempStrCuoi);
         switch (inputHoatDong) {
-             case INPUT_ISBN:
-                 loiCuoi = KiemTraChuoiRong(tempStrCuoi, fieldName);
-                 if (loiCuoi.empty()) {
-                     std::string isbnChuanTam;
-                     std::string loiChuan = ChuanHoaISBNFile(tempStrCuoi, isbnChuanTam);
-                     if (!loiChuan.empty()) loiCuoi = loiChuan;
-                 else if (!currentState.dangSua && !KiemTraTrungISBN(isbnChuanTam).empty()) loiCuoi = "ISBN nay da ton tai!";
-                 }
-                 break;
-             case INPUT_SO_TRANG: {
-                 int v;
-                 if (!chuyenChuoiThanhSoNguyen(tempStrCuoi, v, true) || v <= 0 || v > MAX_SO_TRANG ) loiCuoi = "So trang khong hop le (1-" + std::to_string(MAX_SO_TRANG) + ")!";
-                 break;
-             }
-             default: break;
+            case INPUT_ISBN:
+                loiCuoi = KiemTraChuoiRong(tempStrCuoi, fieldName);
+                if (loiCuoi.empty() && !tempStrCuoi.empty()) {
+                    std::string isbnChuanTam;
+                    std::string loiChuan = ChuanHoaISBNFile(tempStrCuoi, isbnChuanTam);
+                    if (!loiChuan.empty()) {
+                        loiCuoi = loiChuan;
+                    } else if (!currentState.dangSua) {
+                        std::string loiTrung = KiemTraTrungISBN(isbnChuanTam);
+                        if (!loiTrung.empty()) loiCuoi = loiTrung;
+                    }
+                }
+                break;
+            case INPUT_TEN_SACH:
+            case INPUT_TAC_GIA:
+            case INPUT_THE_LOAI:
+                loiCuoi = KiemTraChuoiVaDodai(tempStrCuoi, fieldName, maxLen);
+                if (loiCuoi.empty() && !tempStrCuoi.empty() && !isalpha(tempStrCuoi[0])) {
+                    loiCuoi = "Loi: " + fieldName + " phai bat dau bang chu cai!\nKy tu dau '" + std::string(1, tempStrCuoi[0]) + "' khong hop le.";
+                }
+                break;
+            case INPUT_SO_TRANG: {
+                int v;
+                if (!chuyenChuoiThanhSoNguyen(tempStrCuoi, v, true) || v <= 0 || v > MAX_SO_TRANG) {
+                    loiCuoi = "Loi: So trang '" + tempStrCuoi + "' khong hop le!\nSo trang phai tu 1 den " + std::to_string(MAX_SO_TRANG) + ".\nVi du: 250, 500, 1000.";
+                }
+                break;
+            }
+            case INPUT_NAM_XB: {
+                if (!tempStrCuoi.empty()) {
+                    int v;
+                    if (chuyenChuoiThanhSoNguyen(tempStrCuoi, v, true) && tempStrCuoi.length() == 4) {
+                        loiCuoi = KiemTraNamXuatBan(v);
+                    } else if (tempStrCuoi.length() > 0 && tempStrCuoi.length() != 4) {
+                        loiCuoi = "Loi: Nam xuat ban phai co 4 chu so!\nVui long nhap nam hop le.\nVi du: 2020, 2021, 2024.";
+                    }
+                }
+                break;
+            }
+            case INPUT_SO_LUONG: {
+                int v;
+                if (!chuyenChuoiThanhSoNguyen(tempStrCuoi, v, true) || v <= 0 || v > MAX_BAN_SAO) {
+                    loiCuoi = "Loi: So luong '" + tempStrCuoi + "' khong hop le!\nSo luong phai tu 1 den " + std::to_string(MAX_BAN_SAO) + " ban sao.\nVi du: 1, 5, 10.";
+                }
+                break;
+            }
+            default: break;
         }
 
         if (loiCuoi.empty()) {
-             KhoiTaoStack(&currentState.undoStack); // Reset Stack khi chuyen input
-             if (inputHoatDong >= INPUT_TIM_SACH && inputHoatDong < INPUT_SO_LUONG) {
-                 inputHoatDong = static_cast<MaUI>(inputHoatDong + 1);
-                 CapNhatThongBaoSFML("", 0);
-             } else if (inputHoatDong == INPUT_SO_LUONG) {
-                 inputHoatDong = KHONG_XAC_DINH;
-                 if (event.key.code == sf::Keyboard::Enter) ThucHienThemHoacSuaSachSFML(currentState);
-             } else {
-                  inputHoatDong = KHONG_XAC_DINH;
-             }
-        } else CapNhatThongBaoSFML(loiCuoi, 1);
+            KhoiTaoStack(&currentState.undoStack); // Reset Stack khi chuyen input
+            currentState.stackDaKhoiTao = false; // Reset flag
+            if (inputHoatDong >= INPUT_TIM_SACH && inputHoatDong < INPUT_SO_LUONG) {
+                inputHoatDong = static_cast<MaUI>(inputHoatDong + 1);
+                CapNhatThongBaoSFML("", 0);
+            } else if (inputHoatDong == INPUT_SO_LUONG) {
+                inputHoatDong = KHONG_XAC_DINH;
+                if (event.key.code == sf::Keyboard::Enter) ThucHienThemHoacSuaSachSFML(currentState);
+            } else {
+                inputHoatDong = KHONG_XAC_DINH;
+            }
+        } else {
+            CapNhatThongBaoSFML(loiCuoi, 1);
+        }
     }
 }
 
@@ -1771,7 +1977,11 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         return;
     }
     if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(currentState.chuoiSoTrang), soTrang, true) || soTrang <= 0 || soTrang > MAX_SO_TRANG) {
-        CapNhatThongBaoSFML("Loi: So trang (1-" + std::to_string(MAX_SO_TRANG) + ")!", 1);
+        std::string loiSoTrang = "Loi: So trang khong hop le!\nSo trang phai la so nguyen tu 1 den " + std::to_string(MAX_SO_TRANG) + ".\nVi du: 250, 500, 1000.";
+        if (!currentState.chuoiSoTrang.empty()) {
+            loiSoTrang += "\nGia tri nhap vao: '" + currentState.chuoiSoTrang + "'";
+        }
+        CapNhatThongBaoSFML(loiSoTrang, 1);
         inputHoatDong = INPUT_SO_TRANG;
         return;
     }
@@ -1782,7 +1992,8 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         return;
     }
     if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(currentState.chuoiNamXB), namXB, true)) {
-        CapNhatThongBaoSFML("Loi: Nam xuat ban phai la so!", 1);
+        std::string loiNam = "Loi: Nam xuat ban phai la so nguyen 4 chu so!\nVi du: 2020, 2021, 2024.\nGia tri nhap vao: '" + currentState.chuoiNamXB + "'";
+        CapNhatThongBaoSFML(loiNam, 1);
         inputHoatDong = INPUT_NAM_XB;
         return;
     }
@@ -1823,7 +2034,11 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         }
 
         if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(currentState.chuoiSoLuong), soLuong, true) || soLuong <= 0 || soLuong > MAX_BAN_SAO) {
-            CapNhatThongBaoSFML("Loi: So luong (1-" + std::to_string(MAX_BAN_SAO) + ")?", 1);
+            std::string loiSoLuong = "Loi: So luong ban sao khong hop le!\nSo luong phai la so nguyen tu 1 den " + std::to_string(MAX_BAN_SAO) + ".\nVi du: 1, 5, 10 ban sao.";
+            if (!currentState.chuoiSoLuong.empty()) {
+                loiSoLuong += "\nGia tri nhap vao: '" + currentState.chuoiSoLuong + "'";
+            }
+            CapNhatThongBaoSFML(loiSoLuong, 1);
             inputHoatDong = INPUT_SO_LUONG;
             return;
         }
@@ -1885,11 +2100,8 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
                 CapNhatThongBaoSFML(thongBao, 1); // Loai 1 = Mau do
             }
             else {
-                // Bao thanh cong len UI - Cat ngan ten sach neu qua dai
-                std::string tenHienThi = ChuyenThanhTitleCase(currentState.chuoiTenSach);
-                if (tenHienThi.length() > 30) {
-                    tenHienThi = tenHienThi.substr(0, 27) + "...";
-                }
+                // Bao thanh cong len UI - cat ngan ten sach
+                std::string tenHienThi = CatChuoiVoiDauCham(ChuyenThanhTitleCase(currentState.chuoiTenSach), 30);
                 CapNhatThongBaoSFML("Them thanh cong: " + tenHienThi, 2);
                 currentState.vuaThucHienThanhCong = true;                                // Dat co de khong bi de thong bao
             }
@@ -1909,11 +2121,8 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
 
         // Bao ket qua len UI
         if (loi.empty()) {
-            // Cat ngan ten sach neu qua dai
-            std::string tenHienThi = ChuyenThanhTitleCase(currentState.chuoiTenSach);
-            if (tenHienThi.length() > 30) {
-                tenHienThi = tenHienThi.substr(0, 27) + "...";
-            }
+            // cat ngan ten sach
+            std::string tenHienThi = CatChuoiVoiDauCham(ChuyenThanhTitleCase(currentState.chuoiTenSach), 30);
             CapNhatThongBaoSFML("Cap nhat thanh cong: " + tenHienThi, 2);
             currentState.vuaThucHienThanhCong = true; // Dat co
             // Reset form, tai lai bang, bo chon sach

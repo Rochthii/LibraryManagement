@@ -79,47 +79,43 @@ bool ChenNodeDMSVaoDauSach(PTRDS d, const std::string &ma, int tt, const std::st
     return true;
 }
 
-// cap nhat trang thai cho ban sao
+// cap nhat trang thai cho ban sao 
 bool capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt) {
-    int dem = 0;
-    
-    while (dms && dem < SO_VONG_LAP_DMS_MAX) {                 // duyet danh sach
-        if (dms->maSach == ma) {                                // tim thay ma sach
-            dms->trangThai = tt;                                // cap nhat trang thai
+    while (dms) {                                              // duyet DSLK don
+        if (dms->maSach == ma) {                               // tim thay - early return
+            dms->trangThai = tt;                               // cap nhat trang thai
             return true;
         }
-        dms = dms->next;                                        // chuyen node tiep
-        ++dem;
+        dms = dms->next;                                       // node tiep theo
     }
-    
-    if (dem >= SO_VONG_LAP_DMS_MAX) {                          // canh bao vo han
-        thongBao(std::cout, "Vong lap vo han trong DMS!", LOI);
-    }
-    return false;                                               // khong tim thay
+    return false;                                              // khong tim thay
 }
 
-// tim node ban sao theo ma sach
+// tim node ban sao theo ma sach 
 PTRDMS timDanhMucTheoMaSach(const std::string &ma, PTRDS ds[], int n, std::ostream &out, bool silent) {
-    for (int i = 0; i < n; ++i) {                              // duyet qua tung dau sach
-        if (!ds[i]) continue;                                   // bo qua null
-        
-        PTRDMS p = ds[i]->dms;
-        int dem = 0;
-        
-        while (p && dem < SO_VONG_LAP_DMS_MAX) {               // duyet danh muc sach
-            if (p->maSach == ma) return p;                      // tim thay
-            p = p->next;                                        // chuyen node tiep
-            ++dem;
-        }
-        
-        if (dem >= SO_VONG_LAP_DMS_MAX) {                      // canh bao vo han
-            thongBao(out, "Vong lap vo han trong DMS!", LOI);
-        }
+    //trich ISBN -> Tim dau sach O(N) -> Tim trong 1 DSLK O(M)
+    std::string isbn = TachISBNTuMaSach(ma);                   // lay ISBN tu ma sach
+    if (isbn.empty()) {                                         // ma sach khong hop le
+        if (!silent) thongBao(out, "Ma sach khong hop le: " + ma, LOI);
+        return nullptr;
     }
     
-    if (!silent) {                                             // khong tim thay
-        std::string isbn = TachISBNTuMaSach(ma);
-        thongBao(out, "Khong tim thay ma sach: " + ma + " (ISBN=" + isbn + ")", LOI);
+    // Tim dau sach theo ISBN (chi can tim 1 dau sach, khong can duyet tat ca)
+    PTRDS dauSach = TimDauSachTheoISBN(ds, n, isbn);
+    if (!dauSach) {                                             // khong tim thay dau sach
+        if (!silent) thongBao(out, "Khong tim thay dau sach cho ma: " + ma + " (ISBN=" + isbn + ")", LOI);
+        return nullptr;
+    }
+    
+    // Chi duyet DSLK cua dau sach nay (thay vi duyet N dau sach)
+    PTRDMS p = dauSach->dms;
+    while (p) {                                                 // duyet DSLK don
+        if (p->maSach == ma) return p;                         // tim thay - early return
+        p = p->next;                                            // node tiep theo
+    }
+    
+    if (!silent) {                                             // khong tim thay trong DSLK
+        thongBao(out, "Khong tim thay ma sach: " + ma + " trong danh muc cua ISBN=" + isbn, LOI);
     }
     return nullptr;
 }
@@ -179,15 +175,17 @@ bool themDauSach(PTRDS ds[], int &n, const std::string &isbn, const std::string 
     return true;
 }
 
-// tim dau sach theo ISBN
+// tim dau sach theo ISBN 
 PTRDS TimDauSachTheoISBN(PTRDS ds[], int n, const std::string &isbn) {
     for (int i = 0; i < n; ++i) {                              // duyet mang
-        if (ds[i] && ds[i]->ISBN == isbn) return ds[i];         // tim thay
+        if (ds[i] && ds[i]->ISBN == isbn) {                    // tim thay - early return
+            return ds[i];
+        }
     }
     return nullptr;                                             // khong thay
 }
 
-// in chi tiet mot dau sach
+// in chi tiet mot dau sach 
 void InMotDauSach(PTRDS d, std::ostream &out) {
     if (!d) {                                                  // kiem tra null
         thongBao(out, "Dau sach khong ton tai!", LOI);
@@ -204,21 +202,15 @@ void InMotDauSach(PTRDS d, std::ostream &out) {
         << "DMS:\n";
     
     PTRDMS p = d->dms;
-    int dem = 0;
     
     if (!p) {
         out << "  Chua co ban sao.\n";
     } else {
-        while (p && dem < SO_VONG_LAP_DMS_MAX) {               // duyet ban sao
+        while (p) {                                            // duyet DSLK don
             out << "  + " << p->maSach 
                 << ", " << TenTrangThai(p->trangThai) 
                 << ", " << p->viTri << "\n";
-            p = p->next;                                        // chuyen node tiep
-            ++dem;
-        }
-        
-        if (dem >= SO_VONG_LAP_DMS_MAX) {                      // canh bao vo han
-            thongBao(out, "Vong lap vo han trong DMS!", LOI);
+            p = p->next;                                       // node tiep theo
         }
     }
     out << "\n";
@@ -233,13 +225,14 @@ void InMotDauSach(PTRDS d, std::ostream &out) {
 int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]) {
     if (tk.empty() || n == 0) return 0;                        // kiem tra rong
     
-    std::string tkChuan = BoDauVaThuong(ChuanHoaKhoangTrang(tk));  // chuan hoa
+    std::string tkChuan = BoDauVaThuong(tk);                   // chuan hoa tu khoa
     int dem = 0;
     
     for (int i = 0; i < n; ++i) {                              // duyet dau sach
         PTRDS p = ds[i];
         if (!p) continue;                                       // bo qua null
         
+        //goi 1 lan, tra ve struct chua 4 truong da chuan hoa
         auto chuan = ChuanHoaDuLieuSach(p->tenSach, p->tacGia, p->theLoai, p->ISBN);
         int loai = 0;
         
@@ -249,9 +242,11 @@ int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]) {
         else if (chuan.theLoai.find(tkChuan) != std::string::npos)  loai = 3;  // khop the loai
         else if (chuan.isbn.find(tkChuan) != std::string::npos)     loai = 4;  // khop isbn
         
-        if (loai > 0 && dem < MAX_DAUSACH) {                   // them vao ket qua
+        if (loai > 0 && dem < MAX_KET_QUA_TIM_KIEM) {          // gioi han ket qua
             kq[dem++] = {p, loai};
         }
+        
+        if (dem >= MAX_KET_QUA_TIM_KIEM) break;                // dung khi du - early exit
     }
     
     sapXepKetQuaTimKiem(kq, dem);                              // sap xep ket qua
@@ -284,7 +279,7 @@ int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[]) {
 int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[]) {
     int dem = 0;
     
-    for (int i = 0; i < n; ++i) {                              // duyet dau sach
+    for (int i = 0; i < n; ++i) {                             
         if (ds[i] && ds[i]->theLoai == tl && dem < MAX_DAUSACH) {  // khop the loai
             kq[dem++] = ds[i];                                  // them vao ket qua
         }
@@ -298,15 +293,15 @@ int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[]) {
 
 // hoan doi hai con tro dau sach
 void hoanDoiDauSach(PTRDS &a, PTRDS &b) {
-    PTRDS temp = a;                                            // luu tam
-    a = b;                                                      // hoan doi
+    PTRDS temp = a;                                           
+    a = b;                                                     
     b = temp;
 }
 
 // hoan doi ket qua tim kiem
 void hoanDoiKetQua(KetQuaTimKiem &a, KetQuaTimKiem &b) {
-    KetQuaTimKiem temp = a;                                    // luu tam
-    a = b;                                                      // hoan doi
+    KetQuaTimKiem temp = a;                                    
+    a = b;                                                      
     b = temp;
 }
 
@@ -325,19 +320,20 @@ void insertionSort(PTRDS a[], int l, int h) {
     }
 }
 
-// partition cho quicksort
+// partition cho quicksort (Lomuto partition scheme)
 int partition(PTRDS a[], int l, int h) {
-    PTRDS pivot = a[h];                                        // chon pivot cuoi
-    if (!pivot) return l;
+    PTRDS pivot = a[h];                                        // chon pivot = phan tu cuoi
+    if (!pivot) return l;                                      // tranh loi null
     
-    int i = l - 1;                                              // chi so phan hoach
-    for (int j = l; j < h; ++j) {                              // duyet mang
-        if (a[j] && a[j]->tenSach <= pivot->tenSach) {         // nho hon pivot
-            hoanDoiDauSach(a[++i], a[j]);                      // doi cho
+    int i = l - 1;                                             // chi so phan hoach (phan tu < pivot)
+    for (int j = l; j < h; ++j) {                             // duyet tu l den h-1
+        if (!a[j]) continue;                                   // bo qua null
+        if (a[j]->tenSach <= pivot->tenSach) {                // nho hon hoac bang pivot
+            hoanDoiDauSach(a[++i], a[j]);                     // doi vao phan ben trai
         }
     }
-    hoanDoiDauSach(a[i + 1], a[h]);                            // dat pivot vao giua
-    return i + 1;
+    hoanDoiDauSach(a[i + 1], a[h]);                           // dat pivot vao vi tri dung
+    return i + 1;                                              // tra ve vi tri pivot
 }
 
 // sap xep dau sach theo ten (quicksort + insertion sort)
@@ -345,34 +341,35 @@ void sapXepDauSachTheoTen(PTRDS a[], int l, int h) {
     if (l >= h || l < 0 || h >= MAX_DAUSACH) return;           // dieu kien dung
     
     try {
-        if (h - l > 10) {                                       // mang lon
-            int p = partition(a, l, h);                         // phan hoach
+        // Hybrid sort: QuickSort cho mang lon, Insertion cho mang nho
+        if (h - l > 10) {                                       // mang > 10 phan tu
+            int p = partition(a, l, h);                         // phan hoach O(N)
             sapXepDauSachTheoTen(a, l, p - 1);                 // de quy trai
             sapXepDauSachTheoTen(a, p + 1, h);                 // de quy phai
-        } else {                                                // mang nho
-            insertionSort(a, l, h);                            // insertion sort
+        } else {                                                // mang <= 10 phan tu
+            insertionSort(a, l, h);                            // insertion nhanh hon voi N nho
         }
-    } catch (...) {                                            // bat loi
-        insertionSort(a, l, h);                                // fallback
+    } catch (...) {                                            // bat loi stack overflow
+        insertionSort(a, l, h);                                // fallback an toan
     }
 }
 
 // sap xep ban sao theo ma sach (bubble sort)
 void SapXepBanSaoTheoMa(PTRDMS arr[], int n) {
-    if (!arr || n <= 1) return;                                // mang rong
+    if (!arr || n <= 1) return;                                // mang rong hoac 1 phan tu
 
-    for (int i = 0; i < n - 1; ++i) {                         // duyet lan
-        bool swapped = false;                                  // co doi cho
+    for (int i = 0; i < n - 1; ++i) {                         // duyet n-1 lan
+        bool swapped = false;                                  // co doi cho trong lan nay
         
-        for (int j = 0; j < n - i - 1; ++j) {                 // duyet phan tu
-            int soA = LaySoHauToMaSach(arr[j]);               // lay so a
-            int soB = LaySoHauToMaSach(arr[j + 1]);           // lay so b
-            bool canSwap = false;                              // co can doi
+        for (int j = 0; j < n - i - 1; ++j) {                 // duyet phan tu chua sap xep
+            int soA = LaySoHauToMaSach(arr[j]);               // tach so tu "ISBN-12" -> 12
+            int soB = LaySoHauToMaSach(arr[j + 1]);           // tach so tu "ISBN-13" -> 13
+            bool canSwap = false;                              // co can doi vi tri
             
-            // sap xep: so hop le tang dan, loi (-1) o cuoi
-            if      (soA == -1 && soB != -1)                canSwap = true;   // a loi, b hop le
-            else if (soA != -1 && soB == -1)                canSwap = false;  // a hop le, b loi
-            else if (soA != -1 && soB != -1 && soA > soB)   canSwap = true;   // ca 2 hop le
+            // Logic: So hop le (>0) tang dan, so loi (-1) day xuong cuoi
+            if      (soA == -1 && soB != -1)                canSwap = true;   // a loi, b OK -> doi
+            else if (soA != -1 && soB == -1)                canSwap = false;  // a OK, b loi -> giu
+            else if (soA != -1 && soB != -1 && soA > soB)   canSwap = true;   // ca 2 OK, a>b -> doi
             
             if (canSwap) {                                     // doi cho
                 PTRDMS temp = arr[j];                          // luu tam
@@ -402,6 +399,15 @@ void SapXepTheLoaiTheoTen(std::string a[], int n) {
 
 // sap xep ket qua tim kiem (bubble sort)
 void sapXepKetQuaTimKiem(KetQuaTimKiem arr[], int n) {
+    //cache chuoi da chuyen thuong truoc khi sap xep
+    std::string tenThuong[MAX_KET_QUA_TIM_KIEM];               // mang cache ten da chuyen thuong
+    
+    for (int i = 0; i < n; ++i) {                             // chuan bi cache
+        if (arr[i].sach) {
+            tenThuong[i] = ChuyenInThuong(arr[i].sach->tenSach);
+        }
+    }
+    
     for (int i = 0; i < n - 1; ++i) {                         // duyet phan tu
         for (int j = i + 1; j < n; ++j) {                     // duyet phan tu sau
             bool swap = false;                                 // co doi cho
@@ -409,12 +415,16 @@ void sapXepKetQuaTimKiem(KetQuaTimKiem arr[], int n) {
             if (arr[i].loaiKhop > arr[j].loaiKhop) {          // uu tien loai khop
                 swap = true;
             } else if (arr[i].loaiKhop == arr[j].loaiKhop) {  // cung loai
-                std::string tenA = ChuyenInThuong(arr[i].sach->tenSach);  // ten a
-                std::string tenB = ChuyenInThuong(arr[j].sach->tenSach);  // ten b
-                if (tenA > tenB) swap = true;                 // so sanh ten
+                if (tenThuong[i] > tenThuong[j]) swap = true; // so sanh ten
             }
             
-            if (swap) hoanDoiKetQua(arr[i], arr[j]);          // doi cho
+            if (swap) {
+                hoanDoiKetQua(arr[i], arr[j]);                // doi cho
+                // Doi ca cache
+                std::string tempTen = tenThuong[i];
+                tenThuong[i] = tenThuong[j];
+                tenThuong[j] = tempTen;
+            }
         }
     }
 }
@@ -451,24 +461,13 @@ void GiaiPhongToanBoDauSach(PTRDS ds[], int &n) {
     n = 0;                                                     // reset so luong
 }
 
-// dem tong so ban sao
+// dem tong so ban sao 
 int DemTongSoBanSao(PTRDS ds[], int n) {
     int tong = 0;                                              // khoi tao tong
     
     for (int i = 0; i < n; ++i) {                             // duyet dau sach
-        if (!ds[i]) continue;                                  // bo qua null
-        
-        PTRDMS p = ds[i]->dms;                                // lay danh sach ban sao
-        int dem = 0;                                           // dem vong lap
-        
-        while (p && dem < SO_VONG_LAP_DMS_MAX) {              // duyet danh sach
-            ++tong;                                            // tang tong
-            p = p->next;                                       // node tiep theo
-            ++dem;                                             // tang dem
-        }
-        
-        if (dem >= SO_VONG_LAP_DMS_MAX) {                     // kiem tra vong lap vo han
-            thongBao(std::cout, "Vong lap vo han DMS!", LOI);
+        if (ds[i]) {                                           // neu ton tai
+            tong += ds[i]->tongBanSao;                         // cong truc tiep field
         }
     }
     return tong;                                               // tra ve tong
@@ -481,16 +480,16 @@ void CapNhatTongBanSao(PTRDS ds[], int n) {
         
         int dem = 0;                                           // khoi tao dem
         PTRDMS p = ds[i]->dms;                                // lay danh sach ban sao
-        int vongLap = 0;                                       // bien kiem tra vong lap
         
-        while (p && vongLap < SO_VONG_LAP_DMS_MAX) {          // duyet danh sach
+        while (p) {                                            // duyet DSLK don
             ++dem;                                             // tang dem
             p = p->next;                                       // node tiep theo
-            ++vongLap;                                         // tang vong lap
-        }
-        
-        if (vongLap >= SO_VONG_LAP_DMS_MAX) {                 // kiem tra vong lap vo han
-            thongBao(std::cout, "Vong lap vo han!", LOI);
+            
+            // phong vong lap vo han
+            if (dem > SO_VONG_LAP_DMS_MAX) {
+                thongBao(std::cout, "Vong lap vo han DMS!", LOI);
+                break;
+            }
         }
         
         ds[i]->tongBanSao = dem;                              // cap nhat tong
@@ -542,9 +541,8 @@ bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &o
 
     PTRDMS curr = d->dms;                                      // node hien tai
     PTRDMS prev = nullptr;                                     // node truoc
-    int dem = 0;                                               // dem vong lap
     
-    while (curr && dem < SO_VONG_LAP_DMS_MAX) {               // duyet danh sach
+    while (curr) {                                             // duyet DSLK don
         if (curr->maSach == ma) {                             // tim thay ma sach
             // chi khong cho xoa sach DANG_MUON
             // con CHO_MUON_DUOC va THANH_LY thi duoc phep xoa
@@ -553,23 +551,24 @@ bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &o
                 return false;
             }
             
-            if (prev)   prev->next = curr->next;              // xoa node giua
+            if (prev)   prev->next = curr->next;              // xoa node giua/cuoi
             else        d->dms = curr->next;                  // xoa node dau
             
-            delete curr;                                       // giai phong bo nho
+            delete curr;                                       // TOI UU #6: giai phong bo nho
             d->tongBanSao--;                                   // giam so luong
             duLieuDaThayDoi = true;                            // danh dau thay doi
-            thongBao(out, "Xoa thanh cong!", THONG_TIN);
+            
+            //Neu xoa het ban sao, canh bao nen xoa dau sach
+            if (d->tongBanSao == 0) {
+                thongBao(out, "Xoa thanh cong! Luu y: Da xoa het ban sao, nen xoa dau sach!", THONG_TIN);
+            } else {
+                thongBao(out, "Xoa thanh cong!", THONG_TIN);
+            }
             return true;
         }
         
         prev = curr;                                           // luu node truoc
-        curr = curr->next;                                     // chuyen node sau
-        ++dem;                                                 // tang dem
-    }
-    
-    if (dem >= SO_VONG_LAP_DMS_MAX) {                         // vong lap vo han
-        thongBao(out, "Vong lap vo han!", LOI);
+        curr = curr->next;                                     // node tiep theo
     }
     
     thongBao(out, "Khong tim thay ma sach!", LOI);

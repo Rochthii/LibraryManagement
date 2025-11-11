@@ -78,3 +78,43 @@ info:
 	@echo "SFML_DIR = $(SFML_DIR)"
 	@echo "CXXFLAGS = $(CXXFLAGS)"
 	@echo "LDFLAGS  = $(LDFLAGS)"
+
+# --- Test Build Rules ---
+# Sources for the test build
+TEST_SRCS := \
+	test.cpp \
+	data/KiemTraDuLieu.cpp \
+	data/QuanLySach.cpp \
+	data/ThaoTacFile.cpp \
+	data/NhapLieu.cpp \
+	utils/ThongBao.cpp \
+	utils/NgayThang.cpp \
+	utils/XuLyChuoi.cpp
+
+# Object files for the test build
+TEST_OBJS := $(patsubst %.cpp, build/objs/%.test.o, $(TEST_SRCS))
+TEST_TARGET := bin/test.exe
+
+.PHONY: test run-test
+
+# Target to build the test executable
+test: $(TEST_TARGET)
+
+# Link step for the test executable
+$(TEST_TARGET): $(TEST_OBJS)
+	@mkdir -p $(dir $@)
+	@echo "Linking Test Target: $@"
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "-> Successfully created test executable $@"
+
+# Rule to compile source files for the test build into separate .test.o objects
+build/objs/%.test.o: %.cpp
+	@mkdir -p $(dir $@)
+	@echo "Compiling for test: $<"
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Target to run the tests
+run-test: test
+	@echo "--- Running Tests ---"
+	@"$(TEST_TARGET)"
+	@echo "--- Tests Finished ---"
