@@ -66,7 +66,7 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
         }
 
         // so trang: chuyen chuoi -> so, kiem gioi han
-        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(truong[2]), soTrang, false) || !KiemTraSoTrangFile(soTrang, out)) {
+        if (!ChuyenChuoiThanhSoNguyen(CatKhoangTrang(truong[2]), soTrang, false) || !KiemTraSoTrangFile(soTrang, out)) {
             thongBao(out, thongBaoLoi(soDong, "So trang khong hop le: " + truong[2], true), CANH_BAO);
             ++boQua;
             continue;
@@ -81,7 +81,7 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
         }
 
         // nam xuat ban: phai la so, trong khoang 1800 - hien tai
-        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(truong[4]), namXuatBan, false)) {
+        if (!ChuyenChuoiThanhSoNguyen(CatKhoangTrang(truong[4]), namXuatBan, false)) {
             thongBao(out, thongBaoLoi(soDong, "Nam xuat ban phai la so: '" + truong[4] + "'", true), CANH_BAO);
             ++boQua;
             continue;

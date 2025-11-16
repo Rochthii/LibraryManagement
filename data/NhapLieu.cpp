@@ -50,7 +50,7 @@ int NhapSoNguyen(const char* nhan, int minVal, int maxVal, std::istream& in, std
         std::getline(in, input);
         kiemTraEOF(in);
         int ketQua;
-        if (!chuyenChuoiThanhSoNguyen(CatKhoangTrang(input), ketQua, true) || ketQua < minVal || ketQua > maxVal) {
+        if (!ChuyenChuoiThanhSoNguyen(CatKhoangTrang(input), ketQua, true) || ketQua < minVal || ketQua > maxVal) {
             thongBao(out, (nhan ? nhan : "So") + std::string(" khong hop le!"), LOI);
             ++soLanThu;
             thongBaoSoLanThuConLai(soLanThu, out, SO_LAN_THU_TOI_DA);
@@ -75,7 +75,7 @@ std::string NhapPhai(std::istream& in, std::ostream& out) {
             thongBaoSoLanThuConLai(soLanThu, out, SO_LAN_THU_TOI_DA);
             continue;
         }
-        std::string phaiChuanHoa = ChuanHoaPhai(phaiNhapVao);
+        std::string phaiChuanHoa = ChuanHoaGioiTinh(phaiNhapVao);
         if (!phaiChuanHoa.empty()) {
             return phaiChuanHoa;
         }

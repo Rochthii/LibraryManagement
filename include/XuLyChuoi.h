@@ -6,40 +6,69 @@
 #include "ThongBao.h"
 #include "DauSach.h"
 
-// Xu ly chuoi
-std::string ChuyenInThuong(const std::string& str);
-std::string ChuyenInHoa(const std::string& str); 
-std::string ChuyenThanhTitleCase(const std::string& s);
-std::string CatKhoangTrang(const std::string& s);
-std::string ChuanHoaKhoangTrang(const std::string& s);
-std::string layChiCacKyTuSo(const std::string& s);
-std::string ChuanHoaPhai(const std::string& raw);
-bool ChuanHoaNgay(std::string& ngayChuoi, std::ostream& out);
-std::string ChuanHoaISBNCore(const std::string& chuoiGoc, std::string& ketQua, bool tuDong, bool nhapThuCong, bool laDocFile);
-std::string ChuanHoaISBNFile(const std::string& chuoiGoc, std::string& ketQua);
-bool chuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiChoPhepSoDuong = false);
-std::string ChuanHoaViTri(const std::string& s);
-std::string ChuanHoaTenUnicode(const std::string& dauVao, size_t minLength, size_t maxLength, std::string& ketQua);
-std::string BoDauVaThuong(const std::string& s); // Luu y: Chi chuyen thuong, khong bo dau
-bool laChuoiRongHoacChiKhoangTrang(const std::string& s);
+// ===== HAM XU LY CHUOI CO BAN =====
 
-// Struct chuan hoa du lieu sach (dung cho tim kiem)
+// Chuyen doi chu hoa/thuong
+std::string ChuyenInThuong(const std::string& chuoi);
+std::string ChuyenInHoa(const std::string& chuoi); 
+std::string ChuyenThanhTitleCase(const std::string& chuoi);
+
+// Cat va chuan hoa khoang trang
+std::string CatKhoangTrang(const std::string& chuoi);
+std::string ChuanHoaKhoangTrang(const std::string& chuoi);
+
+// Kiem tra va lay ky tu
+std::string LayChiCacKyTuSo(const std::string& chuoi);
+bool KiemTraChuoiRongHoacKhoangTrang(const std::string& chuoi);
+
+// Chuyen doi chuoi thanh so
+bool ChuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiChoPhepSoDuong = false);
+
+// Chuan hoa chuoi theo dinh dang rieng
+std::string ChuanHoaChuoiTimKiem(const std::string& chuoi);  // Chuyen chu thuong + chuan hoa khoang trang (cho tim kiem)
+std::string ChuanHoaGioiTinh(const std::string& chuoiGioiTinh);  // Chuan hoa gioi tinh: "Nam" hoac "Nu"
+std::string ChuanHoaViTri(const std::string& chuoiViTri);  // Chuan hoa vi tri ke sach
+
+// ===== HAM CHUAN HOA DU LIEU =====
+
+// Chuan hoa ten (cho ten sach, tac gia, the loai, v.v.)
+std::string ChuanHoaTenUnicode(const std::string& chuoiDauVao, size_t doDaiToiThieu, 
+                                size_t doDaiToiDa, std::string& chuoiKetQua);
+
+// Chuan hoa ISBN
+std::string ChuanHoaISBNCore(const std::string& chuoiISBN, std::string& ketQua, 
+                              bool tuDong, bool nhapThuCong, bool laDocFile);
+std::string ChuanHoaISBNFile(const std::string& chuoiISBN, std::string& ketQua);
+
+// Chuan hoa ngay thang
+bool ChuanHoaNgay(std::string& chuoiNgay, std::ostream& out);
+
+// ===== STRUCT VA HAM HO TRO TIM KIEM =====
+
 struct ThongTinSachChuanHoa {
     std::string tenSach;
     std::string tacGia;
     std::string theLoai;
     std::string isbn;
 };
+
 ThongTinSachChuanHoa ChuanHoaDuLieuSach(const std::string& tenSach, const std::string& tacGia,
                                         const std::string& theLoai, const std::string& isbn);
 
-// Tach chuoi
-int LaySoHauToMaSach(PTRDMS node);
-bool TachTruong(const std::string& line, char sep, std::string out[], int expected);
-int TachTokenKhoangTrang(const std::string& s, std::string tokens[], int maxTok);
-bool ChuaTatCaTuKhoa(const std::string& haystack, const std::string tokens[], int count);
-bool KhopTieuDeKhongDau(const std::string& titleNorm, const std::string& kwNorm,
-                        const std::string tokens[], int tokenCount);
-std::string TachISBNTuMaSach(const std::string& maSach);
+// ===== HAM TACH CHUOI =====
+
+// Tach cac thanh phan tu chuoi
+bool TachTruong(const std::string& dong, char kyTuPhanCach, std::string mangKetQua[], int soTruongMongDoi);
+int TachTokenKhoangTrang(const std::string& chuoi, std::string mangToken[], int soTokenToiDa);
+
+// Tach thong tin tu ma sach
+std::string TachISBNTuMaSach(const std::string& maSach);  // Lay ISBN tu "ISBN-123" -> "ISBN"
+int LaySoHauToMaSach(PTRDMS nodeSach);  // Lay so tu "ISBN-123" -> 123
+
+// ===== HAM TIM KIEM VA KHOP CHUOI =====
+
+bool ChuaTatCaTuKhoa(const std::string& chuoiNguon, const std::string mangTuKhoa[], int soTuKhoa);
+bool KhopTieuDeKhongDau(const std::string& tieuDeChuan, const std::string& tuKhoaChuan,
+                        const std::string mangToken[], int soToken);
 
 #endif // XULYCHUOI_H

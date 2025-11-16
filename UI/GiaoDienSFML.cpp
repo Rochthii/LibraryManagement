@@ -8,51 +8,51 @@
 #include "include/GiaoDienMuonTra.h"
 #include <iostream>
 
-// dinh nghia cac bien toan cuc
-TrangThaiManHinh manHinhHienTai = MENU_CHINH;
-UIElement cacElement[SO_ELEMENT_TOI_DA];
-int soLuongElement = 0;
-bool yeuCauThoat = false;
-MaUI inputHoatDong = KHONG_XAC_DINH;
-MaUI elementHover = KHONG_XAC_DINH;
-std::string noiDungThongBao = "Chao mung!";
-int loaiThongBao = 0;
+// khai bao cac bien toan cuc
+TrangThaiManHinh manHinhHienTai = MENU_CHINH;                           // man hinh hien tai (mac dinh: menu)
+UIElement cacElement[SO_ELEMENT_TOI_DA];                                // mang luu cac element ui (nut, input)
+int soLuongElement = 0;                                                 // so luong element dang su dung
+bool yeuCauThoat = false;                                               // co yeu cau thoat chuong trinh
+MaUI inputHoatDong = KHONG_XAC_DINH;                                    // input dang duoc focus
+MaUI elementHover = KHONG_XAC_DINH;                                     // element dang hover chuot
+std::string noiDungThongBao = "Chao mung!";                             // noi dung thong bao hien thi
+int loaiThongBao = 0;                                                   // loai thong bao (0: binh thuong, 1: loi, 2: thanh cong)
 
 bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font, const std::string &fontPath) {
-    (void)window; // danh sau k dung
+    (void)window;                                                       // danh dau bien chua dung truc tiep
     std::cout << "Dang khoi tao cua so SFML..." << std::endl;
-    if (!font.loadFromFile(fontPath)) {
+    if (!font.loadFromFile(fontPath)) {                                 // tai font tu file
         std::cerr << "Loi: Khong the tai file font: " << fontPath << std::endl;
-        return false;
+        return false;                                                   // bao loi neu khong load duoc
     }
     std::cout << "Khoi tao SFML thanh cong!" << std::endl;
-    KhoiTaoManHinhSach();
-    return true;
+    KhoiTaoManHinhSach();                                               // khoi tao du lieu man hinh sach
+    return true;                                                        // khoi tao thanh cong
 }
 
-// ham ve tong quat
+// ham ve man hinh hien tai
 static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font) {
-    window.clear(MAU_NEN);
-    soLuongElement = 0; // reset cac eleyement moi frame
+    window.clear(MAU_NEN);                                              // xoa man hinh (mau nen)
+    soLuongElement = 0;                                                 // reset so luong element
 
-    switch (manHinhHienTai) {
+    switch (manHinhHienTai) {                                           // chon man hinh can ve
     case MENU_CHINH:
-        VeMenuChinhSFML(window, font);
+        VeMenuChinhSFML(window, font);                                  // ve menu chinh
         break;
     case MAN_HINH_THONG_TIN:
-        VeManHinhThongTinSFML(window, font);
+        VeManHinhThongTinSFML(window, font);                            // ve man hinh thong tin
         break;
     case QUAN_LY_SACH:
-        VeManHinhQuanLySach(window, font);
+        VeManHinhQuanLySach(window, font);                              // ve man hinh quan ly sach
         break;
     }
 
-    // ve tat ca cac UIElement da duoc tao
+    // ve tat ca cac element da tao (nut, input)
     for (int i = 0; i < soLuongElement; ++i) {
-        window.draw(cacElement[i].hinhDang);
-        window.draw(cacElement[i].vanBan);
-        if (cacElement[i].laInput) {
-            window.draw(cacElement[i].vanBanPhu);
+        window.draw(cacElement[i].hinhDang);                            // ve hinh dang (hinh chu nhat)
+        window.draw(cacElement[i].vanBan);                              // ve van ban chinh
+        if (cacElement[i].laInput) {                                    // neu la input
+            window.draw(cacElement[i].vanBanPhu);                       // ve van ban phu (noi dung input)
         }
     }
 }
@@ -61,87 +61,85 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font) {
 static void XuLySuKienSFML(sf::RenderWindow &window) {
     sf::Event event;
 
-    // Cap nhat hover
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    MaUI idHover = LayElementTaiToaDo(mousePos.x, mousePos.y);
-    bool isHoveredElementInput = false;
+    // cap nhat hover (element dang di chuot qua)
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window);             // lay vi tri chuot
+    MaUI idHover = LayElementTaiToaDo(mousePos.x, mousePos.y);          // tim element tai vi tri chuot
+    bool isHoveredElementInput = false;                                 // co phai input khong
     for (int i = 0; i < soLuongElement; ++i) {
-        if (cacElement[i].id == idHover && cacElement[i].laInput) {
-            isHoveredElementInput = true;
+        if (cacElement[i].id == idHover && cacElement[i].laInput) {     // neu la input
+            isHoveredElementInput = true;                               // danh dau
             break;
         }
     }
-    if (!isHoveredElementInput)
-        elementHover = idHover;
+    if (!isHoveredElementInput)                                         // neu khong phai input
+        elementHover = idHover;                                         // cap nhat hover
     else
-        elementHover = KHONG_XAC_DINH;
+        elementHover = KHONG_XAC_DINH;                                  // khong hien hieu ung hover cho input
 
-    while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
-            window.close();
-            yeuCauThoat = true;
+    while (window.pollEvent(event)) {                                   // lap qua cac su kien
+        if (event.type == sf::Event::Closed) {                          // neu dong cua so
+            window.close();                                             // dong cua so
+            yeuCauThoat = true;                                         // dat co thoat
         }
 
-        // Dieu phoi su kien den dung man hinh
+        // dieu phoi su kien den dung man hinh
         switch (manHinhHienTai) {
         case MENU_CHINH:
-            XuLySuKienMenuChinh(window, event);
+            XuLySuKienMenuChinh(window, event);                         // xu ly su kien menu
             break;
         case MAN_HINH_THONG_TIN:
-            XuLySuKienThongTin(window, event);
+            XuLySuKienThongTin(window, event);                          // xu ly su kien thong tin
             break;
         case QUAN_LY_SACH:
-            XuLySuKienManHinhSach(window, event);
+            XuLySuKienManHinhSach(window, event);                       // xu ly su kien quan ly sach
             break;
         }
 
-        // xu ly Escape toan cuc (neu man hinh con khong xu ly)
+        // xu ly escape toan cuc (neu man hinh con khong xu ly)
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-            if (manHinhHienTai == MENU_CHINH) {
-                window.close();
-                yeuCauThoat = true;
+            if (manHinhHienTai == MENU_CHINH) {                         // neu dang o menu
+                window.close();                                         // dong cua so
+                yeuCauThoat = true;                                     // dat co thoat
             }
-            // Neu khong phai menu, cac ham con (vd: XuLySuKienManHinhSach) se tu bat Escape
-            // de quay ve menu
+            // cac man hinh khac tu xu ly escape trong ham xu ly rieng
         }
     }
 }
 
 void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font) {
     std::cout << "[DEBUG] Bat dau vong lap SFML..." << std::endl;
-    yeuCauThoat = false;
+    yeuCauThoat = false;                                                // reset co thoat
 
-    while (window.isOpen() && !yeuCauThoat) {
-        XuLySuKienSFML(window);
-        VeManHinhHienTai(window, font);
-        window.display();
+    while (window.isOpen() && !yeuCauThoat) {                           // vong lap chinh (60 FPS mac dinh)
+        XuLySuKienSFML(window);                                         // xu ly su kien (chuot, phim, ...)
+        VeManHinhHienTai(window, font);                                 // ve man hinh hien tai
+        window.display();                                               // hien thi len man hinh
     }
 
     std::cout << "[DEBUG] Ket thuc vong lap SFML." << std::endl;
 }
 
 void CapNhatThongBaoSFML(const std::string &msg, int loai) {
-    noiDungThongBao = msg;
-    loaiThongBao = loai;
+    noiDungThongBao = msg;                                              // cap nhat noi dung thong bao
+    loaiThongBao = loai;                                                // cap nhat loai (0: normal, 1: error, 2: success)
 }
 
 MaUI LayElementTaiToaDo(int mouseX, int mouseY) {
-    // Kiem tra cac element nut/input truoc
+    // kiem tra cac element nut/input truoc
     for (int i = 0; i < soLuongElement; ++i) {
         if (cacElement[i].hinhDang.getGlobalBounds().contains(static_cast<float>(mouseX), static_cast<float>(mouseY))) {
-            return cacElement[i].id;
+            return cacElement[i].id;                                    // tra ve id neu trung
         }
     }
 
-    // Kiem tra logic rieng
+    // kiem tra logic rieng cho man hinh quan ly sach (bang danh sach)
     if (manHinhHienTai == QUAN_LY_SACH) {
-        // Tinh toan Y_dau va Y_cuoi cua bang
-        float tableTop = BANG_Y + 90 + 30;                                // Y bat dau cua hang so 1
-        float tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2); // Y ket thuc cua bang
+        float tableTop = BANG_Y + 90 + 30;                              // y bat dau bang
+        float tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2); // y ket thuc bang
 
         if (mouseX >= BANG_X + PADDING && mouseX < BANG_X + BANG_RONG - PADDING && mouseY >= tableTop && mouseY < tableBottom) {
-            return HANG_SACH;
+            return HANG_SACH;                                           // tra ve id hang sach
         }
     }
-    return KHONG_XAC_DINH;
+    return KHONG_XAC_DINH;                                              // khong trung element nao
 }

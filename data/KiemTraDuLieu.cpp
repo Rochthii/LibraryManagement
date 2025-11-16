@@ -13,7 +13,7 @@ std::string KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTru
     if(chuoi.empty()) { 
         return "Loi: " + tenTruong + " khong duoc de trong!\nVui long nhap " + tenTruong + "."; 
     }
-    if(laChuoiRongHoacChiKhoangTrang(chuoi)) { 
+    if(KiemTraChuoiRongHoacKhoangTrang(chuoi)) { 
         return "Loi: " + tenTruong + " chi chua khoang trang!\nVui long nhap " + tenTruong + " hop le."; 
     }
     return "";
