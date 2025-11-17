@@ -34,6 +34,7 @@ struct KetQuaTimKiem {
 
 int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]);                 // tim + sap xep theo loai khop
 int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string tl[]);                                     // lay danh sach the loai duy nhat
+int TimViTriDuyNhat(PTRDS ds[], int n, std::string vt[]);                                       // lay danh sach vi tri duy nhat tu cac ban sao
 int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &tl, PTRDS kq[]);                   // loc sach theo 1 the loai
 
 //  NHOM 5: SAP XEP 
@@ -58,6 +59,6 @@ std::string XoaDauSachTheoISBN(PTRDS ds[], int &n, const std::string &isbn);    
 bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &out);            // xoa 1 ban sao
 std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn,
                            const std::string &ten, int trang, const std::string &tg,
-                           int nam, const std::string &tl);                                     // cap nhat + sort neu ten doi
+                           int nam, const std::string &tl, const std::string &viTri = "");     // cap nhat + sort neu ten doi
 
 #endif // QUANLYSACH_H

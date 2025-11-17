@@ -36,7 +36,6 @@
 9786040000569|Ky Thuat Lap Trinh|398|Nguyen Van Tung|2020|Lap Trinh
 9786040000651|Ky Thuat So|774|Nguyen Hoang|2024|Ky Thuat So
 9786040000415|Lap Trinh C Co Ban|437|Pham Minh Duc|2010|Lap Trinh
-9786049288074|Lap Trinh C++|325|Cham Roch Thi|2025|Lap Trinh
 9786040000668|Lap Trinh Di Dong|815|Le Van Khanh|2020|Lap Trinh
 9786040000514|Lap Trinh Python|210|Nguyen Thi Hoa|2020|Lap Trinh
 9786040000798|Ma Hoa Va Giai Ma|440|Le Minh|2023|Mat Ma Hoc

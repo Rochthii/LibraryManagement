@@ -267,6 +267,20 @@ static void VeFormThemSach(sf::RenderWindow &window, const sf::Font &font, const
     currentY += INPUT_CAO + inputSpacing;
     TaoInput(font, INPUT_THE_LOAI, labelX, currentY, INPUT_RONG, INPUT_CAO, "The Loai (*):", currentState.chuoiTheLoai, goiYTheLoai);
     currentY += INPUT_CAO + inputSpacing;
+    
+    // Goi y vi tri: lay danh sach vi tri duy nhat tu cac ban sao
+    std::string dsViTri[MAX_DAUSACH];
+    int soViTri = TimViTriDuyNhat(dsDauSach, soLuongDauSach, dsViTri);
+    std::string goiYViTri = "";
+    for (int i = 0; i < soViTri && i < 3; ++i) {  // Hien thi toi da 3 vi tri
+        goiYViTri += dsViTri[i];
+        if (i < soViTri - 1 && i < 2) goiYViTri += ", ";
+    }
+    if (soViTri > 3) goiYViTri += "...";
+    if (soViTri == 0) goiYViTri = "VD: A1, B-5";
+    
+    TaoInput(font, INPUT_VI_TRI, labelX, currentY, INPUT_RONG, INPUT_CAO, "Vi Tri:", currentState.chuoiViTri, goiYViTri);
+    currentY += INPUT_CAO + inputSpacing;
 
     if (!currentState.dangSua) {
         TaoInput(font, INPUT_SO_LUONG, labelX, currentY, INPUT_RONG, INPUT_CAO, "So Luong (*):", currentState.chuoiSoLuong, goiYSoLuong);
@@ -436,15 +450,15 @@ static void ThucHienThemBanSao(SachState& currentState) {
         return;
     }
 
-    // Tu dong lay vi tri tu ban sao cu hoac mac dinh (KHONG cho nguoi dung nhap)
+    // Tu dong lay vi tri tu ban sao cu (KHONG cho nguoi dung nhap)
     std::string viTriDeThem = "";
     std::string thongBaoViTri = "";
-    if (dauSach->dms != nullptr) {
+    if (dauSach->dms != nullptr && !dauSach->dms->viTri.empty()) {
         viTriDeThem = dauSach->dms->viTri;
         thongBaoViTri = " (vi tri: '" + viTriDeThem + "' - tu dong lay tu ban sao cu)";
     } else {
-        viTriDeThem = "Ke Chinh";
-        thongBaoViTri = " (vi tri: 'Ke Chinh' - mac dinh)";
+        viTriDeThem = "";  // De trong neu chua co vi tri nao
+        thongBaoViTri = " (khong co vi tri)";
     }
 
     // DUYET HET de tim so lon nhat THUC SU (tranh trung khi du lieu khong sap xep)
@@ -1297,6 +1311,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
                 elementNhan == INPUT_TAC_GIA ||
                 elementNhan == INPUT_NAM_XB ||
                 elementNhan == INPUT_THE_LOAI ||
+                elementNhan == INPUT_VI_TRI ||
                 elementNhan == INPUT_SO_LUONG ||
                 elementNhan == INPUT_SO_LUONG_THEM) {
                 if (!(state.dangSua && elementNhan == INPUT_ISBN)) {
@@ -1576,6 +1591,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
         case INPUT_TAC_GIA:  targetString = &currentState.chuoiTacGia; maxLen = MAX_TAC_GIA; fieldName = "Tac gia"; break;
         case INPUT_NAM_XB:   targetString = &currentState.chuoiNamXB; maxLen = 4; chiNhanSo = true; fieldName = "Nam XB"; break;
         case INPUT_THE_LOAI: targetString = &currentState.chuoiTheLoai; maxLen = MAX_THE_LOAI; fieldName = "The loai"; break;
+        case INPUT_VI_TRI:   targetString = &currentState.chuoiViTri; maxLen = 20; fieldName = "Vi tri"; break;
         case INPUT_SO_LUONG: targetString = &currentState.chuoiSoLuong; maxLen = 3; chiNhanSo = true; fieldName = "So luong"; break;
         case INPUT_SO_LUONG_THEM: targetString = &currentState.soLuongBanSaoCanThemStr; maxLen = 3; chiNhanSo = true; fieldName = "So luong them"; break;
         default: return; // Thoat neu khong phai input hop le
@@ -1818,6 +1834,15 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
                     }
                 }
                 break;
+            case INPUT_VI_TRI:
+                // Validate vi tri (cho phep rong hoac dinh dang hop le)
+                if (!tempStr.empty()) {
+                    std::string viTriTest = ChuanHoaViTri(tempStr);
+                    if (viTriTest.empty()) {
+                        loi = "Loi: Vi tri khong hop le!\nChi duoc chua chu cai va so.\nVi du: A-12, B5, Ke C-3.";
+                    }
+                }
+                break;
             case INPUT_SO_LUONG:
                 // Validate so luong ban sao (khi them dau sach)
                 if (!tempStr.empty()) {
@@ -2013,6 +2038,7 @@ static void XoaFormNhapLieuSFML(SachState& currentState) {
     currentState.chuoiTacGia = "";
     currentState.chuoiNamXB = "";
     currentState.chuoiTheLoai = "";
+    currentState.chuoiViTri = "";
     currentState.chuoiSoLuong = "";
 }
 
@@ -2028,6 +2054,8 @@ static void DienFormVoiSachDuocChon(SachState& currentState) {
         currentState.chuoiTacGia = sach->tacGia;
         currentState.chuoiNamXB = std::to_string(sach->namXuatBan);
         currentState.chuoiTheLoai = sach->theLoai;
+        // Lay vi tri tu ban sao dau tien (neu co)
+        currentState.chuoiViTri = (sach->dms && !sach->dms->viTri.empty()) ? sach->dms->viTri : "";
     }
     else {
         CapNhatThongBaoSFML("Loi: Khong tim thay sach de sua!", 1);
@@ -2134,6 +2162,18 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
             return;
         }
 
+        // Validate vi tri (neu co nhap)
+        if (!currentState.chuoiViTri.empty()) {
+            std::string viTriChuan = ChuanHoaViTri(currentState.chuoiViTri);
+            if (viTriChuan.empty()) {
+                CapNhatThongBaoSFML("Loi: Vi tri khong hop le!\nChi duoc chua chu cai va so.\nVi du: A-12, B5, Ke C-3.", 1);
+                inputHoatDong = INPUT_VI_TRI;
+                return;
+            }
+            // Cap nhat lai chuoi da chuan hoa
+            currentState.chuoiViTri = viTriChuan;
+        }
+
         // Goi backend them dau sach
         bool ok = themDauSach(dsDauSach, soLuongDauSach, isbnChuan, currentState.chuoiTenSach, soTrang, currentState.chuoiTacGia, namXB, currentState.chuoiTheLoai, true); // true = an lang (khong cout)
         if (!ok) {
@@ -2161,8 +2201,9 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
                     break; // Thoat khoi vong for neu sinh loi
                 }
 
-                // Goi backend them ban sao vao DSLK
-                std::string loiThemDMS = themDanhMucSach(dauSach->dms, maSach, CHO_MUON_DUOC, "Ke Chinh"); // Ham backend tra ve "" hoac chuoi loi
+                // Goi backend them ban sao vao DSLK (dung vi tri user nhap)
+                std::string viTriCanDung = currentState.chuoiViTri.empty() ? "" : currentState.chuoiViTri;
+                std::string loiThemDMS = themDanhMucSach(dauSach->dms, maSach, CHO_MUON_DUOC, viTriCanDung); // Ham backend tra ve "" hoac chuoi loi
                 // Kiem tra loi tu themDanhMucSach
                 if (!loiThemDMS.empty()) {
                     loiTrongLoop = loiThemDMS;
@@ -2204,8 +2245,20 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         }
     }
     else { //
-        // Goi backend cap nhat dau sach
-        loi = CapNhatDauSach(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon, currentState.chuoiTenSach, soTrang, currentState.chuoiTacGia, namXB, currentState.chuoiTheLoai);
+        // Validate vi tri (neu co nhap)
+        if (!currentState.chuoiViTri.empty()) {
+            std::string viTriChuan = ChuanHoaViTri(currentState.chuoiViTri);
+            if (viTriChuan.empty()) {
+                CapNhatThongBaoSFML("Loi: Vi tri khong hop le!\nChi duoc chua chu cai va so.\nVi du: A-12, B5, Ke C-3.", 1);
+                inputHoatDong = INPUT_VI_TRI;
+                return;
+            }
+            // Cap nhat lai chuoi da chuan hoa
+            currentState.chuoiViTri = viTriChuan;
+        }
+
+        // Goi backend cap nhat dau sach (bao gom vi tri)
+        loi = CapNhatDauSach(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon, currentState.chuoiTenSach, soTrang, currentState.chuoiTacGia, namXB, currentState.chuoiTheLoai, currentState.chuoiViTri);
 
         // Bao ket qua len UI
         if (loi.empty()) {

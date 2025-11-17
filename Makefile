@@ -21,7 +21,11 @@ LDFLAGS := $(LIB_DIRS) $(SFML_LIBS) $(EXTRA_LIBS)
 
 SRCS := \
 	main.cpp \
-	GiaoDien.cpp \
+	UI/GiaoDienSFML.cpp \
+	UI/ManHinhMenuChinh.cpp \
+	UI/ManHinhQuanLySach.cpp \
+	UI/ManHinhThongTin.cpp \
+	UI/TienIchGiaoDien.cpp \
 	data/KiemTraDuLieu.cpp \
 	data/QuanLySach.cpp \
 	data/ThaoTacFile.cpp \

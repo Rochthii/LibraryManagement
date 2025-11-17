@@ -59,6 +59,7 @@ struct SachState {
     std::string chuoiTacGia = "";
     std::string chuoiNamXB = "";
     std::string chuoiTheLoai = "";
+    std::string chuoiViTri = "";
     std::string chuoiSoLuong = "";
 
     // Trang thai logic

@@ -94,6 +94,7 @@ enum MaUI {
     INPUT_TAC_GIA,
     INPUT_NAM_XB,
     INPUT_THE_LOAI,
+    INPUT_VI_TRI,
     INPUT_SO_LUONG,       // chi hien khi them moi
     NUT_THEM_SACH,        // cung la nut "luu thay doi" khi sua
     NUT_SUA,              // nut chuan bi sua sach da chon

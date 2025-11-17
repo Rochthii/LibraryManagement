@@ -159,6 +159,7 @@ bool themDauSach(PTRDS ds[], int &n, const std::string &isbn, const std::string 
     node->theLoai = ChuyenThanhTitleCase(tl);                  // gan the loai
     node->dms = nullptr;                                       // chua co ban sao
     node->tongBanSao = 0;                                      // tong = 0
+    node->soLuotMuon = 0;                                      // khoi tao so luot muon
 
     ds[n++] = node;                                            // them vao mang
     sapXepDauSachTheoTen(ds, 0, n - 1);                        // sap xep lai
@@ -261,6 +262,39 @@ int TimSachTheoTheLoai(PTRDS ds[], int n, const std::string &theLoaiCanTim, PTRD
         }
     }
     return soKetQua;
+}
+
+// lay danh sach cac vi tri duy nhat tu cac ban sao
+int TimViTriDuyNhat(PTRDS ds[], int n, std::string mangViTri[]) {
+    int soViTri = 0;                                           // so vi tri duy nhat
+    
+    for (int i = 0; i < n; ++i) {                              // duyet dau sach
+        if (!ds[i]) continue;                                   // bo qua null
+        
+        // duyet cac ban sao de lay vi tri
+        PTRDMS banSao = ds[i]->dms;
+        while (banSao) {
+            if (!banSao->viTri.empty()) {                      // neu co vi tri
+                // kiem tra trung lap
+                bool daTonTai = false;
+                for (int j = 0; j < soViTri; ++j) {
+                    if (mangViTri[j] == banSao->viTri) {
+                        daTonTai = true;
+                        break;
+                    }
+                }
+                
+                if (!daTonTai && soViTri < MAX_DAUSACH) {      // them vi tri moi
+                    mangViTri[soViTri++] = banSao->viTri;
+                }
+            }
+            banSao = banSao->next;                             // ban sao tiep theo
+        }
+    }
+    
+    // sap xep vi tri theo thu tu alphabet
+    SapXepTheLoaiTheoTen(mangViTri, soViTri);                  // tai su dung ham sap xep
+    return soViTri;
 }
 
 
@@ -600,7 +634,7 @@ bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &o
 
 // cap nhat dau sach
 std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn, const std::string &ten, 
-                          int trang, const std::string &tg, int nam, const std::string &tl) {
+                          int trang, const std::string &tg, int nam, const std::string &tl, const std::string &viTri) {
     PTRDS d = TimDauSachTheoISBN(ds, n, isbn);                // tim dau sach
     if (!d) return "Loi: Khong tim thay ISBN!";               // khong tim thay
     
@@ -614,6 +648,15 @@ std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn, const std
         !(loi = KiemTraChuoiVaDodai(tl, "The loai", MAX_THE_LOAI)).empty()) {        // kiem tra the loai
         return loi;                                            // tra ve loi
     }
+    
+    // kiem tra va chuan hoa vi tri (neu co)
+    std::string viTriChuan = viTri;
+    if (!viTri.empty()) {
+        viTriChuan = ChuanHoaViTri(viTri);
+        if (viTriChuan.empty()) {
+            return "Loi: Vi tri khong hop le! Vd: A-12, B5, Ke C-3";
+        }
+    }
 
     bool tenDoi = (d->tenSach != ChuyenThanhTitleCase(ten));  // kiem tra ten doi
     d->tenSach = ChuyenThanhTitleCase(ten);                   // cap nhat ten
@@ -621,6 +664,15 @@ std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn, const std
     d->tacGia = ChuyenThanhTitleCase(tg);                     // cap nhat tac gia
     d->namXuatBan = nam;                                       // cap nhat nam
     d->theLoai = ChuyenThanhTitleCase(tl);                    // cap nhat the loai
+    
+    // cap nhat vi tri cho tat ca ban sao (neu co)
+    if (!viTriChuan.empty()) {
+        PTRDMS p = d->dms;
+        while (p) {
+            p->viTri = viTriChuan;                             // cap nhat vi tri
+            p = p->next;
+        }
+    }
     
     if (tenDoi) {                                              // neu ten doi
         sapXepDauSachTheoTen(ds, 0, n - 1);                   // sap xep lai
