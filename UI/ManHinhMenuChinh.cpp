@@ -2,9 +2,9 @@
 #include "GiaoDienSFML.h"
 #include "TienIchGiaoDien.h"
 #include "ManHinhQuanLySach.h" 
-#include "TrangThaiManHinhDocGia.h"  // <--- THÊM DÒNG NÀY
+#include "TrangThaiManHinhDocGia.h"  
 #include "ManHinhQuanLyDocGia.h"
-#include "TrangThaiManHinhMuonTra.h" // <--- THÊM DÒNG NÀY
+#include "TrangThaiManHinhMuonTra.h"
 
 // Ve Man Hinh 
 void VeMenuChinhSFML(sf::RenderWindow& window, const sf::Font& font) {
@@ -43,14 +43,12 @@ void XuLySuKienMenuChinh(sf::RenderWindow& window, sf::Event event) {
                     CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
                     break;
                 
-                // [SỬA LỖI] Thay thế code placeholder
                 case NUT_QUAN_LY_DOC_GIA:
                     manHinhHienTai = QUAN_LY_DOC_GIA;
                     KhoiTaoManHinhDocGia(); // Goi ham khoi tao man hinh Doc Gia
                     CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Doc Gia.", 0);
                     break;
                 
-                // [SỬA LỖI] Thay thế code placeholder
                 case NUT_MUON_TRA_SACH:
                     manHinhHienTai = MUON_TRA_SACH;
                     KhoiTaoManHinhMuonTra(); // Goi ham khoi tao man hinh Muon Tra
@@ -80,14 +78,12 @@ void XuLySuKienMenuChinh(sf::RenderWindow& window, sf::Event event) {
                 CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
                 break;
                 
-            // [SỬA LỖI] Thay thế code placeholder
             case sf::Keyboard::Num2: case sf::Keyboard::Numpad2:
                 manHinhHienTai = QUAN_LY_DOC_GIA;
                 KhoiTaoManHinhDocGia();
                 CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Doc Gia.", 0);
                 break;
 
-            // [SỬA LỖI] Thay thế code placeholder
             case sf::Keyboard::Num3: case sf::Keyboard::Numpad3:
                 manHinhHienTai = MUON_TRA_SACH;
                 KhoiTaoManHinhMuonTra();

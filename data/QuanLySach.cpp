@@ -219,19 +219,6 @@ int timKiemLogic(PTRDS ds[], int n, const std::string &tk, KetQuaTimKiem kq[]) {
     return soKetQua;
 }
 
-// binary search the loai O(log N)
-static bool KiemTraTheLoaiTonTai(const std::string theLoaiCanTim, std::string mangTheLoai[], int soLuong) {
-    int left = 0, right = soLuong - 1;                         // chi so trai/phai
-    
-    while (left <= right) {                                    // binary search O(log N)
-        int mid = left + (right - left) / 2;                   // tranh overflow
-        
-        if (mangTheLoai[mid] == theLoaiCanTim)   return true;   // tim thay
-        else if (mangTheLoai[mid] < theLoaiCanTim)  left = mid + 1;  // tim ben phai
-        else right = mid - 1; // tim ben trai
-    }
-    return false;                                              // khong tim thay
-}
 
 // lay the loai duy nhat O(N + K log K) K la so the loai
 int TimTheLoaiDuyNhat(PTRDS ds[], int n, std::string mangTheLoai[]) {
@@ -307,71 +294,69 @@ int TimViTriDuyNhat(PTRDS ds[], int n, std::string mangViTri[]) {
 
 
 // hoan doi hai con tro dau sach
-void hoanDoiDauSach(PTRDS &a, PTRDS &b) {
-    PTRDS temp = a;                                           
-    a = b;                                                     
+void hoanDoi(PTRDS &a, PTRDS &b) {
+    PTRDS temp = a;
+    a = b;
     b = temp;
 }
 
 // hoan doi ket qua tim kiem
 void hoanDoiKetQua(KetQuaTimKiem &a, KetQuaTimKiem &b) {
-    KetQuaTimKiem temp = a;                                    
-    a = b;                                                      
+    KetQuaTimKiem temp = a;
+    a = b;
     b = temp;
 }
 
-// insertion sort dau sach O(N^2)
-void insertionSort(PTRDS arr[], int left, int right) {
-    for (int i = left + 1; i <= right; ++i) {                  // duyet tu left+1
-        PTRDS key = arr[i];                                     // lay phan tu hien tai
-        if (!key) continue;                                     // bo qua null
-        
-        int j = i - 1;                                          // vi tri so sanh
-        while (j >= left && arr[j] && arr[j]->tenSach > key->tenSach) {
-            arr[j + 1] = arr[j];                                // dich phai
-            --j;
-        }
-        arr[j + 1] = key;                                       // chen vao vi tri dung
-    }
+
+// lay vi tri median-of-three lam pivot O(1)
+int layPivotGiua(PTRDS arr[], int left, int right) {
+    int mid = left + (right - left) / 2;      // lay chi so giua
+
+    if (arr[mid] && arr[left] && arr[mid]->tenSach < arr[left]->tenSach)
+        hoanDoi(arr[left], arr[mid]);         // dua nho nhat ve left
+
+    if (arr[right] && arr[left] && arr[right]->tenSach < arr[left]->tenSach)
+        hoanDoi(arr[left], arr[right]);       // dua nho nhat ve left
+
+    if (arr[right] && arr[mid] && arr[right]->tenSach < arr[mid]->tenSach)
+        hoanDoi(arr[mid], arr[right]);        // dua lon nhat ve right
+
+    return mid;                              // tra ve vi tri median
 }
 
-// partition quicksort O(N)
-int partition(PTRDS arr[], int left, int right) {
-    if (left < 0 || right >= MAX_DAUSACH || left > right) {   // kiem tra bounds
-        return left;                                           // tra ve gia tri an toan
-    }
-    
-    PTRDS pivot = arr[right];                                  // chon pivot = phan tu cuoi
-    if (!pivot) return left;                                   // tranh loi null
-    
-    int i = left - 1;                                          // chi so phan tu < pivot
-    for (int j = left; j < right; ++j) {                       // duyet tu left den right-1
-        if (!arr[j]) continue;                                 // bo qua null
-        if (arr[j]->tenSach <= pivot->tenSach) {               // nho hon hoac bang pivot
-            hoanDoiDauSach(arr[++i], arr[j]);                  // doi vao phan ben trai
+// phan vung theo tenSach (quicksort) O(N)
+int phanVung(PTRDS arr[], int left, int right) {
+    if (left < 0 || right >= MAX_DAUSACH || left >= right)
+        return left;                          // kiem tra hop le
+
+    int viTriPivot = layPivotGiua(arr, left, right);   // chon pivot
+    hoanDoi(arr[viTriPivot], arr[right]);              // dua pivot ve cuoi
+
+    PTRDS pivot = arr[right];                          // lay gia tri pivot
+    if (!pivot) return left;                           // tranh loi null
+
+    int viTriNho = left - 1;                           // chi so vung nho
+
+    for (int j = left; j < right; ++j) {
+        if (!arr[j]) continue;                         // bo qua null
+        if (arr[j]->tenSach <= pivot->tenSach) {       // nho hon hoac bang pivot
+            viTriNho++;
+            hoanDoi(arr[viTriNho], arr[j]);           // dua sang ben trai
         }
     }
-    hoanDoiDauSach(arr[i + 1], arr[right]);                    // dat pivot vao vi tri dung
-    return i + 1;                                              // tra ve vi tri pivot
+
+    hoanDoi(arr[viTriNho + 1], arr[right]);           // dat pivot dung vi tri
+    return viTriNho + 1;                              // tra ve vi tri pivot
 }
 
-// quicksort + insertion sort O(N log N) trung binh, O(N^2) xau nhat
+// quicksort dau sach theo ten  O(N log N)
 void sapXepDauSachTheoTen(PTRDS arr[], int left, int right) {
-    if (left >= right || left < 0 || right >= MAX_DAUSACH) return;  // dieu kien dung
-    
-    try {
-        const int NGUONG_CHUYEN_INSERTION = 10;                // nguong chuyen sang insertion sort
-        
-        if (right - left > NGUONG_CHUYEN_INSERTION) {          // mang > 10 phan tu
-            int p = partition(arr, left, right);               // phan hoach O(N)
-            sapXepDauSachTheoTen(arr, left, p - 1);           // de quy trai
-            sapXepDauSachTheoTen(arr, p + 1, right);          // de quy phai
-        } else {                                               // mang <= 10 phan tu
-            insertionSort(arr, left, right);                   // insertion nhanh hon voi N nho
-        }
-    } catch (...) {                                            // bat loi stack overflow
-        insertionSort(arr, left, right);                       // fallback an toan
-    }
+    if (left >= right || left < 0 || right >= MAX_DAUSACH) return;    // dung khi rong, 1 ptu, > maxDuaSach
+
+    int viTriGiua = phanVung(arr, left, right);        // chia mang
+
+    sapXepDauSachTheoTen(arr, left, viTriGiua - 1);    // de quy trai
+    sapXepDauSachTheoTen(arr, viTriGiua + 1, right);   // de quy phai
 }
 
 // insertion sort ban sao O(N^2)

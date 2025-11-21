@@ -645,7 +645,6 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
     extern PTRDS dsDauSach[];
     extern int soLuongDauSach;
 
-    // TOI UU: Su dung cache thay vi tinh lai moi frame (da duoc cap nhat trong CapNhatDuLieuXemTheoTheLoai)
     // Tranh goi TimTheLoaiDuyNhat() O(N) + SapXepTheLoaiTheoTen() O(M log M) moi frame
     const std::string* cacTheLoai = currentState.cacTheLoaiCache;
     const int soTheLoai = currentState.soTheLoaiCache;
@@ -904,7 +903,7 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
     float modalRong = 800.f;
     float modalCao = 500.f;
     float modalX = (CHIEU_RONG - modalRong) / 2.f - 200.f; // Dich sang trai
-    float modalY = (CHIEU_CAO - modalCao) / 2.f;
+    float modalY = (CHIEU_CAO - modalCao) / 2.f - 40.f; // Dich len tren 40px
     float paddingNoiBo = 20.f;
 
     // Tim dau sach de lay ten va danh sach ban sao
