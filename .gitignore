@@ -57,5 +57,5 @@ DerivedData/
 TestResults/
 *.trx
 
-# 12. không đẩy makefile
+# 12. Không đẩy file cấu hình Makefile
 Makefile

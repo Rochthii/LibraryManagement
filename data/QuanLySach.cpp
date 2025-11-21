@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <ctime>
 #include <stdexcept>
+#include <sstream>
 
 
 //  BIEN TOAN CUC 
