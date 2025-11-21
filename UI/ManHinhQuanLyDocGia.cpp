@@ -628,6 +628,7 @@ static void ThucHienXoaDocGia(DocGiaState& s) {
 // ===============================================
 
 void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event) {
+    (void)window;
     extern PTRDG rootDocGia;
     extern PTRDS dsDauSach[];
     extern int soLuongDauSach;
