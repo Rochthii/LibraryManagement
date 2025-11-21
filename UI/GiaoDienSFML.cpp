@@ -1,11 +1,12 @@
-﻿#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
-#include "include/ManHinhMenuChinh.h"
-#include "include/ManHinhThongTin.h"
-#include "include/ManHinhQuanLySach.h"
+﻿#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
+#include "ManHinhMenuChinh.h"
+#include "ManHinhThongTin.h"
+#include "ManHinhQuanLySach.h"
 //cua binh
-#include "include/GiaoDienQuanLyDocGia.h"
-#include "include/GiaoDienMuonTra.h"
+#include "GiaoDienQuanLyDocGia.h"
+#include "ManHinhQuanLySach.h"
+#include "GiaoDienMuonTra.h"
 #include <iostream>
 
 // khai bao cac bien toan cuc
@@ -35,17 +36,31 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font) {
     window.clear(MAU_NEN);                                              // xoa man hinh (mau nen)
     soLuongElement = 0;                                                 // reset so luong element
 
-    switch (manHinhHienTai) {                                           // chon man hinh can ve
+    // Trong file GiaoDienSFML.cpp
+switch (manHinhHienTai) {
     case MENU_CHINH:
-        VeMenuChinhSFML(window, font);                                  // ve menu chinh
+        VeMenuChinhSFML(window, font);
         break;
     case MAN_HINH_THONG_TIN:
-        VeManHinhThongTinSFML(window, font);                            // ve man hinh thong tin
+        VeManHinhThongTinSFML(window, font);
         break;
     case QUAN_LY_SACH:
-        VeManHinhQuanLySach(window, font);                              // ve man hinh quan ly sach
+        VeManHinhQuanLySach(window, font);
         break;
-    }
+
+    // [THÊM 2 CASE NÀY VÀO]
+    case QUAN_LY_DOC_GIA:
+        VeManHinhQuanLyDocGia(window, font); // Tên hàm phải khớp
+        break;
+    case MUON_TRA_SACH:
+        VeManHinhMuonTra(window, font); // Tên hàm phải khớp
+        break;
+
+    // (Thêm default để tắt cảnh báo hoàn toàn)
+    default:
+        VeMenuChinhSFML(window, font); // Quay về menu nếu không rõ
+        break;
+}
 
     // ve tat ca cac element da tao (nut, input)
     for (int i = 0; i < soLuongElement; ++i) {
@@ -83,18 +98,30 @@ static void XuLySuKienSFML(sf::RenderWindow &window) {
         }
 
         // dieu phoi su kien den dung man hinh
+        // Trong file GiaoDienSFML.cpp
         switch (manHinhHienTai) {
-        case MENU_CHINH:
-            XuLySuKienMenuChinh(window, event);                         // xu ly su kien menu
-            break;
-        case MAN_HINH_THONG_TIN:
-            XuLySuKienThongTin(window, event);                          // xu ly su kien thong tin
-            break;
-        case QUAN_LY_SACH:
-            XuLySuKienManHinhSach(window, event);                       // xu ly su kien quan ly sach
-            break;
-        }
+            case MENU_CHINH:
+                XuLySuKienMenuChinh(window, event);
+                break;
+            case MAN_HINH_THONG_TIN:
+                XuLySuKienThongTin(window, event);
+                break;
+            case QUAN_LY_SACH:
+                XuLySuKienManHinhSach(window, event);
+                break;
 
+        // [THÊM 2 CASE NÀY VÀO]
+            case QUAN_LY_DOC_GIA:
+                XuLySuKienManHinhDocGia(window, event); // Tên hàm phải khớp
+                break;
+            case MUON_TRA_SACH:
+                XuLySuKienManHinhMuonTra(window, event); // Tên hàm phải khớp
+                break;
+
+        // (Thêm default để tắt cảnh báo hoàn toàn)
+            default:
+                break;
+            }
         // xu ly escape toan cuc (neu man hinh con khong xu ly)
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
             if (manHinhHienTai == MENU_CHINH) {                         // neu dang o menu
@@ -124,22 +151,51 @@ void CapNhatThongBaoSFML(const std::string &msg, int loai) {
     loaiThongBao = loai;                                                // cap nhat loai (0: normal, 1: error, 2: success)
 }
 
+// ... (giữ nguyên các phần include và biến toàn cục)
+
+// ... (giữ nguyên KhoiTaoGiaoDienSFML, VeManHinhHienTai, XuLySuKienSFML, ChayChuongTrinhSFML)
+
+// CẬP NHẬT HÀM NÀY
 MaUI LayElementTaiToaDo(int mouseX, int mouseY) {
-    // kiem tra cac element nut/input truoc
+    // 1. Kiểm tra các nút/input trước (ưu tiên cao nhất)
     for (int i = 0; i < soLuongElement; ++i) {
         if (cacElement[i].hinhDang.getGlobalBounds().contains(static_cast<float>(mouseX), static_cast<float>(mouseY))) {
-            return cacElement[i].id;                                    // tra ve id neu trung
+            return cacElement[i].id;
         }
     }
 
-    // kiem tra logic rieng cho man hinh quan ly sach (bang danh sach)
+    // 2. Kiểm tra vùng bảng danh sách (dựa trên màn hình hiện tại)
+    float tableTop, tableBottom;
+    
     if (manHinhHienTai == QUAN_LY_SACH) {
-        float tableTop = BANG_Y + 90 + 30;                              // y bat dau bang
-        float tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2); // y ket thuc bang
-
-        if (mouseX >= BANG_X + PADDING && mouseX < BANG_X + BANG_RONG - PADDING && mouseY >= tableTop && mouseY < tableBottom) {
-            return HANG_SACH;                                           // tra ve id hang sach
+        tableTop = BANG_Y + 90 + 30;
+        tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2);
+        
+        if (mouseX >= BANG_X + PADDING && mouseX < BANG_X + BANG_RONG - PADDING && 
+            mouseY >= tableTop && mouseY < tableBottom) {
+            return HANG_SACH; // Trả về ID chung để xử lý click dòng
         }
     }
-    return KHONG_XAC_DINH;                                              // khong trung element nao
+    // --- THÊM MỚI: Xử lý bảng Độc Giả ---
+    else if (manHinhHienTai == QUAN_LY_DOC_GIA) {
+        tableTop = BANG_Y + 50.f + 40.f + 35.f; // Header Y + height + padding
+        tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2);
+        
+        if (mouseX >= BANG_X + PADDING && mouseX < BANG_X + BANG_RONG - PADDING && 
+            mouseY >= tableTop && mouseY < tableBottom) {
+            return HANG_SACH;
+        }
+    }
+    // --- THÊM MỚI: Xử lý bảng Mượn Trả ---
+    else if (manHinhHienTai == MUON_TRA_SACH) {
+        // Màn hình mượn trả có vùng bảng khác nhau tùy chế độ, 
+        // nhưng ta có thể bắt chung vùng lớn ở giữa màn hình
+        // Logic chi tiết (dòng nào, tọa độ nào) sẽ do ManHinhMuonTra.cpp tính toán lại chính xác
+        if (mouseY > BANG_Y + 150.f && mouseY < CHIEU_CAO - 50.f && 
+            mouseX >= BANG_X && mouseX <= BANG_X + BANG_RONG) {
+            return HANG_SACH;
+        }
+    }
+
+    return KHONG_XAC_DINH;
 }
