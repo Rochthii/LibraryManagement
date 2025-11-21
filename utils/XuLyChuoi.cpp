@@ -33,7 +33,7 @@ inline bool laKyTuKhoangTrang(char kyTu) {
 // Chuyen toan bo chuoi thanh chu hoa
 std::string ChuyenInHoa(const std::string& chuoi) {
     std::string ketQua = chuoi;
-    for (int i = 0; i < (int)ketQua.length(); ++i) {
+    for (size_t i = 0; i < ketQua.length(); ++i) {
         ketQua[i] = std::toupper(static_cast<unsigned char>(ketQua[i]));
     }
     return ketQua;
@@ -42,7 +42,7 @@ std::string ChuyenInHoa(const std::string& chuoi) {
 // Chuyen toan bo chuoi thanh chu thuong
 std::string ChuyenInThuong(const std::string& chuoi) {
     std::string ketQua = chuoi;
-    for (int i = 0; i < (int)ketQua.length(); ++i) {
+    for (size_t i = 0; i < ketQua.length(); ++i) {
         ketQua[i] = std::tolower(static_cast<unsigned char>(ketQua[i]));
     }
     return ketQua;
@@ -53,7 +53,7 @@ std::string ChuyenThanhTitleCase(const std::string& chuoi) {
     std::string ketQua = ChuyenInThuong(chuoi);
     bool laDauTu = true;
     
-    for (int i = 0; i < (int)ketQua.length(); ++i) {
+    for (size_t i = 0; i < ketQua.length(); ++i) {
         char kyTu = ketQua[i];
         if (laDauTu && laKyTuChuThuong(kyTu)) {
             ketQua[i] = kyTu - 'a' + 'A';
@@ -67,11 +67,59 @@ std::string ChuyenThanhTitleCase(const std::string& chuoi) {
     return ketQua;
 }
 
+// Bo dau tieng Viet va chuyen thanh chu thuong (dung cho so sanh)
+std::string BoDauVaThuong(const std::string& chuoi) {
+    // Buoc 1: Chuyen sang chu thuong
+    std::string ketQua = ChuyenInThuong(chuoi);
+    
+    // Buoc 2: Bo dau Unicode tieng Viet (thay the ky tu co dau thanh khong dau)
+    // Map: ky tu co dau -> ky tu khong dau (dung cho tieng Viet UTF-8)
+    const char* coDau[] = {
+        "à", "á", "ả", "ã", "ạ", "ă", "ằ", "ắ", "ẳ", "ẵ", "ặ",
+        "â", "ầ", "ấ", "ẩ", "ẫ", "ậ",
+        "è", "é", "ẻ", "ẽ", "ẹ", "ê", "ề", "ế", "ể", "ễ", "ệ",
+        "ì", "í", "ỉ", "ĩ", "ị",
+        "ò", "ó", "ỏ", "õ", "ọ", "ô", "ồ", "ố", "ổ", "ỗ", "ộ",
+        "ơ", "ờ", "ớ", "ở", "ỡ", "ợ",
+        "ù", "ú", "ủ", "ũ", "ụ", "ư", "ừ", "ứ", "ử", "ữ", "ự",
+        "ỳ", "ý", "ỷ", "ỹ", "ỵ",
+        "đ"
+    };
+    const char* khongDau[] = {
+        "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a",
+        "a", "a", "a", "a", "a", "a",
+        "e", "e", "e", "e", "e", "e", "e", "e", "e", "e", "e",
+        "i", "i", "i", "i", "i",
+        "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o",
+        "o", "o", "o", "o", "o", "o",
+        "u", "u", "u", "u", "u", "u", "u", "u", "u", "u", "u",
+        "y", "y", "y", "y", "y",
+        "d"
+    };
+    
+    const int soKyTu = 69; // Tong so cap ky tu co dau -> khong dau
+    
+    // Thay the tung ky tu co dau
+    for (int i = 0; i < soKyTu; ++i) {
+        size_t pos = 0;
+        std::string timKiem = coDau[i];
+        std::string thayThe = khongDau[i];
+        
+        // Tim va thay the tat ca xuat hien
+        while ((pos = ketQua.find(timKiem, pos)) != std::string::npos) {
+            ketQua.replace(pos, timKiem.length(), thayThe);
+            pos += thayThe.length();
+        }
+    }
+    
+    return ketQua;
+}
+
 //CAT VA CHUAN HOA KHOANG TRANG 
 
 // Cat khoang trang dau va cuoi chuoi
 std::string CatKhoangTrang(const std::string& chuoi) {
-    int viTriTrai = 0, viTriPhai = chuoi.size();
+    size_t viTriTrai = 0, viTriPhai = chuoi.size();
     
     while (viTriTrai < viTriPhai && laKyTuKhoangTrang(chuoi[viTriTrai])) {
         ++viTriTrai;
@@ -89,7 +137,7 @@ std::string ChuanHoaKhoangTrang(const std::string& chuoi) {
     ketQua.reserve(chuoi.size());
     bool coKhoangTrangTruocDo = false;
     
-    for (int i = 0; i < (int)chuoi.length(); ++i) {
+    for (size_t i = 0; i < chuoi.length(); ++i) {
         char kyTu = chuoi[i];
         char kyTuXuLy = laKyTuKhoangTrang(kyTu) ? ' ' : kyTu;
         
@@ -114,7 +162,7 @@ std::string LayChiCacKyTuSo(const std::string& chuoi) {
     std::string ketQua;
     ketQua.reserve(chuoi.size());
     
-    for (int i = 0; i < (int)chuoi.length(); ++i) {
+    for (size_t i = 0; i < chuoi.length(); ++i) {
         if (laKyTuSo(chuoi[i])) {
             ketQua.push_back(chuoi[i]);
         }
@@ -124,7 +172,7 @@ std::string LayChiCacKyTuSo(const std::string& chuoi) {
 
 // Kiem tra chuoi co rong hoac chi chua khoang trang
 bool KiemTraChuoiRongHoacKhoangTrang(const std::string& chuoi) {
-    for (int i = 0; i < (int)chuoi.length(); ++i) {
+    for (size_t i = 0; i < chuoi.length(); ++i) {
         if (!laKyTuKhoangTrang(chuoi[i])) {
             return false;
         }
@@ -141,7 +189,7 @@ bool ChuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiCho
     }
     
     long long dau = 1;
-    int viTri = 0;
+    size_t viTri = 0;
     
     // Kiem tra dau am
     if (chuoi[0] == '-') {
@@ -157,7 +205,7 @@ bool ChuyenChuoiThanhSoNguyen(const std::string& chuoi, int& ketQua, bool chiCho
     
     // Chuyen doi tung ky tu thanh so
     long long soTichLuy = 0;
-    for (; viTri < (int)chuoi.size(); ++viTri) {
+    for (; viTri < chuoi.size(); ++viTri) {
         if (!laKyTuSo(chuoi[viTri])) {
             return false;
         }
@@ -182,7 +230,7 @@ std::string ChuanHoaChuoiTimKiem(const std::string& chuoi) {
     bool coKhoangTrangTruocDo = false;
     bool daBatDau = false;
     
-    for (int i = 0; i < (int)chuoi.length(); ++i) {
+    for (size_t i = 0; i < chuoi.length(); ++i) {
         char kyTu = chuoi[i];
         char kyTuThuong = std::tolower(static_cast<unsigned char>(kyTu));
         char kyTuXuLy = laKyTuKhoangTrang(kyTuThuong) ? ' ' : kyTuThuong;
@@ -236,7 +284,7 @@ std::string ChuanHoaViTri(const std::string& chuoiViTri) {
     
     // Lambda kiem tra co chu so trong chuoi
     auto coChuSo = [](const std::string& chuoiKiemTra) {
-        for (int i = 0; i < (int)chuoiKiemTra.length(); ++i) {
+        for (size_t i = 0; i < chuoiKiemTra.length(); ++i) {
             if (chuoiKiemTra[i] >= '0' && chuoiKiemTra[i] <= '9') {
                 return true;
             }
@@ -274,8 +322,7 @@ std::string ChuanHoaViTri(const std::string& chuoiViTri) {
         return std::string("Ke ") + ChuyenInHoa(chuoiSach);
     }
     
-    // Neu khong khop bat ky dieu kien nao -> khong hop le
-    return std::string();
+    return chuoiSach;
 }
 
 //CHUAN HOA DU LIEU 
@@ -329,7 +376,7 @@ std::string ChuanHoaTenUnicode(const std::string& chuoiDauVao, size_t doDaiToiTh
     }
     
     // Kiem tra cac ky tu con lai
-    for (int i = 1; i < (int)chuoiDaCat.length(); ++i) {
+    for (size_t i = 1; i < chuoiDaCat.length(); ++i) {
         char kyTu = chuoiDaCat[i];
         bool kyTuHopLe = laKyTuChuCai(kyTu) || laKyTuSo(kyTu) || laKyTuKhoangTrang(kyTu) ||
                          kyTu == '+' || kyTu == '#' || kyTu == '-' || 
@@ -381,7 +428,7 @@ bool TachTruong(const std::string& dong, char kyTuPhanCach, std::string mangKetQ
     int chiSoTruong = 0;
     std::string truongHienTai;
     
-    for (int i = 0; i < (int)dong.length(); ++i) {
+    for (size_t i = 0; i < dong.length(); ++i) {
         char kyTu = dong[i];
         
         if (kyTu == kyTuPhanCach) {
@@ -407,7 +454,7 @@ int TachTokenKhoangTrang(const std::string& chuoi, std::string mangToken[], int 
     int soToken = 0;
     std::string tokenHienTai;
     
-    for (int i = 0; i < (int)chuoi.length(); ++i) {
+    for (size_t i = 0; i < chuoi.length(); ++i) {
         char kyTu = chuoi[i];
         
         if (laKyTuKhoangTrang(kyTu)) {

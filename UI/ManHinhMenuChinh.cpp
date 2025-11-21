@@ -1,7 +1,10 @@
-#include "include/ManHinhMenuChinh.h"
-#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
-#include "include/ManHinhQuanLySach.h" 
+#include "ManHinhMenuChinh.h"
+#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
+#include "ManHinhQuanLySach.h" 
+#include "TrangThaiManHinhDocGia.h"  // <--- THÊM DÒNG NÀY
+#include "ManHinhQuanLyDocGia.h"
+#include "TrangThaiManHinhMuonTra.h" // <--- THÊM DÒNG NÀY
 
 // Ve Man Hinh 
 void VeMenuChinhSFML(sf::RenderWindow& window, const sf::Font& font) {
@@ -37,18 +40,32 @@ void XuLySuKienMenuChinh(sf::RenderWindow& window, sf::Event event) {
                 case NUT_QUAN_LY_DAU_SACH:
                     manHinhHienTai = QUAN_LY_SACH;
                     KhoiTaoManHinhSach(); // Reset lai man hinh sach
+                    CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
                     break;
+                
+                // [SỬA LỖI] Thay thế code placeholder
+                case NUT_QUAN_LY_DOC_GIA:
+                    manHinhHienTai = QUAN_LY_DOC_GIA;
+                    KhoiTaoManHinhDocGia(); // Goi ham khoi tao man hinh Doc Gia
+                    CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Doc Gia.", 0);
+                    break;
+                
+                // [SỬA LỖI] Thay thế code placeholder
+                case NUT_MUON_TRA_SACH:
+                    manHinhHienTai = MUON_TRA_SACH;
+                    KhoiTaoManHinhMuonTra(); // Goi ham khoi tao man hinh Muon Tra
+                    CapNhatThongBaoSFML("Chuyen den man hinh Muon Tra Sach.", 0);
+                    break;
+
                 case NUT_THONG_TIN:
                     manHinhHienTai = MAN_HINH_THONG_TIN;
+                    CapNhatThongBaoSFML("Chuyen den man hinh Thong Tin.", 0);
                     break;
                 case NUT_THOAT:
                     window.close();
                     yeuCauThoat = true;
                     break;
-                case NUT_QUAN_LY_DOC_GIA:
-                case NUT_MUON_TRA_SACH:
-                    CapNhatThongBaoSFML("Chuc nang chua duoc thuc hien!", 1);
-                    break;
+
                 default:
                     break;
             }
@@ -60,18 +77,33 @@ void XuLySuKienMenuChinh(sf::RenderWindow& window, sf::Event event) {
             case sf::Keyboard::Num1: case sf::Keyboard::Numpad1:
                 manHinhHienTai = QUAN_LY_SACH;
                 KhoiTaoManHinhSach();
+                CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
                 break;
+                
+            // [SỬA LỖI] Thay thế code placeholder
+            case sf::Keyboard::Num2: case sf::Keyboard::Numpad2:
+                manHinhHienTai = QUAN_LY_DOC_GIA;
+                KhoiTaoManHinhDocGia();
+                CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Doc Gia.", 0);
+                break;
+
+            // [SỬA LỖI] Thay thế code placeholder
+            case sf::Keyboard::Num3: case sf::Keyboard::Numpad3:
+                manHinhHienTai = MUON_TRA_SACH;
+                KhoiTaoManHinhMuonTra();
+                CapNhatThongBaoSFML("Chuyen den man hinh Muon Tra Sach.", 0);
+                break;
+
             case sf::Keyboard::Num4: case sf::Keyboard::Numpad4:
                 manHinhHienTai = MAN_HINH_THONG_TIN;
+                CapNhatThongBaoSFML("Chuyen den man hinh Thong Tin.", 0);
                 break;
+                
             case sf::Keyboard::Num5: case sf::Keyboard::Numpad5:
                 window.close();
                 yeuCauThoat = true;
                 break;
-            case sf::Keyboard::Num2: case sf::Keyboard::Numpad2:
-            case sf::Keyboard::Num3: case sf::Keyboard::Numpad3:
-                CapNhatThongBaoSFML("Chuc nang chua duoc thuc hien!", 1);
-                break;
+                
             default:
                 break;
         }

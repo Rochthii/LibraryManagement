@@ -1,6 +1,6 @@
-#include "include/ManHinhThongTin.h"
-#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
+#include "ManHinhThongTin.h"
+#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
 
 void VeManHinhThongTinSFML(sf::RenderWindow &window, const sf::Font &font){
     float centerX = CHIEU_RONG / 2.0f;                                   // tinh toa do giua man hinh
