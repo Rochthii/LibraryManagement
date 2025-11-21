@@ -69,58 +69,69 @@ enum TrangThaiManHinh {
     MAN_HINH_THONG_TIN, // man hinh gioi thieu thong tin
     QUAN_LY_SACH        // man hinh quan ly dau sach
     //co the them MAN_HINH_DOC_GIA, MAN_HINH_MUON_TRA,...
+    QUAN_LY_DOC_GIA,    // Mới
+    MUON_TRA_SACH       // Mới
 };
 
 // Ma Dinh Danh UI Elements
 // enum de gan id duy nhat cho moi nut bam, o nhap lieu, hoac khu vuc tuong tac khac
 // giup ham xu ly su kien biet duoc element nao vua duoc tuong tac
 enum MaUI {
-    // Nut Menu
+    // --- CHUNG ---
+    KHONG_XAC_DINH,
+    NUT_BACK,           // Nút quay lại
+    HANG_SACH,          // Click vào dòng trong bảng
+
+    // --- MENU CHÍNH ---
     NUT_QUAN_LY_DAU_SACH,
-    NUT_QUAN_LY_DOC_GIA,  // chua lam
-    NUT_MUON_TRA_SACH,    // chua lam
+    NUT_QUAN_LY_DOC_GIA,
+    NUT_MUON_TRA_SACH,
     NUT_THONG_TIN,
     NUT_THOAT,
-    NUT_BACK,             // nut quay lai menu / huy sua
 
-    // Elements tren man hinh Quan Ly Sach
-    INPUT_TIM_SACH,       // o nhap tu khoa tim kiem
-    NUT_TIM,              // nut tim kiem
-    NUT_XOA_TIM,          // nut xoa trang o tim kiem va reset bang
+    // --- QUẢN LÝ SÁCH (CŨ & BỔ SUNG THIẾU) ---
+    INPUT_TIM_SACH, NUT_TIM, NUT_XOA_TIM,
     NUT_CHUYEN_CHE_DO_XEM,
-    INPUT_ISBN,
-    INPUT_TEN_SACH,
-    INPUT_SO_TRANG,
-    INPUT_TAC_GIA,
-    INPUT_NAM_XB,
-    INPUT_THE_LOAI,
-    INPUT_VI_TRI,
-    INPUT_SO_LUONG,       // chi hien khi them moi
-    NUT_THEM_SACH,        // cung la nut "luu thay doi" khi sua
-    NUT_SUA,              // nut chuan bi sua sach da chon
-    NUT_XOA,              // nut hien hop thoai xac nhan xoa
-    NUT_XAC_NHAN_XOA,     // nut xac nhan xoa trong hop thoai
-    NUT_HUY_XOA,          // nut huy xoa trong hop thoai
-    NUT_TRANG_TRUOC,      // nut chuyen trang bang sach
-    NUT_TRANG_SAU,
-    NUT_HUY_CHON,         // nut bo chon sach dang highlight
-    HANG_SACH,            // id ao dai dien cho viec click vao mot hang trong bang sach
-    NUT_MODAL_TRANG_TRUOC, 
-    NUT_MODAL_TRANG_SAU,
+    INPUT_ISBN, INPUT_TEN_SACH, INPUT_SO_TRANG, 
+    INPUT_TAC_GIA, INPUT_NAM_XB, INPUT_THE_LOAI, INPUT_SO_LUONG,
+    INPUT_VI_TRI,          // <--- Bổ sung ID bị thiếu
+    NUT_THEM_SACH, NUT_SUA, NUT_XOA, 
+    NUT_XAC_NHAN_XOA, NUT_HUY_XOA,
+    NUT_TRANG_TRUOC, NUT_TRANG_SAU, NUT_HUY_CHON,
+    NUT_MODAL_TRANG_TRUOC, NUT_MODAL_TRANG_SAU,
 
-    // Nut cho Modal Chi Tiet Ban Sao
-    NUT_CHI_TIET_SACH,        // nut mo modal chi tiet
-    NUT_DONG_MODAL_CHITIET,   // nut dong modal chi tiet
-    NUT_XAC_NHAN_THANHLY,     // nut xac nhan thanh ly trong hop thoai con
-    NUT_HUY_THANHLY,          // nut huy thanh ly trong hop thoai con
-    NUT_XAC_NHAN_XOA_BANSAO,  // nut xac nhan xoa ban sao
-    NUT_HUY_XOA_BANSAO,       // nut huy xoa ban sao
-    // Nut cho modal Them Ban Sao 
-    NUT_THEM_BAN_SAO,         // Nut mo modal
-    INPUT_SO_LUONG_THEM,      // O nhap so luong trong modal
-    NUT_XAC_NHAN_THEM_BS,     // Nut xac nhan them trong modal
-    NUT_HUY_THEM_BS,          // Nut huy them trong modal
-    KHONG_XAC_DINH            // id mac dinh khi khong click vao element nao
+    // Modal chi tiết bản sao
+    NUT_CHI_TIET_SACH, NUT_DONG_MODAL_CHITIET,
+    NUT_XAC_NHAN_THANHLY, NUT_HUY_THANHLY,
+    NUT_XAC_NHAN_XOA_BANSAO, NUT_HUY_XOA_BANSAO, // <--- Bổ sung ID bị thiếu
+
+    // Modal thêm bản sao
+    NUT_THEM_BAN_SAO, INPUT_SO_LUONG_THEM, 
+    NUT_XAC_NHAN_THEM_BS, NUT_HUY_THEM_BS,
+
+    // --- QUẢN LÝ ĐỘC GIẢ (MỚI) ---
+    NUT_XEM_THEO_MA, NUT_XEM_THEO_TEN, NUT_XEM_QUA_HAN,
+    INPUT_HO_DOC_GIA, INPUT_TEN_DOC_GIA,
+    NUT_THEM_DOC_GIA, NUT_LUU_DOC_GIA, NUT_HUY_DOC_GIA,
+    NUT_CHI_TIET_DOC_GIA, NUT_SUA_DOC_GIA, NUT_XOA_DOC_GIA, NUT_HUY_CHON_DOC_GIA,
+    NUT_TRANG_TRUOC_DG, NUT_TRANG_SAU_DG,
+    NUT_XAC_NHAN_XOA_DG, NUT_HUY_XOA_DG,
+    NUT_DONG_MODAL_DG,
+
+    // --- MƯỢN TRẢ SÁCH (MỚI) ---
+    NUT_MT_VAO_MUON_TRA, NUT_MT_VAO_TOP_10,
+    
+    // Dock Trái
+    INPUT_MT_TIM_DOC_GIA, INPUT_MT_TIM_SACH,
+    NUT_MT_TIM_DG_BTN, NUT_MT_TIM_SACH_BTN,
+    NUT_MT_PREV_PAGE, NUT_MT_NEXT_PAGE,
+
+    // Dock Phải
+    NUT_MT_HANHDONG_XEM, NUT_MT_HANHDONG_MUON, NUT_MT_HANHDONG_TRA,
+    NUT_MT_XAC_NHAN_MUON, NUT_MT_XAC_NHAN_TRA, NUT_MT_HUY_HANH_DONG,
+    
+    // Modal xác nhận Mượn/Trả
+    NUT_MT_XAC_NHAN_MODAL, NUT_MT_HUY_MODAL
 };
 
 // Cau truc UI Element chung
