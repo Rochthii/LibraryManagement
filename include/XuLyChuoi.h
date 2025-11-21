@@ -43,6 +43,9 @@ std::string ChuanHoaISBNFile(const std::string& chuoiISBN, std::string& ketQua);
 // Chuan hoa ngay thang
 bool ChuanHoaNgay(std::string& chuoiNgay, std::ostream& out);
 
+// Bo dau va chuyen thanh chu thuong (dung cho so sanh)
+std::string BoDauVaThuong(const std::string& chuoi);
+
 // ===== STRUCT VA HAM HO TRO TIM KIEM =====
 
 struct ThongTinSachChuanHoa {

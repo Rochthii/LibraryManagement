@@ -1,16 +1,15 @@
-﻿#include "include/ManHinhQuanLySach.h"
-#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
-#include "include/TrangThaiManHinhSach.h"
-#include "include/QuanLySach.h"
-#include "include/KiemTraDuLieu.h"
-#include "include/XuLyChuoi.h"
-#include "include/Constants.h"
-#include "include/NgayThang.h"
+﻿#include "ManHinhQuanLySach.h"
+#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
+#include "TrangThaiManHinhSach.h"
+#include "QuanLySach.h"
+#include "KiemTraDuLieu.h"
+#include "XuLyChuoi.h"
+#include "Constants.h"
+#include "NgayThang.h"
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-
 
 // Bien trang thai duy nhat cho toan bo man hinh
 static SachState state;
