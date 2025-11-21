@@ -56,3 +56,6 @@ DerivedData/
 # 11. Không đẩy file kết quả test
 TestResults/
 *.trx
+
+# 12. không đẩy makefile
+Makefile
