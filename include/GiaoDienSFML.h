@@ -69,7 +69,7 @@ enum TrangThaiManHinh {
     MAN_HINH_THONG_TIN, // man hinh gioi thieu thong tin
     QUAN_LY_SACH        // man hinh quan ly dau sach
     //co the them MAN_HINH_DOC_GIA, MAN_HINH_MUON_TRA,...
-    QUAN_LY_DOC_GIA,    // Mới
+    QUAN_LY_DOC_GIA    // Mới
     MUON_TRA_SACH       // Mới
 };
 

@@ -50,7 +50,14 @@ struct SachState {
     float scrollOffsetYTheLoai = 0.f;
     float totalContentHeightTheLoai = 0.f;
     sf::View theLoaiView;
-
+    
+    // Cache danh sach the loai va vi tri (chi cap nhat khi du lieu thay doi)
+    std::string cacTheLoaiCache[MAX_DAUSACH];
+    int soTheLoaiCache = 0;
+    std::string cacViTriCache[MAX_DAUSACH];
+    int soViTriCache = 0;
+    bool canCapNhatCache = true; // Flag danh dau can cap nhat cache
+    
     // Trang thai form nhap lieu
     std::string chuoiTimKiem = "";
     std::string chuoiISBN = "";
