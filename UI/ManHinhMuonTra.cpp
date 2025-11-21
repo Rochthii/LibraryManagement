@@ -26,7 +26,7 @@ const float DOCK_R_W = CHIEU_RONG - DOCK_R_X - PADDING;
 const float DOCK_R_H = DOCK_L_H;
 
 // Helper: Cắt chuỗi hiển thị
-static std::string CatText(std::string str, int len) {
+static inline std::string CatText(std::string str, size_t len) { // Đổi int -> size_t
     return (str.length() > len) ? str.substr(0, len-3) + "..." : str;
 }
 
@@ -67,6 +67,7 @@ static void TimKiemSachDeMuon() {
 
 // --- Màn hình MENU (Home) ---
 static void VeMenuMuonTra(sf::RenderWindow &window, const sf::Font &font) {
+    (void)window;
     float btnW = 400.f;
     float btnH = 200.f;
     float startX = (CHIEU_RONG - btnW*2 - 50.f)/2;
@@ -210,7 +211,7 @@ static void VeDockPhai(sf::RenderWindow &window, const sf::Font &font) {
                 std::string row = std::to_string(i+1) + ". " + s.listSachDangMuon[i].maSach + " - " + CatText(s.listSachDangMuon[i].tenSach, 25);
                 
                 // Nút giả lập dòng
-                MaUI idBtn = (s.buocHienTai == BUOC_TRA_SACH) ? HANG_SACH : KHONG_XAC_DINH; // Chỉ click được khi Trả
+                //MaUI idBtn = (s.buocHienTai == BUOC_TRA_SACH) ? HANG_SACH : KHONG_XAC_DINH; // Chỉ click được khi Trả
                 // Logic vẽ custom để xử lý click sau
                 sf::Text tR = TaoVanBan(font, row, FONT_SIZE_NHO, selected ? MAU_NHAN : MAU_CHU);
                 tR.setPosition(cX, cY);
@@ -300,6 +301,7 @@ void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font) {
 // =====================================================
 
 void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
+    (void)window;
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
         MaUI id = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
 

@@ -1,4 +1,4 @@
-#include "include/TienIchGiaoDien.h"
+#include "TienIchGiaoDien.h"
 #include <algorithm>                                                    // dung std::min de gioi han gia tri mau
 
 // file chua cac ham helper ve ui co ban (van ban, khung, nut, input)

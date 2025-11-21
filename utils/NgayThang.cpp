@@ -47,7 +47,7 @@ time_t ChuyenNgaySangTimeT(const std::string &ngay, std::ostream &out) {
 }
 
 // Tinh so ngay qua han muon sach
-int tinhSoNgayQuaHan(const std::string &ngayMuon, std::ostream &out){
+int tinhSoNgayQuaHan(std::string ngayMuon, std::ostream& out){
     time_t now = time(nullptr);                             // lay thoi gian hien tai
     time_t tMuon = ChuyenNgaySangTimeT(ngayMuon, out);     // chuyen ngay muon sang time_t
     if (tMuon == -1) return -1;                            // loi chuyen doi

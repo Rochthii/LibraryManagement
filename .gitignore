@@ -56,3 +56,11 @@ DerivedData/
 # 11. Không đẩy file kết quả test
 TestResults/
 *.trx
+
+# 12. Không đẩy file cấu hình Makefile
+Makefile
+
+main.exe
+app
+
+bin/

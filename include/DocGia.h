@@ -5,7 +5,6 @@
 #include "DauSach.h"
 using namespace std;
 
-
 //danh sach muon tra
 struct MuonTra{
     PTRDMS banSaoSach;// thay the string maSach thanh con tro chi toi DanhMucSach* va khai bao trang thai 
@@ -74,6 +73,7 @@ void display(PTRDG root); // Hàm in 1 độc giả
 void hieuChinhDocGia(PTRDG root, const TheDocGia& new_data);
 
 // Prototype cho chức năng sắp xếp (b)
+void QuickSortDocGia(PTRDG arr[], int low, int high);
 void DuyetCayRaMang(PTRDG root, PTRDG arr[], int &count);
 void InDocGiaTheoTenHo(PTRDG root); // In ra danh sách sắp xếp theo Tên+Họ
 
