@@ -1,398 +1,1110 @@
-// [FILE: ManHinhMuonTra.cpp]
-#include "TrangThaiManHinhMuonTra.h"
-#include "GiaoDienSFML.h"
-#include "TienIchGiaoDien.h"
-#include "DocGia.h"
-#include "QuanLySach.h"
-#include "Constants.h"
-#include "XuLyChuoi.h"
 
-static MuonTraState s;
+#include "include/GiaoDienMuonTra.h"
+#include "include/TrangThaiManHinhMuonTra.h"
+#include "include/GiaoDienSFML.h"
+#include "include/TienIchGiaoDien.h"
+#include "include/DocGia.h"
+#include "include/QuanLySach.h"
+#include "include/XuLyChuoi.h"
+#include "include/KiemTraDuLieu.h"
+#include "include/NgayThang.h"
+#include "include/Constants.h"
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#include <functional>
 
-// Externs
-extern PTRDG rootDocGia;
-extern PTRDS dsDauSach[];
-extern int soLuongDauSach;
+// ===== BIẾN TRẠNG THÁI DUY NHẤT =====
+static MuonTraState state;
 
-// Constants Layout Dock
-const float DOCK_L_X = PADDING;
-const float DOCK_L_Y = THANH_TAB_CAO + PADDING;
-const float DOCK_L_W = CHIEU_RONG * 0.55f; // Dock trái 55%
-const float DOCK_L_H = CHIEU_CAO - DOCK_L_Y - PADDING;
+// ===== KHAI BÁO HÀM NỘI BỘ (static) =====
+static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState);
+static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState);
+static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState);
+static void VeModalTop10(sf::RenderWindow &window, const sf::Font &font, MuonTraState& currentState);
+static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTraState& currentState);
 
-const float DOCK_R_X = DOCK_L_X + DOCK_L_W + PADDING;
-const float DOCK_R_Y = DOCK_L_Y;
-const float DOCK_R_W = CHIEU_RONG - DOCK_R_X - PADDING;
-const float DOCK_R_H = DOCK_L_H;
+static void XuLyTextInput(sf::Event event, MuonTraState& currentState);
+static void ThucHienTimKiemNoiBo(MuonTraState& currentState);
+static void ThucHienMuonSachSFML(MuonTraState& currentState);
+static void ThucHienTraSachSFML(MuonTraState& currentState);
+static void ThucHienBaoMatSachSFML(MuonTraState& currentState);
+static void TaiDuLieuTop10(MuonTraState& currentState);
+static void TaiDuLieuQuaHan(MuonTraState& currentState);
 
-// Helper: Cắt chuỗi hiển thị
-static inline std::string CatText(std::string str, size_t len) { // Đổi int -> size_t
-    return (str.length() > len) ? str.substr(0, len-3) + "..." : str;
+static void XoaFormNhapLieuSFML(MuonTraState& currentState);
+static void CapNhatPhanTrangSFML(MuonTraState& currentState);
+static void CapNhatSachDangMuon(MuonTraState& currentState);
+static int LayDanhSachDocGia(PTRDG root, DocGiaTableDTO arr[], int maxKetQua);
+
+// ===== HÀM TIỆN ÍCH =====
+static inline std::string CatChuoiVoiDauCham(const std::string& str, size_t maxLen) {
+    return (str.length() > maxLen) ? str.substr(0, maxLen - 3) + "..." : str;
 }
 
-// =====================================================
-// 1. LOGIC CẬP NHẬT DỮ LIỆU (BACKEND)
-// =====================================================
+// ===== LAYOUT CONSTANTS (Đồng bộ 100% với ManHinhQuanLySach) =====
+// Thu gọn bảng độc giả xuống 58%, mở rộng form mượn/trả lên 40%
+const float BANG_MT_X = BANG_X;              // = PADDING
+const float BANG_MT_Y = BANG_Y + 50.f;       // = THANH_TAB_CAO + PADDING + 50 (sau search bar)
+const float BANG_MT_RONG = CHIEU_RONG * 0.58f;  // Thu gọn từ 70% xuống 58%
+const float BANG_MT_CAO = CHIEU_CAO - BANG_MT_Y - KHUNG_THONG_BAO_CAO - PADDING * 3 - NUT_CAO * 2;
 
-static void TaiDanhSachDocGia() {
-    s.soLuongDGHienThi = 0;
-    // Lấy toàn bộ độc giả ra mảng (có thể thêm lọc theo tuKhoaTimDG sau này)
-    DuyetCayRaMang(rootDocGia, s.mangDocGiaHienThi, s.soLuongDGHienThi);
+const float FORM_MT_X = BANG_MT_X + BANG_MT_RONG + PADDING * 2.5f;  // Tăng khoảng cách
+const float FORM_MT_Y = FORM_Y;              // = BANG_Y + 50
+const float FORM_MT_RONG = CHIEU_RONG - FORM_MT_X - PADDING;  // Tự động tính
+const float FORM_MT_CAO = KHUNG_THONG_BAO_Y - FORM_MT_Y - PADDING;
+
+// ===== ĐỊNH NGHĨA HÀM VẼ =====
+
+// ----- VẼ BẢNG ĐỌC GIẢ (Layout đồng bộ ManHinhQuanLySach) -----
+static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState){
+    // Search bar ở trên cùng (giống ManHinhQuanLySach)
+    float searchY = BANG_Y;  // Đúng vị trí như màn hình sách
+    std::string goiYTimKiem = currentState.chuoiTimKiem.empty() ? "Nhap ten, ma the de tim kiem..." : "";
+    TaoInput(font, INPUT_MT_TIM_DOC_GIA, BANG_MT_X, searchY, 500.f, INPUT_CAO, 
+             "Tim Kiem:", currentState.chuoiTimKiem, goiYTimKiem);
     
-    // Tính phân trang
-    s.tongSoTrang = (s.soLuongDGHienThi + SACH_MOI_TRANG - 1) / SACH_MOI_TRANG;
-    if (s.tongSoTrang == 0) s.tongSoTrang = 1;
-    if (s.trangHienTai > s.tongSoTrang) s.trangHienTai = 1;
-}
-
-static void TaiSachDangMuon() {
-    if (!s.docGiaDangChon) return;
-    s.slSachDangMuon = LayDSSachDangMuon(s.docGiaDangChon, s.listSachDangMuon, 10, dsDauSach, soLuongDauSach);
-}
-
-static void TimKiemSachDeMuon() {
-    std::string tk = ChuanHoaKhoangTrang(s.tuKhoaTimSach);
-    if (tk.empty()) s.soLuongSachTimThay = 0;
-    else s.soLuongSachTimThay = timKiemLogic(dsDauSach, soLuongDauSach, tk, s.ketQuaTimSach);
+    // Các nút cùng hàng với search (TIM, XOA TIM style)
+    float btnX = BANG_MT_X + 110.f + 500.f + 10.f;
+    TaoNut(font, NUT_TIM, btnX, searchY, 100.f, NUT_CAO, "TIM", MAU_NHAN, MAU_CHU_NUT);
+    btnX += 100.f + 10.f;
+    TaoNut(font, NUT_XOA_TIM, btnX, searchY, 100.f, NUT_CAO, "XOA TIM", MAU_NEN_NUT, MAU_CHU_NUT);
+    btnX += 100.f + 10.f;
+    TaoNut(font, NUT_MT_VAO_TOP_10, btnX, searchY, 110.f, NUT_CAO, "TOP 10", MAU_NHAN, MAU_CHU_NUT);
+    btnX += 110.f + 10.f;
+    TaoNut(font, NUT_MT_TAB_QUAHAN, btnX, searchY, 110.f, NUT_CAO, "QUA HAN", MAU_LOI, MAU_CHU_NUT);
     
-    // Reset trang sách
-    s.trangHienTai = 1;
-    s.tongSoTrang = (s.soLuongSachTimThay + SACH_MOI_TRANG - 1) / SACH_MOI_TRANG;
-    if(s.tongSoTrang == 0) s.tongSoTrang = 1;
-}
+    float headerY = BANG_MT_Y;
+    float contentY = headerY + 40.f;
+    float tableBottom = CHIEU_CAO - (PADDING * 5.5f) - (NUT_CAO * 2);
 
-// =====================================================
-// 2. VẼ GIAO DIỆN (FRONTEND)
-// =====================================================
+    VeKhung(window, BANG_MT_X, headerY, BANG_MT_RONG, tableBottom - headerY, 
+            "DANH SACH DOC GIA (Double-click de chon)", font);
 
-// --- Màn hình MENU (Home) ---
-static void VeMenuMuonTra(sf::RenderWindow &window, const sf::Font &font) {
-    (void)window;
-    float btnW = 400.f;
-    float btnH = 200.f;
-    float startX = (CHIEU_RONG - btnW*2 - 50.f)/2;
-    float startY = (CHIEU_CAO - btnH)/2;
-
-    TaoNut(font, NUT_MT_VAO_MUON_TRA, startX, startY, btnW, btnH, "MUON / TRA SACH", MAU_NHAN, MAU_CHU_NUT);
-    TaoNut(font, NUT_MT_VAO_TOP_10, startX + btnW + 50.f, startY, btnW, btnH, "TOP 10 SACH", sf::Color(255, 100, 100), MAU_CHU_NUT);
-}
-
-// --- DOCK TRÁI: Luôn hiển thị danh sách (Độc giả hoặc Sách) ---
-static void VeDockTrai(sf::RenderWindow &window, const sf::Font &font) {
-    std::string title = "DANH SACH";
-    if (s.buocHienTai == BUOC_MUON_SACH) title = "TIM SACH DE MUON";
-    else title = "DANH SACH DOC GIA";
-
-    VeKhung(window, DOCK_L_X, DOCK_L_Y, DOCK_L_W, DOCK_L_H, title, font);
-
-    // 1. Ô Tìm Kiếm (Luôn hiện ở đầu Dock trái)
-    float currY = DOCK_L_Y + 40.f;
-    MaUI idInput = (s.buocHienTai == BUOC_MUON_SACH) ? INPUT_MT_TIM_SACH : INPUT_MT_TIM_DOC_GIA;
-    std::string* strVal = (s.buocHienTai == BUOC_MUON_SACH) ? &s.tuKhoaTimSach : &s.tuKhoaTimDG;
-    std::string hint = (s.buocHienTai == BUOC_MUON_SACH) ? "Nhap ten sach/ISBN..." : "Nhap ma the/ten doc gia...";
-
-    TaoInput(font, idInput, DOCK_L_X + 10.f, currY, DOCK_L_W - 80.f, 35.f, "", *strVal, hint);
-    TaoNut(font, KHONG_XAC_DINH, DOCK_L_X + DOCK_L_W - 60.f, currY, 50.f, 35.f, "TIM", MAU_NEN_NUT, MAU_CHU_NUT);
-
-    // 2. Bảng Danh Sách
-    currY += 45.f;
-    float rowH = 35.f;
-    int startIdx = (s.trangHienTai - 1) * SACH_MOI_TRANG;
-
-    // Header
-    sf::RectangleShape header(sf::Vector2f(DOCK_L_W - 20.f, 30.f));
-    header.setPosition(DOCK_L_X + 10.f, currY);
-    header.setFillColor(MAU_BANG_HEADER);
-    window.draw(header);
-
-    sf::Text txtH = TaoVanBan(font, (s.buocHienTai == BUOC_MUON_SACH) ? "ISBN       | TEN SACH" : "MA THE | HO TEN DOC GIA", FONT_SIZE_NHO, MAU_NHAN);
-    txtH.setPosition(DOCK_L_X + 20.f, currY + 5.f);
-    window.draw(txtH);
-    currY += 35.f;
-
-    // Content Rows
-    int count = (s.buocHienTai == BUOC_MUON_SACH) ? s.soLuongSachTimThay : s.soLuongDGHienThi;
-    int endIdx = std::min(startIdx + SACH_MOI_TRANG, count);
-
-    for (int i = startIdx; i < endIdx; ++i) {
-        bool selected = false;
-        std::string displayStr = "";
-        
-        if (s.buocHienTai == BUOC_MUON_SACH) {
-            PTRDS ds = s.ketQuaTimSach[i].sach;
-            displayStr = ds->ISBN + "   | " + CatText(ds->tenSach, 40);
-            if (s.dauSachDangChon == ds) selected = true;
-        } else {
-            PTRDG dg = s.mangDocGiaHienThi[i];
-            displayStr = std::to_string(dg->data.MaThe) + "  | " + CatText(dg->data.Ho + " " + dg->data.Ten, 40);
-            if (s.docGiaDangChon == dg) selected = true;
+    // Tỷ lệ cột tối ưu cho bảng 58%: STT nhỏ, Mã Thẻ vừa, Họ Tên rộng, Phái, Trạng Thái, Sách
+    float colWidths[] = {0.05f, 0.11f, 0.38f, 0.10f, 0.22f, 0.12f};  // Tổng = 0.98
+    float colX[7];
+    colX[0] = BANG_MT_X + PADDING;
+    for (int i = 0; i < 6; ++i) {
+        colX[i + 1] = colX[i] + colWidths[i] * (BANG_MT_RONG - PADDING);
+        if (i < 5) {
+            sf::RectangleShape line(sf::Vector2f(1.f, tableBottom - contentY));
+            line.setPosition(colX[i + 1] - PADDING / 2.f, contentY);
+            line.setFillColor(MAU_BANG_BORDER);
+            window.draw(line);
         }
+    }
 
-        // Row Background
-        if (selected) {
-            sf::RectangleShape rowBg(sf::Vector2f(DOCK_L_W - 20.f, rowH));
-            rowBg.setPosition(DOCK_L_X + 10.f, currY);
-            rowBg.setFillColor(MAU_NHAN); // Highlight
-            window.draw(rowBg);
-        }
+    sf::Text headerText;
+    headerText.setFont(font);
+    headerText.setCharacterSize(FONT_SIZE_BINH_THUONG);
+    headerText.setFillColor(MAU_NHAN);
 
-        sf::Text txtR = TaoVanBan(font, displayStr, FONT_SIZE_NHO, selected ? sf::Color::Black : MAU_CHU);
-        txtR.setPosition(DOCK_L_X + 20.f, currY + 7.f);
-        window.draw(txtR);
+    std::string headers[] = {"STT", "Ma The", "Ho Ten", "Phai", "Trang Thai", "Sach"};
 
-        currY += rowH;
+    float headerBoxHeight = 30.f;
+    sf::RectangleShape headerBg(sf::Vector2f(BANG_MT_RONG - PADDING * 0.8, headerBoxHeight));
+    headerBg.setPosition(BANG_MT_X + PADDING * 0.4, contentY);
+    headerBg.setFillColor(MAU_BANG_HEADER);
+    window.draw(headerBg);
+
+    for (int i = 0; i < 6; ++i) {
+        headerText.setString(headers[i]);
+        headerText.setPosition(colX[i], contentY + (headerBoxHeight - headerText.getCharacterSize()) / 2.f);
+        window.draw(headerText);
     }
     
-    // Phân trang
-    float pageY = DOCK_L_Y + DOCK_L_H - 40.f;
-    TaoNut(font, NUT_MT_PREV_PAGE, DOCK_L_X + 10.f, pageY, 80.f, 30.f, "<<", MAU_NEN_NUT, MAU_CHU_NUT);
-    TaoNut(font, NUT_MT_NEXT_PAGE, DOCK_L_X + DOCK_L_W - 90.f, pageY, 80.f, 30.f, ">>", MAU_NEN_NUT, MAU_CHU_NUT);
-    sf::Text pg = TaoVanBan(font, std::to_string(s.trangHienTai) + "/" + std::to_string(s.tongSoTrang), FONT_SIZE_NHO, MAU_CHU);
-    pg.setPosition(DOCK_L_X + DOCK_L_W/2 - 10.f, pageY + 5.f);
-    window.draw(pg);
+    sf::RectangleShape headerLine(sf::Vector2f(BANG_MT_RONG - 2 * PADDING, 1.f));
+    headerLine.setPosition(BANG_MT_X + PADDING, contentY + 30.f);
+    headerLine.setFillColor(MAU_BANG_BORDER);
+    window.draw(headerLine);
+
+    float currentY = contentY + 35.f;
+    int startIndex = (currentState.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
+    int endIndex = (startIndex + DOC_GIA_MOI_TRANG < currentState.soLuongKetQuaTimKiem)
+                       ? (startIndex + DOC_GIA_MOI_TRANG)
+                       : currentState.soLuongKetQuaTimKiem;
+    
+    const float ROW_HEIGHT = 30.f;
+
+    // TOI UU: Cache highlight shape de tai su dung
+    sf::RectangleShape highlight(sf::Vector2f(BANG_MT_RONG - PADDING * 0.8, ROW_HEIGHT));
+    highlight.setFillColor(MAU_NHAN);
+    
+    for (int i = startIndex; i < endIndex && currentY <= tableBottom - PADDING; ++i) {
+        PTRDG dg = currentState.ketQuaTimKiem[i].docGia;
+        if (!dg) continue;
+
+        bool isSelected = (dg->data.MaThe == currentState.maTheDocGiaDuocChon);
+        if (isSelected) {
+            highlight.setPosition(BANG_MT_X + PADDING * 0.4, currentY - 2.f);
+            window.draw(highlight);
+        }
+
+        sf::Text dataText;
+        dataText.setFont(font);
+        dataText.setCharacterSize(FONT_SIZE_BINH_THUONG);
+        dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
+
+        const float textY = currentY + (ROW_HEIGHT - dataText.getCharacterSize()) / 2.f;
+        
+        // STT
+        dataText.setString(std::to_string(i + 1));
+        dataText.setPosition(colX[0], textY);
+        window.draw(dataText);
+
+        // Ma The
+        dataText.setString(std::to_string(dg->data.MaThe));
+        dataText.setPosition(colX[1], textY);
+        window.draw(dataText);
+
+        // Ho Ten
+        std::string hoTen = dg->data.Ho + " " + dg->data.Ten;
+        dataText.setString(CatChuoiVoiDauCham(hoTen, 25));
+        dataText.setPosition(colX[2], textY);
+        window.draw(dataText);
+
+        // Phai
+        dataText.setString(dg->data.Phai == 0 ? "Nam" : "Nu");
+        dataText.setPosition(colX[3], textY);
+        window.draw(dataText);
+
+        // Trang Thai với color
+        std::string trangThai = (dg->data.TrangThai == 0) ? "Khoa" : "Hoat dong";
+        sf::Color colorTT = (dg->data.TrangThai == 1) ? MAU_THANH_CONG : MAU_LOI;
+        dataText.setFillColor(colorTT);
+        dataText.setString(trangThai);
+        dataText.setPosition(colX[4], textY);
+        window.draw(dataText);
+
+        // Cột Sách (số sách đang mượn)
+        int soSachMuon = dg->data.soSachDangMuon;
+        if (soSachMuon == 0 && dg->data.dsmt) {
+            MUONTRA p = dg->data.dsmt;
+            while (p && soSachMuon < 10) {
+                if (p->data.TrangThai == 0) soSachMuon++;
+                p = p->next;
+            }
+        }
+        std::string sachText = std::to_string(soSachMuon) + "/3";
+        sf::Color sachColor = MAU_CHU;
+        if (soSachMuon >= 3) sachColor = MAU_LOI;
+        else if (soSachMuon >= 2) sachColor = MAU_VIEN;
+        dataText.setFillColor(sachColor);
+        dataText.setString(sachText);
+        dataText.setPosition(colX[5], textY);
+        window.draw(dataText);
+
+        currentY += ROW_HEIGHT;
+    }
+
+    // Pagination controls + HỦY CHỌN cùng hàng
+    float phanTrangY = CHIEU_CAO - PADDING * 4.f - NUT_CAO * 1.8f;
+    float btnPrevX = BANG_MT_X + PADDING;
+    
+    TaoNut(font, NUT_MT_PREV_PAGE, btnPrevX, phanTrangY, 130.f, NUT_CAO, "<< Trang Truoc", MAU_NEN_NUT, MAU_CHU_NUT);
+    TaoNut(font, NUT_MT_NEXT_PAGE, btnPrevX + 138.f, phanTrangY, 130.f, NUT_CAO, "Trang Sau >>", MAU_NEN_NUT, MAU_CHU_NUT);
+    
+    // Page counter
+    std::string trangText = "Trang " + std::to_string(currentState.trangHienTai) + " / " + std::to_string(currentState.tongSoTrang);
+    sf::Text txtTrang = TaoVanBan(font, trangText, FONT_SIZE_BINH_THUONG, MAU_CHU);
+    txtTrang.setPosition(btnPrevX + 276.f, phanTrangY + 8.f);
+    window.draw(txtTrang);
+    
+    // Statistics display
+    std::string statsText = "Tong: " + std::to_string(currentState.soLuongKetQuaTimKiem) + " doc gia";
+    sf::Text txtStats = TaoVanBan(font, statsText, FONT_SIZE_NHO, sf::Color(150, 150, 160));
+    txtStats.setPosition(btnPrevX + 400.f, phanTrangY + 10.f);
+    window.draw(txtStats);
+    
+    // Nút HỦY CHỌN cùng hàng bên phải
+    if (currentState.docGiaDangChon) {
+        float huyChonX = BANG_MT_X + BANG_MT_RONG - 160.f;
+        TaoNut(font, NUT_HUY_CHON, huyChonX, phanTrangY, 160.f, NUT_CAO, 
+               "HUY CHON DOC GIA", sf::Color(100, 100, 110), MAU_CHU_NUT);
+    }
 }
 
-// --- DOCK PHẢI: Hiển thị thông tin & Nút hành động ---
-static void VeDockPhai(sf::RenderWindow &window, const sf::Font &font) {
-    VeKhung(window, DOCK_R_X, DOCK_R_Y, DOCK_R_W, DOCK_R_H, "THONG TIN & HANH DONG", font);
-    float cY = DOCK_R_Y + 50.f;
-    float cX = DOCK_R_X + 20.f;
+// ----- VẼ FORM MƯỢN/TRẢ (Style đồng bộ ManHinhQuanLySach) -----
+static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState) {
+    float formHeight = KHUNG_THONG_BAO_Y - FORM_MT_Y - PADDING;
+    VeKhung(window, FORM_MT_X, FORM_MT_Y, FORM_MT_RONG, formHeight, "MUON / TRA SACH", font);
+    
+    float currentY = FORM_MT_Y + 40.f;
+    float labelX = FORM_MT_X + PADDING;
+    float contentWidth = FORM_MT_RONG - 2 * PADDING;
 
-    // TH1: Chưa chọn độc giả
-    if (s.buocHienTai == BUOC_CHON_DOC_GIA) {
-        sf::Text t = TaoVanBan(font, "Vui long chon DOC GIA\ntu danh sach ben trai\nde thao tac.", FONT_SIZE_BINH_THUONG, MAU_CHU);
-        t.setPosition(cX, cY);
-        window.draw(t);
+    if (currentState.docGiaDangChon) {
+        PTRDG dg = currentState.docGiaDangChon;
+        
+        // ===== CARD: Thông tin độc giả =====
+        float cardPadding = 10.f;
+        float cardHeight = 80.f;
+        
+        // Card border only (no background)
+        sf::RectangleShape cardBorder(sf::Vector2f(contentWidth, cardHeight));
+        cardBorder.setPosition(labelX, currentY);
+        cardBorder.setFillColor(sf::Color::Transparent);
+        cardBorder.setOutlineThickness(1.5f);
+        cardBorder.setOutlineColor(sf::Color(100, 100, 120));
+        window.draw(cardBorder);
+        
+        float cardY = currentY + cardPadding;
+        
+        // Header card
+        sf::Text txtCardHeader = TaoVanBan(font, "DOC GIA", FONT_SIZE_NHO, MAU_NHAN);
+        txtCardHeader.setStyle(sf::Text::Bold);
+        txtCardHeader.setPosition(labelX + cardPadding, cardY);
+        window.draw(txtCardHeader);
+        cardY += 18.f;
+        
+        // Info lines
+        std::string line1 = "Ma The: " + std::to_string(dg->data.MaThe) + 
+                           "  |  " + dg->data.Ho + " " + dg->data.Ten;
+        std::string line2 = "Phai: " + std::string(dg->data.Phai == 0 ? "Nam" : "Nu") +
+                           "  |  Trang Thai: " + 
+                           std::string(dg->data.TrangThai == 1 ? "Hoat dong" : "Khoa");
+        
+        sf::Text txtLine1 = TaoVanBan(font, line1, FONT_SIZE_NHO, MAU_CHU);
+        txtLine1.setPosition(labelX + cardPadding, cardY);
+        window.draw(txtLine1);
+        
+        sf::Text txtLine2 = TaoVanBan(font, line2, FONT_SIZE_NHO - 1, sf::Color(100, 100, 110));
+        txtLine2.setPosition(labelX + cardPadding, cardY + 18.f);
+        window.draw(txtLine2);
+        
+        currentY += cardHeight + 15.f;
+        
+        // ===== MINI TABLE: Sách đang mượn =====
+        sf::Text txtSachHeader = TaoVanBan(font, "SACH DANG MUON (" + 
+                                           std::to_string(currentState.slSachDangMuon) + "/3)", 
+                                           FONT_SIZE_BINH_THUONG, MAU_NHAN);
+        txtSachHeader.setPosition(labelX, currentY);
+        window.draw(txtSachHeader);
+        currentY += 25.f;
+        
+        float tableHeight = 120.f;  // Fixed height cho 3 rows max
+        
+        // Table border (transparent background)
+        sf::RectangleShape tableBorder(sf::Vector2f(contentWidth, tableHeight));
+        tableBorder.setPosition(labelX, currentY);
+        tableBorder.setFillColor(sf::Color::Transparent);
+        tableBorder.setOutlineThickness(1.f);
+        tableBorder.setOutlineColor(sf::Color(80, 80, 100));
+        window.draw(tableBorder);
+        
+        float tableY = currentY + 5.f;
+        
+        // Table header background (subtle)
+        sf::RectangleShape headerBg(sf::Vector2f(contentWidth - 2.f, 22.f));
+        headerBg.setPosition(labelX + 1.f, tableY);
+        sf::Color headerColor = MAU_BANG_HEADER;
+        headerColor.a = 100;  // Semi-transparent
+        headerBg.setFillColor(headerColor);
+        window.draw(headerBg);
+        
+        // Column headers
+        sf::Text colHeader1 = TaoVanBan(font, "Ma Sach", FONT_SIZE_NHO, MAU_NHAN);
+        colHeader1.setPosition(labelX + 8.f, tableY + 4.f);
+        window.draw(colHeader1);
+        
+        sf::Text colHeader2 = TaoVanBan(font, "Ten Sach", FONT_SIZE_NHO, MAU_NHAN);
+        colHeader2.setPosition(labelX + contentWidth * 0.35f, tableY + 4.f);
+        window.draw(colHeader2);
+        
+        sf::Text colHeader3 = TaoVanBan(font, "Ngay Muon", FONT_SIZE_NHO, MAU_NHAN);
+        colHeader3.setPosition(labelX + contentWidth * 0.75f, tableY + 4.f);
+        window.draw(colHeader3);
+        
+        tableY += 28.f;
+        
+        // Table rows
+        if (currentState.slSachDangMuon > 0) {
+            for (int i = 0; i < currentState.slSachDangMuon && i < 3; ++i) {
+                const ThongTinSachDangMuon_DTO& dto = currentState.listSachDangMuon[i];
+                
+                // Row highlight if selected (khi hover hoặc đã click)
+                bool isSelected = (dto.maSach == currentState.maSachDangChon);
+                
+                // Hover effect (check mouse position)
+                bool isHovering = false;
+                if (elementHover >= static_cast<MaUI>(HANG_SACH + 1000 + i) && 
+                    elementHover <= static_cast<MaUI>(HANG_SACH + 1000 + i)) {
+                    isHovering = true;
+                }
+                
+                if (isSelected) {
+                    sf::RectangleShape rowHighlight(sf::Vector2f(contentWidth - 2.f, 22.f));
+                    rowHighlight.setPosition(labelX + 1.f, tableY);
+                    rowHighlight.setFillColor(sf::Color(255, 250, 205, 180));  // Vàng sáng
+                    window.draw(rowHighlight);
+                } else if (isHovering) {
+                    sf::RectangleShape rowHover(sf::Vector2f(contentWidth - 2.f, 22.f));
+                    rowHover.setPosition(labelX + 1.f, tableY);
+                    rowHover.setFillColor(sf::Color(80, 80, 100, 50));  // Xám nhạt
+                    window.draw(rowHover);
+                }
+                
+                // Store row bounds for click detection (invisible hitbox)
+                sf::RectangleShape rowHitbox(sf::Vector2f(contentWidth - 2.f, 22.f));
+                rowHitbox.setPosition(labelX + 1.f, tableY);
+                rowHitbox.setFillColor(sf::Color::Transparent);
+                UIElement elem;
+                elem.hinhDang = rowHitbox;
+                elem.id = static_cast<MaUI>(HANG_SACH + 1000 + i);  // Unique ID cho mỗi row
+                if (soLuongElement < SO_ELEMENT_TOI_DA) {
+                    cacElement[soLuongElement++] = elem;
+                }
+                
+                sf::Text cell1 = TaoVanBan(font, CatChuoiVoiDauCham(dto.maSach, 15), FONT_SIZE_NHO - 1, MAU_CHU);
+                cell1.setPosition(labelX + 8.f, tableY + 4.f);
+                window.draw(cell1);
+                
+                sf::Text cell2 = TaoVanBan(font, CatChuoiVoiDauCham(dto.tenSach, 22), FONT_SIZE_NHO - 1, MAU_CHU);
+                cell2.setPosition(labelX + contentWidth * 0.35f, tableY + 4.f);
+                window.draw(cell2);
+                
+                sf::Text cell3 = TaoVanBan(font, dto.ngayMuon, FONT_SIZE_NHO - 1, MAU_CHU);
+                cell3.setPosition(labelX + contentWidth * 0.75f, tableY + 4.f);
+                window.draw(cell3);
+                
+                tableY += 24.f;
+            }
+        } else {
+            sf::Text txtEmpty = TaoVanBan(font, "(Chua muon sach nao)", FONT_SIZE_NHO, sf::Color(150, 150, 160));
+            txtEmpty.setPosition(labelX + contentWidth / 2.f - 70.f, tableY + 20.f);
+            window.draw(txtEmpty);
+        }
+        
+        currentY += tableHeight + 15.f;
+        
+        // ===== INPUT: Mã sách (thu gọn 70% chiều rộng) =====
+        float inputWidth = contentWidth * 0.7f;
+        std::string goiYMaSach = currentState.chuoiMaSach.empty() ? "VD: 9780321563842-1" : "";
+        TaoInput(font, INPUT_MT_TIM_SACH, labelX, currentY, inputWidth, INPUT_CAO,
+                "Ma Sach (*):", currentState.chuoiMaSach, goiYMaSach);
+        
+        // Quick hint bên cạnh input
+        if (currentState.slSachDangMuon > 0 && currentState.maSachDangChon.empty()) {
+            sf::Text txtHint = TaoVanBan(font, "<-- Click sach", FONT_SIZE_NHO - 2, sf::Color(150, 150, 160));
+            txtHint.setPosition(labelX + inputWidth + 10.f, currentY + INPUT_CAO / 2.f - 6.f);
+            window.draw(txtHint);
+        }
+        
+        currentY += INPUT_CAO + 12.f;
+        
+        // ===== SMART BUTTONS: Hiển thị theo context =====
+        float btnW = contentWidth;  // Full width
+        float btnH = NUT_CAO + 5.f;
+        
+        bool daDienMaSach = !currentState.chuoiMaSach.empty();
+        bool daChonSachDangMuon = !currentState.maSachDangChon.empty();
+        bool coTheMuon = (currentState.slSachDangMuon < 3);
+        
+        // CONTEXT 1: Đã chọn sách đang mượn → chỉ hiện TRA + BAO MAT
+        if (daChonSachDangMuon && daDienMaSach) {
+            // Nút TRA SACH (nổi bật)
+            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH + 3.f, "TRA SACH", MAU_THANH_CONG, MAU_CHU_NUT);
+            currentY += btnH + 11.f;
+            
+            // Nút BÁO MẤT
+            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", MAU_LOI, MAU_CHU_NUT);
+            currentY += btnH + 10.f;
+            
+            // Helper text with icon
+            std::string iconCheck = "\u2713 ";
+            sf::Text txtHelp = TaoVanBan(font, iconCheck + "Da chon sach dang muon. Chon thao tac ben tren.", 
+                                        FONT_SIZE_NHO - 2, sf::Color(100, 200, 100));
+            txtHelp.setPosition(labelX, currentY);
+            window.draw(txtHelp);
+        }
+        // CONTEXT 2: Chưa chọn/nhập mã sách mới → hiện đủ 3 nút
+        else {
+            sf::Color mauMuon = coTheMuon ? MAU_THANH_CONG : sf::Color(120, 120, 120);
+            
+            // Nút MƯỢN SÁCH
+            TaoNut(font, NUT_MT_XAC_NHAN_MUON, labelX, currentY, btnW, btnH, "MUON SACH", mauMuon, MAU_CHU_NUT);
+            currentY += btnH + 8.f;
+            
+            // Nút TRẢ SÁCH
+            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH, "TRA SACH", MAU_NHAN, MAU_CHU_NUT);
+            currentY += btnH + 8.f;
+            
+            // Nút BÁO MẤT
+            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", MAU_LOI, MAU_CHU_NUT);
+            currentY += btnH + 10.f;
+            
+            // Helper text động
+            std::string helpText;
+            sf::Color helpColor;
+            
+            if (!coTheMuon) {
+                helpText = "! Doc gia da muon du 3 sach. Tra sach truoc khi muon tiep.";
+                helpColor = sf::Color(220, 100, 80);
+            } else if (currentState.slSachDangMuon > 0) {
+                helpText = "* Click vao sach trong bang de chon, hoac nhap ma sach moi.";
+                helpColor = sf::Color(120, 120, 140);
+            } else {
+                helpText = "* Nhap ma sach de muon cho doc gia.";
+                helpColor = sf::Color(120, 120, 140);
+            }
+            
+            sf::Text txtHelp = TaoVanBan(font, helpText, FONT_SIZE_NHO - 2, helpColor);
+            txtHelp.setPosition(labelX, currentY);
+            window.draw(txtHelp);
+        }
+        
+        // Helper text
+        std::string helpText = coTheMuon 
+            ? "* Click vao dong sach trong bang de chon truoc khi TRA/MAT"
+            : "! Doc gia da muon du 3 sach. Vui long tra sach truoc khi muon tiep";
+        sf::Color helpColor = coTheMuon ? sf::Color(120, 120, 140) : sf::Color(220, 100, 80);
+        sf::Text txtHelp = TaoVanBan(font, helpText, FONT_SIZE_NHO - 2, helpColor);
+        txtHelp.setPosition(labelX, currentY);
+        window.draw(txtHelp);
+        
+    } else {
+        // ===== Empty state: Chưa chọn độc giả =====
+        float emptyCardH = 100.f;
+        
+        sf::RectangleShape emptyCard(sf::Vector2f(contentWidth, emptyCardH));
+        emptyCard.setPosition(labelX, currentY + 40.f);
+        emptyCard.setFillColor(sf::Color::Transparent);
+        emptyCard.setOutlineThickness(1.5f);
+        emptyCard.setOutlineColor(sf::Color(100, 100, 120));
+        window.draw(emptyCard);
+        
+        sf::Text txtIcon = TaoVanBan(font, "?", 48, sf::Color(180, 180, 200));
+        txtIcon.setPosition(labelX + contentWidth / 2.f - 15.f, currentY + 50.f);
+        window.draw(txtIcon);
+        
+        sf::Text txtEmpty1 = TaoVanBan(font, "Chua chon doc gia", FONT_SIZE_BINH_THUONG, sf::Color(120, 120, 140));
+        txtEmpty1.setPosition(labelX + contentWidth / 2.f - 75.f, currentY + 100.f);
+        window.draw(txtEmpty1);
+        
+        sf::Text txtEmpty2 = TaoVanBan(font, "Double-click vao dong trong bang ben trai de chon", 
+                                      FONT_SIZE_NHO, sf::Color(150, 150, 170));
+        txtEmpty2.setPosition(labelX + 30.f, currentY + 122.f);
+        window.draw(txtEmpty2);
+    }
+}
+
+// ----- VẼ THÔNG BÁO (dùng lại global notification system) -----
+static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, const MuonTraState& currentState) {
+    (void)currentState;
+    
+    VeKhung(window, FORM_MT_X, KHUNG_THONG_BAO_Y, FORM_MT_RONG, KHUNG_THONG_BAO_CAO, "THONG BAO", font);
+
+    if (noiDungThongBao.empty()) return;
+
+    sf::Color mauChuThongBao = MAU_CHU;
+    if (loaiThongBao == 1) mauChuThongBao = MAU_LOI;
+    else if (loaiThongBao == 2) mauChuThongBao = MAU_THANH_CONG;
+
+    float maxTextWidth = FORM_MT_RONG - 2 * PADDING - 10.f;
+    std::string wrappedText = WordWrapText(font, noiDungThongBao, FONT_SIZE_BINH_THUONG, maxTextWidth);
+    sf::Text txtMsg = TaoVanBan(font, wrappedText, FONT_SIZE_BINH_THUONG, mauChuThongBao);
+    txtMsg.setPosition(FORM_MT_X + PADDING, KHUNG_THONG_BAO_Y + 35.f);
+    window.draw(txtMsg);
+}
+
+// ----- VẼ MODAL TOP 10 (pattern từ VeModalChiTietBanSao) -----
+static void VeModalTop10(sf::RenderWindow &window, const sf::Font &font, MuonTraState& currentState) {
+    // Overlay
+    sf::RectangleShape overlay(sf::Vector2f(CHIEU_RONG, CHIEU_CAO));
+    overlay.setFillColor(sf::Color(0, 0, 0, 180));
+    window.draw(overlay);
+
+    // Modal box
+    float modalW = CHIEU_RONG * 0.85f;
+    float modalH = CHIEU_CAO * 0.80f;
+    float modalX = (CHIEU_RONG - modalW) / 2.f;
+    float modalY = (CHIEU_CAO - modalH) / 2.f;
+
+    VeKhung(window, modalX, modalY, modalW, modalH, "TOP 10 SACH DUOC MUON NHIEU NHAT", font);
+
+    float currentY = modalY + 50.f;
+    float labelX = modalX + PADDING;
+
+    // Table header
+    std::string headers[] = {"#", "ISBN", "Ten Sach", "Tac Gia", "The Loai", "Luot Muon"};
+    float colWidths[] = {0.05f, 0.15f, 0.30f, 0.20f, 0.15f, 0.15f};
+    float colX[7];
+    colX[0] = labelX;
+    for (int i = 0; i < 6; ++i) {
+        colX[i + 1] = colX[i] + colWidths[i] * (modalW - 2 * PADDING);
+    }
+
+    sf::Text headerText;
+    headerText.setFont(font);
+    headerText.setCharacterSize(FONT_SIZE_BINH_THUONG);
+    headerText.setFillColor(MAU_NHAN);
+
+    for (int i = 0; i < 6; ++i) {
+        headerText.setString(headers[i]);
+        headerText.setPosition(colX[i], currentY);
+        window.draw(headerText);
+    }
+    currentY += 30.f;
+
+    // Draw rows với highlight top 3
+    for (int i = 0; i < currentState.soLuongTop && i < 10; ++i) {
+        const TopSachDTO& dto = currentState.top10[i];
+        if (!dto.dauSach) continue;
+        
+        sf::Color bgColor = sf::Color::White;
+        if (i == 0) bgColor = sf::Color(255, 215, 0); // Gold
+        else if (i == 1) bgColor = sf::Color(192, 192, 192); // Silver
+        else if (i == 2) bgColor = sf::Color(205, 127, 50); // Bronze
+        
+        sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 25.f));
+        rowBg.setPosition(labelX, currentY);
+        rowBg.setFillColor(bgColor);
+        window.draw(rowBg);
+
+        sf::Text cellText;
+        cellText.setFont(font);
+        cellText.setCharacterSize(FONT_SIZE_NHO);
+        cellText.setFillColor(MAU_CHU);
+
+        cellText.setString(std::to_string(i + 1));
+        cellText.setPosition(colX[0], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(CatChuoiVoiDauCham(dto.dauSach->ISBN, 12));
+        cellText.setPosition(colX[1], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(CatChuoiVoiDauCham(dto.dauSach->tenSach, 30));
+        cellText.setPosition(colX[2], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(CatChuoiVoiDauCham(dto.dauSach->tacGia, 20));
+        cellText.setPosition(colX[3], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(CatChuoiVoiDauCham(dto.dauSach->theLoai, 15));
+        cellText.setPosition(colX[4], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(std::to_string(dto.dauSach->soLuotMuon));
+        cellText.setPosition(colX[5], currentY + 5.f);
+        window.draw(cellText);
+
+        currentY += 28.f;
+    }
+
+    // Close button
+    float btnY = modalY + modalH - 60.f;
+    TaoNut(font, NUT_MT_VAO_TOP_10, modalX + modalW - 140.f, btnY, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
+}
+
+// ----- VẼ MODAL QUÁ HẠN -----
+static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTraState& currentState) {
+    // Overlay
+    sf::RectangleShape overlay(sf::Vector2f(CHIEU_RONG, CHIEU_CAO));
+    overlay.setFillColor(sf::Color(0, 0, 0, 180));
+    window.draw(overlay);
+
+    float modalW = CHIEU_RONG * 0.85f;
+    float modalH = CHIEU_CAO * 0.80f;
+    float modalX = (CHIEU_RONG - modalW) / 2.f;
+    float modalY = (CHIEU_CAO - modalH) / 2.f;
+
+    VeKhung(window, modalX, modalY, modalW, modalH, "DOC GIA QUA HAN TRA SACH", font);
+
+    float currentY = modalY + 50.f;
+    float labelX = modalX + PADDING;
+
+    std::string headers[] = {"STT", "Ma The", "Ho Ten", "Sach Qua Han", "Ngay Muon", "So Ngay Qua"};
+    float colWidths[] = {0.05f, 0.10f, 0.25f, 0.30f, 0.15f, 0.15f};
+    float colX[7];
+    colX[0] = labelX;
+    for (int i = 0; i < 6; ++i) {
+        colX[i + 1] = colX[i] + colWidths[i] * (modalW - 2 * PADDING);
+    }
+
+    sf::Text headerText;
+    headerText.setFont(font);
+    headerText.setCharacterSize(FONT_SIZE_BINH_THUONG);
+    headerText.setFillColor(MAU_NHAN);
+
+    for (int i = 0; i < 6; ++i) {
+        headerText.setString(headers[i]);
+        headerText.setPosition(colX[i], currentY);
+        window.draw(headerText);
+    }
+    currentY += 30.f;
+
+    for (int i = 0; i < currentState.soLuongQuaHan && i < 50; ++i) {
+        const DocGiaQuaHanDTO& dto = currentState.dsQuaHan[i];
+        if (!dto.docGia) continue;
+        PTRDG dg = dto.docGia;
+        
+        // Color based on days
+        sf::Color bgColor = sf::Color::White;
+        if (dto.soNgayQuaHanMax > 14) bgColor = sf::Color(255, 182, 193); // Red
+        else if (dto.soNgayQuaHanMax > 7) bgColor = sf::Color(255, 255, 224); // Yellow
+        
+        sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 25.f));
+        rowBg.setPosition(labelX, currentY);
+        rowBg.setFillColor(bgColor);
+        window.draw(rowBg);
+
+        sf::Text cellText;
+        cellText.setFont(font);
+        cellText.setCharacterSize(FONT_SIZE_NHO);
+        cellText.setFillColor(MAU_CHU);
+
+        cellText.setString(std::to_string(i + 1));
+        cellText.setPosition(colX[0], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(std::to_string(dg->data.MaThe));
+        cellText.setPosition(colX[1], currentY + 5.f);
+        window.draw(cellText);
+
+        std::string hoTen = dg->data.Ho + " " + dg->data.Ten;
+        cellText.setString(CatChuoiVoiDauCham(hoTen, 20));
+        cellText.setPosition(colX[2], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString("(xem the doc gia)");
+        cellText.setPosition(colX[3], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString("(xem the doc gia)");
+        cellText.setPosition(colX[4], currentY + 5.f);
+        window.draw(cellText);
+
+        cellText.setString(std::to_string(dto.soNgayQuaHanMax) + " ngay");
+        cellText.setPosition(colX[5], currentY + 5.f);
+        window.draw(cellText);
+
+        currentY += 28.f;
+    }
+
+    float btnY = modalY + modalH - 60.f;
+    TaoNut(font, NUT_MT_TAB_QUAHAN, modalX + modalW - 140.f, btnY, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
+}
+
+// ===== LOGIC FUNCTIONS =====
+
+static void CapNhatPhanTrangSFML(MuonTraState& currentState) {
+    int totalItems = currentState.soLuongKetQuaTimKiem;
+    currentState.tongSoTrang = (totalItems + DOC_GIA_MOI_TRANG - 1) / DOC_GIA_MOI_TRANG;
+    if (currentState.tongSoTrang == 0) currentState.tongSoTrang = 1;
+    if (currentState.trangHienTai > currentState.tongSoTrang)
+        currentState.trangHienTai = currentState.tongSoTrang;
+}
+
+// Helper: In-order traversal AVL tree
+static int LayDanhSachDocGia(PTRDG root, DocGiaTableDTO arr[], int maxKetQua) {
+    int count = 0;
+    
+    std::function<void(PTRDG)> inorder = [&](PTRDG node) {
+        if (!node || count >= maxKetQua) return;
+        inorder(node->left);
+        if (count < maxKetQua) {
+            arr[count].docGia = node;
+            arr[count].loaiKhop = 0;
+            count++;
+        }
+        inorder(node->right);
+    };
+    
+    inorder(root);
+    return count;
+}
+
+static void ThucHienTimKiemNoiBo(MuonTraState& currentState) {
+    extern PTRDG rootDocGia;
+    currentState.soLuongKetQuaTimKiem = 0;
+    
+    std::string tuKhoa = ChuanHoaKhoangTrang(currentState.chuoiTimKiem);
+    
+    // Load tất cả (search logic có thể thêm sau)
+    currentState.soLuongKetQuaTimKiem = LayDanhSachDocGia(rootDocGia, currentState.ketQuaTimKiem, MAX_DAUSACH);
+    
+    currentState.trangHienTai = 1;
+    CapNhatPhanTrangSFML(currentState);
+    
+    if (currentState.soLuongKetQuaTimKiem > 0) {
+        CapNhatThongBaoSFML("Hien thi " + std::to_string(currentState.soLuongKetQuaTimKiem) + " doc gia.", 0);
+    } else {
+        CapNhatThongBaoSFML("Khong co doc gia nao.", 1);
+    }
+}
+
+static void CapNhatSachDangMuon(MuonTraState& currentState) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    
+    if (!currentState.docGiaDangChon) {
+        currentState.slSachDangMuon = 0;
         return;
     }
+    
+    currentState.slSachDangMuon = LayDSSachDangMuon(
+        currentState.docGiaDangChon,
+        currentState.listSachDangMuon,
+        10,
+        dsDauSach,
+        soLuongDauSach
+    );
+}
 
-    // Luôn hiện thông tin ĐG đang chọn
-    if (s.docGiaDangChon) {
-        sf::Text tInfo = TaoVanBan(font, 
-            "DOC GIA: " + s.docGiaDangChon->data.Ho + " " + s.docGiaDangChon->data.Ten + "\n" +
-            "Ma The: " + std::to_string(s.docGiaDangChon->data.MaThe) + "\n" +
-            "Dang muon: " + std::to_string(s.docGiaDangChon->data.soSachDangMuon) + "/3",
-            FONT_SIZE_BINH_THUONG, MAU_THANH_CONG);
-        tInfo.setPosition(cX, cY);
-        window.draw(tInfo);
-        
-        // Đường kẻ
-        sf::RectangleShape line(sf::Vector2f(DOCK_R_W - 40.f, 2.f));
-        line.setPosition(cX, cY + 90.f);
-        line.setFillColor(MAU_VIEN);
-        window.draw(line);
-        cY += 110.f;
-    }
+static void XoaFormNhapLieuSFML(MuonTraState& currentState) {
+    currentState.chuoiMaSach = "";
+    currentState.maSachDangChon = "";
+    currentState.indexSachDangChon = -1;
+}
 
-    // TH2: Menu Hành Động (Xem / Mượn / Trả)
-    if (s.buocHienTai == BUOC_CHON_HANH_DONG) {
-        float btnH = 50.f;
-        TaoNut(font, NUT_MT_HANHDONG_XEM, cX, cY, DOCK_R_W - 40.f, btnH, "1. XEM SACH DANG MUON", MAU_NEN_NUT, MAU_CHU_NUT);
-        cY += btnH + 20.f;
-        TaoNut(font, NUT_MT_HANHDONG_MUON, cX, cY, DOCK_R_W - 40.f, btnH, "2. MUON SACH MOI", MAU_NHAN, MAU_CHU_NUT);
-        cY += btnH + 20.f;
-        TaoNut(font, NUT_MT_HANHDONG_TRA, cX, cY, DOCK_R_W - 40.f, btnH, "3. TRA SACH", MAU_LOI, MAU_CHU_NUT);
+static void ThucHienMuonSachSFML(MuonTraState& currentState) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    extern bool duLieuDaThayDoi;
+    
+    if (!currentState.docGiaDangChon) {
+        CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+        inputHoatDong = INPUT_MT_TIM_SACH;
+        return;
     }
     
-    // TH3: Xem sách đang mượn
-    else if (s.buocHienTai == BUOC_XEM_SACH || s.buocHienTai == BUOC_TRA_SACH) {
-        sf::Text t = TaoVanBan(font, (s.buocHienTai == BUOC_TRA_SACH) ? "CHON SACH DE TRA:" : "SACH DANG MUON:", FONT_SIZE_BINH_THUONG, MAU_NHAN);
-        t.setPosition(cX, cY);
-        window.draw(t);
-        cY += 30.f;
-
-        if (s.slSachDangMuon == 0) {
-            sf::Text empty = TaoVanBan(font, "(Trong)", FONT_SIZE_NHO, MAU_CHU);
-            empty.setPosition(cX, cY);
-            window.draw(empty);
-        } else {
-            for (int i=0; i<s.slSachDangMuon; i++) {
-                bool selected = (s.maSachCanTra == s.listSachDangMuon[i].maSach);
-                std::string row = std::to_string(i+1) + ". " + s.listSachDangMuon[i].maSach + " - " + CatText(s.listSachDangMuon[i].tenSach, 25);
-                
-                // Nút giả lập dòng
-                //MaUI idBtn = (s.buocHienTai == BUOC_TRA_SACH) ? HANG_SACH : KHONG_XAC_DINH; // Chỉ click được khi Trả
-                // Logic vẽ custom để xử lý click sau
-                sf::Text tR = TaoVanBan(font, row, FONT_SIZE_NHO, selected ? MAU_NHAN : MAU_CHU);
-                tR.setPosition(cX, cY);
-                window.draw(tR);
-                cY += 25.f;
-            }
-        }
-
-        if (s.buocHienTai == BUOC_TRA_SACH && !s.maSachCanTra.empty()) {
-            cY += 20.f;
-            TaoNut(font, NUT_MT_XAC_NHAN_TRA, cX, cY, DOCK_R_W - 40.f, 50.f, "XAC NHAN TRA SACH", MAU_LOI, MAU_CHU_NUT);
-        }
-        
-        // Nút quay lại
-        TaoNut(font, NUT_MT_HUY_HANH_DONG, cX, DOCK_R_Y + DOCK_R_H - 50.f, 100.f, 30.f, "QUAY LAI", MAU_NEN_NUT, MAU_CHU_NUT);
+    // Kiểm tra đã mượn đủ 3 sách chưa
+    if (currentState.slSachDangMuon >= 3) {
+        CapNhatThongBaoSFML("Loi: Doc gia da muon du 3 sach!\nVui long tra sach truoc khi muon tiep.", 1);
+        return;
     }
-
-    // TH4: Đang Mượn Sách
-    else if (s.buocHienTai == BUOC_MUON_SACH) {
-        sf::Text t = TaoVanBan(font, "SACH DUOC CHON:", FONT_SIZE_BINH_THUONG, MAU_NHAN);
-        t.setPosition(cX, cY);
-        window.draw(t);
-        cY += 30.f;
-
-        if (s.dauSachDangChon) {
-            std::string info = s.dauSachDangChon->tenSach + "\n" + 
-                               "Tac gia: " + s.dauSachDangChon->tacGia + "\n" + 
-                               "ISBN: " + s.dauSachDangChon->ISBN;
-            
-            // Kiểm tra bản sao
-            int avail = DemBanSaoCoTheMuon(s.dauSachDangChon);
-            std::string status = "\nCo the muon: " + std::to_string(avail) + " cuon";
-            
-            sf::Text tS = TaoVanBan(font, info + status, FONT_SIZE_NHO, MAU_CHU);
-            tS.setPosition(cX, cY);
-            window.draw(tS);
-            
-            cY += 100.f;
-            if (avail > 0) {
-                TaoNut(font, NUT_MT_XAC_NHAN_MUON, cX, cY, DOCK_R_W - 40.f, 50.f, "XAC NHAN MUON", MAU_NHAN, MAU_CHU_NUT);
-            } else {
-                sf::Text err = TaoVanBan(font, "HET SACH!", FONT_SIZE_BINH_THUONG, MAU_LOI);
-                err.setPosition(cX, cY);
-                window.draw(err);
-            }
-        } else {
-            sf::Text hint = TaoVanBan(font, "Vui long tim va chon\nsach o ben trai.", FONT_SIZE_NHO, sf::Color(150,150,150));
-            hint.setPosition(cX, cY);
-            window.draw(hint);
-        }
-        
-        TaoNut(font, NUT_MT_HUY_HANH_DONG, cX, DOCK_R_Y + DOCK_R_H - 50.f, 100.f, 30.f, "QUAY LAI", MAU_NEN_NUT, MAU_CHU_NUT);
+    
+    std::string maSach = CatKhoangTrang(currentState.chuoiMaSach);
+    if (maSach.empty()) {
+        CapNhatThongBaoSFML("Loi: Chua nhap ma sach!", 1);
+        inputHoatDong = INPUT_MT_TIM_SACH;
+        return;
+    }
+    
+    // Validate format: ISBN-XXX
+    size_t dashPos = maSach.find('-');
+    if (dashPos == std::string::npos || dashPos == 0 || dashPos == maSach.length() - 1) {
+        CapNhatThongBaoSFML("Loi: Ma sach khong hop le!\nDinh dang: ISBN-XXX\nVi du: 9780321563842-001", 1);
+        inputHoatDong = INPUT_MT_TIM_SACH;
+        return;
+    }
+    
+    // Call backend
+    std::string loi = MuonSach(currentState.docGiaDangChon, maSach, dsDauSach, soLuongDauSach);
+    
+    if (loi.empty()) {
+        duLieuDaThayDoi = true;
+        CapNhatThongBaoSFML("Muon sach thanh cong: " + maSach, 2);
+        CapNhatSachDangMuon(currentState);
+        XoaFormNhapLieuSFML(currentState);
+        inputHoatDong = KHONG_XAC_DINH;
+    } else {
+        CapNhatThongBaoSFML(loi, 1);
+        inputHoatDong = INPUT_MT_TIM_SACH;
     }
 }
 
-// --- HÀM VẼ CHÍNH ---
+static void ThucHienTraSachSFML(MuonTraState& currentState) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    extern bool duLieuDaThayDoi;
+    
+    if (!currentState.docGiaDangChon) {
+        CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+        return;
+    }
+    
+    if (currentState.maSachDangChon.empty()) {
+        CapNhatThongBaoSFML("Loi: Chua chon sach de tra!\nClick vao dong sach trong danh sach de chon.", 1);
+        return;
+    }
+    
+    std::string loi = TraSach(currentState.docGiaDangChon, currentState.maSachDangChon, dsDauSach, soLuongDauSach);
+    
+    if (loi.empty()) {
+        duLieuDaThayDoi = true;
+        CapNhatThongBaoSFML("Tra sach thanh cong: " + currentState.maSachDangChon, 2);
+        CapNhatSachDangMuon(currentState);
+        XoaFormNhapLieuSFML(currentState);
+    } else {
+        CapNhatThongBaoSFML(loi, 1);
+    }
+}
+
+static void ThucHienBaoMatSachSFML(MuonTraState& currentState) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    extern bool duLieuDaThayDoi;
+    
+    if (!currentState.docGiaDangChon) {
+        CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+        return;
+    }
+    
+    if (currentState.maSachDangChon.empty()) {
+        CapNhatThongBaoSFML("Loi: Chua chon sach de bao mat!\nClick vao dong sach trong danh sach de chon.", 1);
+        return;
+    }
+    
+    std::string loi = BaoMatSach(currentState.docGiaDangChon, currentState.maSachDangChon, dsDauSach, soLuongDauSach);
+    
+    if (loi.empty()) {
+        duLieuDaThayDoi = true;
+        CapNhatThongBaoSFML("Bao mat sach thanh cong: " + currentState.maSachDangChon, 2);
+        CapNhatSachDangMuon(currentState);
+        XoaFormNhapLieuSFML(currentState);
+    } else {
+        CapNhatThongBaoSFML(loi, 1);
+    }
+}
+
+static void TaiDuLieuTop10(MuonTraState& currentState) {
+    extern PTRDS dsDauSach[];
+    extern int soLuongDauSach;
+    
+    currentState.soLuongTop = LayTopSach(dsDauSach, soLuongDauSach, currentState.top10);
+    
+    if (currentState.soLuongTop > 0) {
+        CapNhatThongBaoSFML("Tai du lieu Top 10 thanh cong.", 0);
+    } else {
+        CapNhatThongBaoSFML("Chua co du lieu muon sach.", 1);
+    }
+}
+
+static void TaiDuLieuQuaHan(MuonTraState& currentState) {
+    extern PTRDG rootDocGia;
+    
+    currentState.soLuongQuaHan = LayDSDocGiaQuaHan(rootDocGia, currentState.dsQuaHan, MAX_DAUSACH);
+    
+    if (currentState.soLuongQuaHan > 0) {
+        CapNhatThongBaoSFML("Tim thay " + std::to_string(currentState.soLuongQuaHan) + " doc gia qua han.", 0);
+    } else {
+        CapNhatThongBaoSFML("Khong co doc gia qua han.", 0);
+    }
+}
+
+static void XuLyTextInput(sf::Event event, MuonTraState& currentState) {
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Backspace) {
+        if (inputHoatDong == INPUT_MT_TIM_DOC_GIA && !currentState.chuoiTimKiem.empty()) {
+            currentState.chuoiTimKiem.pop_back();
+            ThucHienTimKiemNoiBo(currentState);
+        }
+        else if (inputHoatDong == INPUT_MT_TIM_SACH && !currentState.chuoiMaSach.empty()) {
+            currentState.chuoiMaSach.pop_back();
+        }
+    }
+    
+    if (event.type == sf::Event::TextEntered) {
+        if (event.text.unicode < 128 && event.text.unicode != 8 && event.text.unicode != 13 && event.text.unicode != 9) {
+            char ch = static_cast<char>(event.text.unicode);
+            
+            if (inputHoatDong == INPUT_MT_TIM_DOC_GIA) {
+                if (currentState.chuoiTimKiem.length() < 100) {
+                    currentState.chuoiTimKiem += ch;
+                    ThucHienTimKiemNoiBo(currentState);
+                }
+            }
+            else if (inputHoatDong == INPUT_MT_TIM_SACH) {
+                if (currentState.chuoiMaSach.length() < 50) {
+                    currentState.chuoiMaSach += ch;
+                }
+            }
+        }
+    }
+}
+
+// ===== PUBLIC API =====
+
+void KhoiTaoManHinhMuonTra() {
+    state.Reset();
+    ThucHienTimKiemNoiBo(state);
+}
+
 void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font) {
-    // Header
-    sf::RectangleShape top(sf::Vector2f(CHIEU_RONG, THANH_TAB_CAO));
-    top.setFillColor(MAU_KHUNG);
-    window.draw(top);
-    sf::Text t = TaoVanBan(font, "QUAN LY MUON TRA", FONT_SIZE_BINH_THUONG, MAU_TIEU_DE);
-    t.setPosition(PADDING, 5.f);
-    window.draw(t);
-    TaoNut(font, NUT_BACK, CHIEU_RONG - 100.f, 5.f, 90.f, 30.f, "MENU", MAU_NUT_BACK, MAU_CHU_NUT);
+    // Thanh tiêu đề (giống ManHinhQuanLySach)
+    sf::RectangleShape topBar(sf::Vector2f(CHIEU_RONG, THANH_TAB_CAO));
+    topBar.setFillColor(MAU_KHUNG);
+    window.draw(topBar);
+    sf::Text title = TaoVanBan(font, "MUON / TRA SACH", FONT_SIZE_BINH_THUONG, MAU_TIEU_DE);
+    title.setPosition(PADDING, PADDING / 2.f - title.getLocalBounds().height / 2.f);
+    window.draw(title);
 
-    if (s.cheDo == MT_HOME) {
-        VeMenuMuonTra(window, font);
-    } else if (s.cheDo == MT_PROCESS) {
-        VeDockTrai(window, font);
-        VeDockPhai(window, font);
-    } else if (s.cheDo == MT_TOP_10) {
-        // Gọi hàm vẽ Top 10 cũ hoặc viết mới đơn giản
-        sf::Text t10 = TaoVanBan(font, "TOP 10 SACH (Dang cap nhat)", 30, MAU_CHU);
-        t10.setPosition(100, 100);
-        window.draw(t10);
+    // Nút quay về menu (đúng vị trí như màn hình sách)
+    TaoNut(font, NUT_BACK, CHIEU_RONG - PADDING - 100.f, PADDING / 4.f, 100.f, NUT_CAO * 0.8f, "< MENU", MAU_NUT_BACK, MAU_CHU_NUT);
+    
+    // Modal check
+    if (state.hienThiModalTop10) {
+        VeModalTop10(window, font, state);
+        return;
     }
-
-    // Modal
-    if (s.hienModal) {
-        // Vẽ overlay đen và thông báo (Bạn có thể tái sử dụng code modal cũ)
+    
+    if (state.hienThiModalQuaHan) {
+        VeModalQuaHan(window, font, state);
+        return;
     }
+    
+    // Main UI (search bar được vẽ trong VeBangDocGia)
+    VeBangDocGia(window, font, state);
+    VeFormMuonTra(window, font, state);
+    VeKhungThongBaoSFML(window, font, state);
 }
-
-// =====================================================
-// 3. XỬ LÝ SỰ KIỆN (EVENT HANDLER)
-// =====================================================
 
 void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
     (void)window;
+    
+    // Block modal events
+    if (state.hienThiModalTop10) {
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+            MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
+            if (elementNhan == NUT_MT_VAO_TOP_10) {
+                state.hienThiModalTop10 = false;
+            }
+        }
+        return;
+    }
+    
+    if (state.hienThiModalQuaHan) {
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+            MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
+            if (elementNhan == NUT_MT_TAB_QUAHAN) {
+                state.hienThiModalQuaHan = false;
+            }
+        }
+        return;
+    }
+    
+    // Text input
+    if (event.type == sf::Event::TextEntered || 
+        (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Backspace)) {
+        if (inputHoatDong != KHONG_XAC_DINH) {
+            XuLyTextInput(event, state);
+        }
+    }
+    
+    // Mouse events
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-        MaUI id = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
-
-        // 1. Xử lý Nút Back
-        if (id == NUT_BACK) {
-            if (s.cheDo == MT_PROCESS && s.buocHienTai != BUOC_CHON_DOC_GIA) {
-                // Nếu đang ở bước sâu hơn thì back ra từng cấp
-                if (s.buocHienTai == BUOC_CHON_HANH_DONG) {
-                    s.docGiaDangChon = nullptr;
-                    s.buocHienTai = BUOC_CHON_DOC_GIA;
-                } else {
-                    s.buocHienTai = BUOC_CHON_HANH_DONG;
-                }
-            } else if (s.cheDo != MT_HOME) {
-                s.cheDo = MT_HOME; // Về menu MuonTra
-            } else {
-                manHinhHienTai = MENU_CHINH; // Về Menu chính
-            }
-            return;
-        }
-
-        // 2. Xử lý Menu Home
-        if (s.cheDo == MT_HOME) {
-            if (id == NUT_MT_VAO_MUON_TRA) {
-                s.cheDo = MT_PROCESS;
-                s.buocHienTai = BUOC_CHON_DOC_GIA;
-                TaiDanhSachDocGia(); // Load data
-            }
-            // else if (NUT_MT_VAO_TOP_10)...
-            return;
-        }
-
-        // 3. Xử lý trong Dock Trái (Chọn list)
-        if (id == HANG_SACH) { // Click vào bảng
-            // Tính toán dòng được click dựa trên tọa độ Y
-            float listY = DOCK_L_Y + 40.f + 45.f;
-            int idx = (event.mouseButton.y - listY) / 35.f; // 35.f là rowHeight
-            int realIdx = (s.trangHienTai - 1) * SACH_MOI_TRANG + idx;
-
-            // CLICK CHỌN ĐỘC GIẢ
-            if (s.buocHienTai == BUOC_CHON_DOC_GIA) {
-                if (realIdx >= 0 && realIdx < s.soLuongDGHienThi) {
-                    s.docGiaDangChon = s.mangDocGiaHienThi[realIdx];
-                    s.buocHienTai = BUOC_CHON_HANH_DONG; // Chuyển sang chọn hành động ngay
-                    TaiSachDangMuon(); // Cache sách mượn
-                }
-            }
-            // CLICK CHỌN SÁCH MƯỢN
-            else if (s.buocHienTai == BUOC_MUON_SACH) {
-                if (realIdx >= 0 && realIdx < s.soLuongSachTimThay) {
-                    s.dauSachDangChon = s.ketQuaTimSach[realIdx].sach;
-                }
-            }
-            
-            // CLICK CHỌN SÁCH TRẢ (Ở Dock Phải - Cần check X)
-            if (s.buocHienTai == BUOC_TRA_SACH && event.mouseButton.x > DOCK_R_X) {
-                 // Logic chọn sách trả tương tự
-                 // Cập nhật s.maSachCanTra
-            }
-        }
-
-        // 4. Xử lý Hành động Dock Phải
-        if (id == NUT_MT_HANHDONG_XEM) s.buocHienTai = BUOC_XEM_SACH;
-        if (id == NUT_MT_HANHDONG_MUON) {
-            s.buocHienTai = BUOC_MUON_SACH;
-            s.trangHienTai = 1; // Reset list trái
-            // Clear tìm kiếm sách cũ
-            s.tuKhoaTimSach = "";
-            s.soLuongSachTimThay = 0; 
-        }
-        if (id == NUT_MT_HANHDONG_TRA) s.buocHienTai = BUOC_TRA_SACH;
+        MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
         
-        if (id == NUT_MT_HUY_HANH_DONG) s.buocHienTai = BUOC_CHON_HANH_DONG;
+        // Xử lý nút BACK (quay về menu)
+        if (elementNhan == NUT_BACK) {
+            manHinhHienTai = MENU_CHINH;
+            state.Reset();
+            inputHoatDong = KHONG_XAC_DINH;
+            CapNhatThongBaoSFML("", 0);
+        }
+        // Nút TÌM (giống màn hình sách)
+        else if (elementNhan == NUT_TIM) {
+            inputHoatDong = KHONG_XAC_DINH;
+            ThucHienTimKiemNoiBo(state);
+        }
+        // Nút XÓA TÌM (giống màn hình sách)
+        else if (elementNhan == NUT_XOA_TIM) {
+            state.chuoiTimKiem = "";
+            inputHoatDong = KHONG_XAC_DINH;
+            ThucHienTimKiemNoiBo(state);
+        }
+        // Input tìm kiếm
+        else if (elementNhan == INPUT_MT_TIM_DOC_GIA) {
+            inputHoatDong = INPUT_MT_TIM_DOC_GIA;
+            CapNhatThongBaoSFML("", 0);
+        }
+        // Các nút TOP 10, QUÁ HẠN
+        else if (elementNhan == NUT_MT_VAO_TOP_10) {
+            TaiDuLieuTop10(state);
+            state.hienThiModalTop10 = true;
+        }
+        else if (elementNhan == NUT_MT_TAB_QUAHAN) {
+            TaiDuLieuQuaHan(state);
+            state.hienThiModalQuaHan = true;
+        }
+        
+        // Input fields
+        else if (elementNhan == INPUT_MT_TIM_SACH) {
+            inputHoatDong = INPUT_MT_TIM_SACH;
+            // Nếu click vào input khi đang chọn sách mượn → reset để nhập mới
+            if (!state.maSachDangChon.empty() && state.chuoiMaSach == state.maSachDangChon) {
+                state.maSachDangChon = "";
+                state.chuoiMaSach = "";
+                CapNhatThongBaoSFML("San sang nhap ma sach moi.", 0);
+            }
+        }
+        
+        // Pagination
+        else if (elementNhan == NUT_MT_PREV_PAGE) {
+            if (state.trangHienTai > 1) state.trangHienTai--;
+        }
+        else if (elementNhan == NUT_MT_NEXT_PAGE) {
+            if (state.trangHienTai < state.tongSoTrang) state.trangHienTai++;
+        }
+        
+        // Action buttons
+        else if (elementNhan == NUT_MT_XAC_NHAN_MUON) {
+            ThucHienMuonSachSFML(state);
+        }
+        else if (elementNhan == NUT_MT_XAC_NHAN_TRA) {
+            ThucHienTraSachSFML(state);
+        }
+        else if (elementNhan == NUT_MT_BAO_MAT) {
+            ThucHienBaoMatSachSFML(state);
+        }
+        // NÚT HỦY CHỌN - reset trạng thái chọn (dưới bảng danh sách)
+        else if (elementNhan == NUT_HUY_CHON) {
+            state.docGiaDangChon = nullptr;
+            state.maTheDocGiaDuocChon = 0;
+            state.maSachDangChon = "";
+            state.slSachDangMuon = 0;
+            state.chuoiMaSach = "";
+            inputHoatDong = KHONG_XAC_DINH;
+            CapNhatThongBaoSFML("Da huy chon doc gia.", 0);
+        }
+        // CLICK vào sách đang mượn trong mini table → auto-fill mã sách
+        else if (elementNhan >= static_cast<MaUI>(HANG_SACH + 1000) && 
+                 elementNhan < static_cast<MaUI>(HANG_SACH + 1003)) {
+            int rowIndex = elementNhan - static_cast<MaUI>(HANG_SACH + 1000);
+            if (rowIndex >= 0 && rowIndex < state.slSachDangMuon) {
+                const ThongTinSachDangMuon_DTO& dto = state.listSachDangMuon[rowIndex];
+                state.maSachDangChon = dto.maSach;
+                state.chuoiMaSach = dto.maSach;  // Auto-fill vào input
+                inputHoatDong = KHONG_XAC_DINH;  // Không focus để người dùng thấy buttons rõ hơn
+                CapNhatThongBaoSFML("\u2713 Da chon: " + dto.tenSach + ". Bay gio chi can bam TRA SACH hoac BAO MAT.", 2);
+            }
+        }
+        
+        // Reader table row click (đúng logic như HANG_SACH)
+        else if (elementNhan == HANG_SACH) {
+            const float headerY = BANG_MT_Y;
+            const float contentY = headerY + 40.f + 35.f;
+            const float rowHeight = 30.f;
+            const int startIndex = (state.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
+            const int rowIndex = static_cast<int>((event.mouseButton.y - contentY) / rowHeight);
+            const int actualIndex = startIndex + rowIndex;
 
-        // 5. Nút Tìm kiếm
-        if (id == NUT_MT_TIM_DG_BTN) TaiDanhSachDocGia(); // Refresh list DG theo keyword (cần code thêm logic lọc)
-        if (id == NUT_MT_TIM_SACH_BTN) TimKiemSachDeMuon();
+            if (actualIndex >= 0 && actualIndex < state.soLuongKetQuaTimKiem && 
+                state.ketQuaTimKiem[actualIndex].docGia) {
+                
+                PTRDG clickedDG = state.ketQuaTimKiem[actualIndex].docGia;
+                int clickedMaThe = clickedDG->data.MaThe;
+                const float elapsed = state.doubleClickClock.getElapsedTime().asSeconds();
+                
+                // Double-click detection
+                if (elapsed < state.THOI_GIAN_DOUBLE_CLICK && clickedMaThe == state.maTheClickCuoi) {
+                    state.docGiaDangChon = clickedDG;
+                    state.maTheDocGiaDuocChon = clickedMaThe;
+                    CapNhatSachDangMuon(state);
+                    CapNhatThongBaoSFML("Da chon doc gia: " + clickedDG->data.Ho + " " + clickedDG->data.Ten, 0);
+                    state.maTheClickCuoi = 0;
+                } else {
+                    state.maTheClickCuoi = clickedMaThe;
+                    state.doubleClickClock.restart();
+                }
+            }
+        }
+        
+        else {
+            inputHoatDong = KHONG_XAC_DINH;
+        }
     }
-
-    // Xử lý nhập liệu Text (Tìm kiếm)
-    if (event.type == sf::Event::TextEntered) {
-         if (inputHoatDong == INPUT_MT_TIM_DOC_GIA) {
-             // Cập nhật s.tuKhoaTimDG...
-         }
-         if (inputHoatDong == INPUT_MT_TIM_SACH) {
-             // Cập nhật s.tuKhoaTimSach...
-         }
-    }
-}
-
-void KhoiTaoManHinhMuonTra() {
-    s.Reset();
-    TaiDanhSachDocGia();
 }
