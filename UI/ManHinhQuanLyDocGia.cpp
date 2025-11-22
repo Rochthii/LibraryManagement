@@ -499,8 +499,14 @@ static void CapNhatDuLieuHienThi(DocGiaState& s) {
         }
     }
     else if (s.cheDoXem == XEM_DOC_GIA_QUA_HAN) {
-        // Lấy danh sách quá hạn (đã sort giảm dần)
-        s.soLuongQuaHan = LayDSDocGiaQuaHan(rootDocGia, s.mangQuaHan);
+        // Lay danh sach qua han - wrapper de dung ThongTinQuaHan
+        DocGiaQuaHanDTO temp[MAX_DAUSACH];
+        int count = LayDSDocGiaQuaHan(rootDocGia, temp, MAX_DAUSACH);
+        s.soLuongQuaHan = count;
+        for (int i = 0; i < count; ++i) {
+            s.mangQuaHan[i].docGia = temp[i].docGia;
+            s.mangQuaHan[i].soNgayQuaHanMax = temp[i].soNgayQuaHanMax;
+        }
     }
     
     // Cập nhật phân trang

@@ -750,20 +750,30 @@ static void QuickSortQuaHan(ThongTinQuaHan arr[], int low, int high) {
     }
 }
 
-// ham backend chinh: lay ds doc gia qua han
-int LayDSDocGiaQuaHan(PTRDG root, ThongTinQuaHan arr[]) {
-    if (root == nullptr || arr == nullptr) return 0;
+// ham backend chinh: lay ds doc gia qua han (cap nhat dung DocGiaQuaHanDTO)
+int LayDSDocGiaQuaHan(PTRDG root, DocGiaQuaHanDTO arr[], int maxKetQua) {
+    if (root == nullptr || arr == nullptr || maxKetQua <= 0) return 0;
     
+    // Tao mang tam ThongTinQuaHan de thu thap
+    ThongTinQuaHan temp[1000];
     int count = 0;
     
     // 1. thu thap du lieu
-    ThuThapDocGiaQuaHanRec(root, arr, count);  // O(N * L)
+    ThuThapDocGiaQuaHanRec(root, temp, count);  // O(N * L)
     
     // 2. sap xep mang quicksort
     if (count > 1) {
-        QuickSortQuaHan(arr, 0, count - 1);  // O(N log N)
+        QuickSortQuaHan(temp, 0, count - 1);  // O(N log N)
     }
-    return count;
+    
+    // 3. chuyen sang DocGiaQuaHanDTO
+    int result = (count < maxKetQua) ? count : maxKetQua;
+    for (int i = 0; i < result; ++i) {
+        arr[i].docGia = temp[i].docGia;
+        arr[i].soNgayQuaHanMax = temp[i].soNgayQuaHanMax;
+    }
+    
+    return result;
 }
 
 //ham backend chinh: lay top 10 sach dang muon
@@ -860,10 +870,10 @@ static void LuuNodeVaoFile(PTRDG node, std::ofstream& file){
 }
 
 void saveDocGia(PTRDG root){
-    std::ofstream file("file/docgia.txt");
+    std::ofstream file("files/docgia.txt");
 
     if(!file.is_open()){
-        std::cerr << "Loi: khong the mo file 'file/docgia.txt' de ghi!" << std::endl;
+        std::cerr << "Loi: khong the mo file 'files/docgia.txt' de ghi!" << std::endl;
         return;
     }
 
@@ -871,7 +881,7 @@ void saveDocGia(PTRDG root){
 
     file.close();
 
-    std::cout << "Thong tin: Da Luu flie docgia.txt thanh cong." << std::endl;
+    std::cout << "Thong tin: Da Luu file docgia.txt thanh cong." << std::endl;
 }
 //Load
 PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS){
@@ -942,4 +952,41 @@ PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS){
     }
     file.close();
     return root;
+}
+
+// Ham bao mat sach (TrangThai = 2)
+std::string BaoMatSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach) {
+    if (!docGia) return "Loi: Doc gia khong ton tai!";
+    if (maSach.empty()) return "Loi: Ma sach khong hop le!";
+    
+    // Tim ISBN tu ma sach
+    std::string isbn = TachISBNTuMaSach(maSach);
+    if (isbn.empty()) return "Loi: Ma sach khong hop le!";
+    
+    // Tim dau sach
+    PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
+    if (!dauSach) return "Loi: Khong tim thay dau sach!";
+    
+    // Tim ban sao
+    PTRDMS banSao = TimBanSaoTheoMa(dauSach, maSach);
+    if (!banSao) return "Loi: Khong tim thay ma sach: " + maSach;
+    
+    // Tim giao dich muon dang hoat dong
+    MUONTRA p = docGia->data.dsmt;
+    while (p) {
+        if (p->data.banSaoSach == banSao && p->data.TrangThai == 0) {
+            // Cap nhat trang thai = 2 (Mat)
+            p->data.TrangThai = 2;
+            p->data.NgayTra = layNgayHienTai();
+            
+            // Thanh ly sach
+            banSao->trangThai = THANH_LY;
+            duLieuDaThayDoi = true;
+            
+            return ""; // Thanh cong
+        }
+        p = p->next;
+    }
+    
+    return "Loi: Khong tim thay giao dich muon sach nay!";
 }

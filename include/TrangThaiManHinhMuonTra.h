@@ -7,71 +7,94 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-// Các trạng thái chính của màn hình
-enum CheDoMuonTra {
-    MT_HOME,            // Màn hình chọn: [Mượn/Trả] hoặc [Top 10]
-    MT_TOP_10,          // Màn hình xem Top 10
-    MT_PROCESS          // Màn hình xử lý chính (Dock UI)
+// Hang so phan trang (đồng bộ với SACH_MOI_TRANG)
+const int DOC_GIA_MOI_TRANG = 17; // So doc gia hien thi moi trang (giống SACH_MOI_TRANG)
+
+// Cau truc DTO cho doc gia hien thi trong bang (similar to KetQuaTimKiem)
+struct DocGiaTableDTO {
+    PTRDG docGia;
+    int loaiKhop; // 0: Exact match, 1: Partial match, 2: No search (show all)
 };
 
-// Các bước trong quy trình Mượn/Trả (khi ở MT_PROCESS)
-enum QuyTrinhCon {
-    BUOC_CHON_DOC_GIA,  // Dock trái: List ĐG, Dock phải: Trống/Hdẫn
-    BUOC_CHON_HANH_DONG,// Dock trái: Highlight ĐG, Dock phải: 3 nút Xem/Mượn/Trả
-    BUOC_XEM_SACH,      // Dock trái: Info ĐG, Dock phải: List sách đang mượn
-    BUOC_MUON_SACH,     // Dock trái: List Sách (Tìm), Dock phải: Info sách chọn + Nút Mượn
-    BUOC_TRA_SACH       // Dock trái: List Sách đang mượn, Dock phải: Info sách chọn + Nút Trả
-};
-
+// Cau truc state don gian theo pattern SachState
 struct MuonTraState {
-    CheDoMuonTra cheDo;
-    QuyTrinhCon buocHienTai;
-
-    // --- Dữ liệu Độc Giả ---
-    std::string tuKhoaTimDG;
-    PTRDG mangDocGiaHienThi[MAX_DAUSACH]; // Danh sách hiển thị ở Dock Trái
-    int soLuongDGHienThi;
-    PTRDG docGiaDangChon;                 // Độc giả đang được thao tác
+    // ===== TRANG THAI BANG CHINH (Table View) =====
+    DocGiaTableDTO ketQuaTimKiem[MAX_DAUSACH];  // Danh sach doc gia hien thi
+    int soLuongKetQuaTimKiem;                   // So luong doc gia tim thay
+    int trangHienTai;                           // Trang hien tai (1-based)
+    int tongSoTrang;                            // Tong so trang
     
-    // --- Dữ liệu Sách (Khi Mượn) ---
-    std::string tuKhoaTimSach;
-    KetQuaTimKiem ketQuaTimSach[MAX_KET_QUA_TIM_KIEM];
-    int soLuongSachTimThay;
-    PTRDS dauSachDangChon;                // Đầu sách chọn để mượn
+    // ===== TRANG THAI FORM NHAP LIEU (Form State) =====
+    std::string chuoiTimKiem;                   // Tu khoa tim kiem doc gia
+    std::string chuoiMaSach;                    // Ma sach can muon/tra
     
-    // --- Dữ liệu Mượn/Trả ---
-    ThongTinSachDangMuon_DTO listSachDangMuon[10]; // Cache sách đang mượn của ĐG
-    int slSachDangMuon;
-    std::string maSachCanTra;             // Mã cá biệt chọn để trả
-    int indexSachTra;                     // Index trong mảng listSachDangMuon
-
-    // --- Top 10 ---
-    TopSachDTO top10[10];
-    int soLuongTop;
-
-    // --- Chung ---
-    int trangHienTai;   // Dùng cho list ở Dock Trái
-    int tongSoTrang;
+    // ===== TRANG THAI LOGIC (Logic State) =====
+    int maTheDocGiaDuocChon;                    // Ma the doc gia dang chon (0 = chua chon)
+    PTRDG docGiaDangChon;                       // Con tro doc gia dang chon
+    std::string maSachDangChon;                 // Ma sach ca biet dang chon (cho tra/bao mat)
+    int indexSachDangChon;                      // Index trong mang listSachDangMuon
     
-    // --- Modal ---
-    bool hienModal;
-    std::string noiDungModal;
-    bool isConfirmAction; // True: XN Mượn/Trả, False: Thông báo
-
-    MuonTraState() { Reset(); }
-
+    // ===== DATA CACHE (Cached Data) =====
+    ThongTinSachDangMuon_DTO listSachDangMuon[10];  // Sach dang muon cua doc gia duoc chon
+    int slSachDangMuon;                              // So luong sach dang muon
+    
+    // ===== TRANG THAI DOUBLE CLICK (Double Click Detection) =====
+    sf::Clock doubleClickClock;
+    int maTheClickCuoi;                         // Ma the click lan cuoi
+    const float THOI_GIAN_DOUBLE_CLICK = 0.3f;
+    int maTheRowClicked;                        // Ma the row vua click
+    
+    // ===== TRANG THAI MODAL (Modal State) =====
+    bool hienThiModalTop10;                     // Hien thi modal top 10
+    bool hienThiModalQuaHan;                    // Hien thi modal doc gia qua han
+    TopSachDTO top10[10];                       // Data top 10 sach
+    int soLuongTop;                             // So luong sach trong top 10
+    DocGiaQuaHanDTO dsQuaHan[MAX_DAUSACH];      // Data doc gia qua han
+    int soLuongQuaHan;                          // So luong doc gia qua han
+    
+    // ===== TRANG THAI XAC NHAN (Confirmation State) =====
+    bool xacNhanMuon;                           // Hien thi hop thoai xac nhan muon
+    bool xacNhanTra;                            // Hien thi hop thoai xac nhan tra
+    bool xacNhanBaoMat;                         // Hien thi hop thoai xac nhan bao mat
+    
+    // Constructor
+    MuonTraState() { 
+        Reset(); 
+    }
+    
     void Reset() {
-        cheDo = MT_HOME;
-        buocHienTai = BUOC_CHON_DOC_GIA;
-        docGiaDangChon = nullptr;
-        dauSachDangChon = nullptr;
-        tuKhoaTimDG = "";
-        tuKhoaTimSach = "";
-        maSachCanTra = "";
-        indexSachTra = -1;
+        // Reset table state
+        soLuongKetQuaTimKiem = 0;
         trangHienTai = 1;
         tongSoTrang = 1;
-        hienModal = false;
+        
+        // Reset form state
+        chuoiTimKiem = "";
+        chuoiMaSach = "";
+        
+        // Reset logic state
+        maTheDocGiaDuocChon = 0;
+        docGiaDangChon = nullptr;
+        maSachDangChon = "";
+        indexSachDangChon = -1;
+        
+        // Reset cache
+        slSachDangMuon = 0;
+        
+        // Reset double click
+        maTheClickCuoi = 0;
+        maTheRowClicked = 0;
+        
+        // Reset modal state
+        hienThiModalTop10 = false;
+        hienThiModalQuaHan = false;
+        soLuongTop = 0;
+        soLuongQuaHan = 0;
+        
+        // Reset confirmation state
+        xacNhanMuon = false;
+        xacNhanTra = false;
+        xacNhanBaoMat = false;
     }
 };
 

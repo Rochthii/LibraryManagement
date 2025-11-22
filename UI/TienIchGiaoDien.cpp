@@ -220,3 +220,16 @@ std::string WordWrapText(const sf::Font& font, const std::string& text, unsigned
     
     return result.empty() ? text : result;                              // tra ve ket qua hoac text goc
 }
+
+// xu ly nhap chuoi tu ban phim
+void XuLyNhapChuoi(sf::Event event, std::string& str, size_t maxLen) {
+    if (event.text.unicode < 128) {                                     // chi nhan ky tu ASCII
+        char c = static_cast<char>(event.text.unicode);
+        
+        if (c == '\b' && !str.empty()) {                                // backspace
+            str.pop_back();
+        } else if (c >= 32 && c != 127 && str.length() < maxLen) {      // ky tu hien thi
+            str += c;
+        }
+    }
+}

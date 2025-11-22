@@ -6,19 +6,12 @@
 #include "DocGia.h"
 #include "NgayThang.h"
 
-// Ma UI rieng cho man hinh muon tra
-enum MaUI_MuonTra {
-    INPUT_MATHE = 600,
-    INPUT_MASACH,
-    NUT_MUON,
-    NUT_TRA,
-    NUT_QUAYLAI_MT,
-};
+// All UI IDs are now defined in GiaoDienSFML.h
+// No need for additional enum here
 
 // Ham khoi tao va ve
 void KhoiTaoManHinhMuonTra();
 void VeManHinhMuonTra(sf::RenderWindow& window, const sf::Font& font);
 void XuLySuKienManHinhMuonTra(sf::RenderWindow& window, sf::Event event);
-void VeBangMuonTra(sf::RenderWindow& window, const sf::Font& font, float yStart);
 
 #endif

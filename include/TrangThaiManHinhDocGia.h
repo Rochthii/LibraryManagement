@@ -17,7 +17,7 @@ struct DocGiaState {
     // --- Dữ liệu hiển thị ---
     PTRDG mangDocGia[MAX_DAUSACH];        // Mảng con trỏ cho sắp xếp
     int soLuongDocGia;                     // Số lượng độc giả
-    ThongTinQuaHan mangQuaHan[MAX_DAUSACH]; // Mảng độc giả quá hạn
+    ThongTinQuaHan mangQuaHan[MAX_DAUSACH]; // Mang doc gia qua han (dung ThongTinQuaHan thay vi DocGiaQuaHanDTO)
     int soLuongQuaHan;                     // Số lượng quá hạn
     
     // --- Chế độ xem ---

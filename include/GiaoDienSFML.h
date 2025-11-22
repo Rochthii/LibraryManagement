@@ -160,7 +160,11 @@ enum MaUI {
 
     // Modal xac nhan muon/tra
     NUT_MT_XAC_NHAN_MODAL,    // Nut xac nhan muon/tra
-    NUT_MT_HUY_MODAL          // Nut huy muon/tra
+    NUT_MT_HUY_MODAL,         // Nut huy muon/tra
+    
+    // Additional buttons for borrow/return screen
+    NUT_MT_BAO_MAT,           // Nut bao mat sach
+    NUT_MT_TAB_QUAHAN         // Nut tab qua han
 };
 
 

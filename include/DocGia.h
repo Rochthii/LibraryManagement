@@ -56,6 +56,11 @@ struct ThongTinSachDangMuon_DTO {
 struct TopSachDTO {
     PTRDS dauSach;//dung con tro thay vi tao mot field da co san
 };
+
+struct DocGiaQuaHanDTO {
+    PTRDG docGia;
+    int soNgayQuaHanMax;
+};
 // Prototype AVL
 PTRDG RotateLeft(PTRDG root);
 PTRDG RotateRight(PTRDG root);
@@ -84,6 +89,7 @@ void giaiPhongDsmt(MUONTRA& dsmt);
 // Prototype Quản lý Mượn Trả (f) (g)
 std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach);
 std::string TraSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
+std::string BaoMatSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
 void themMuonTra(PTRDG docgia, PTRDMS banSaoSach);//khi muon sach
 void themMuonTra(PTRDG docgia, const MuonTra &mt);//khi load file
 PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach);
@@ -94,7 +100,7 @@ int LayDSSachDangMuon(PTRDG docGia, ThongTinSachDangMuon_DTO ketQua[], int maxKe
 
 // Prototype Danh sách độc giả mượn quá hạn (i)
 int TinhSoNgayQuaHanLonNhat(PTRDG docgia);
-int LayDSDocGiaQuaHan(PTRDG root, ThongTinQuaHan arr[]);
+int LayDSDocGiaQuaHan(PTRDG root, DocGiaQuaHanDTO arr[], int maxKetQua);
 int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]);
 
 // Prototype File I/O

@@ -300,16 +300,8 @@ void hoanDoi(PTRDS &a, PTRDS &b) {
     b = temp;
 }
 
-// hoan doi ket qua tim kiem
-void hoanDoiKetQua(KetQuaTimKiem &a, KetQuaTimKiem &b) {
-    KetQuaTimKiem temp = a;
-    a = b;
-    b = temp;
-}
-
-
-// lay vi tri median-of-three lam pivot O(1)
-int layPivotGiua(PTRDS arr[], int left, int right) {
+// Chon median-of-three lam pivot O(1)
+int ChonPivot(PTRDS arr[], int left, int right) {
     int mid = left + (right - left) / 2;      // lay chi so giua
 
     if (arr[mid] && arr[left] && arr[mid]->tenSach < arr[left]->tenSach)
@@ -321,42 +313,44 @@ int layPivotGiua(PTRDS arr[], int left, int right) {
     if (arr[right] && arr[mid] && arr[right]->tenSach < arr[mid]->tenSach)
         hoanDoi(arr[mid], arr[right]);        // dua lon nhat ve right
 
-    return mid;                              // tra ve vi tri median
+    return mid;                                // tra ve vi tri median
 }
 
-// phan vung theo tenSach (quicksort) O(N)
-int phanVung(PTRDS arr[], int left, int right) {
+// Phan hoach Lomuto O(N)
+int PhanHoach(PTRDS arr[], int left, int right) {
+    // Chon median-of-three lam pivot, dua ve cuoi
     if (left < 0 || right >= MAX_DAUSACH || left >= right)
-        return left;                          // kiem tra hop le
+        return left;                       // kiem tra hop le
 
-    int viTriPivot = layPivotGiua(arr, left, right);   // chon pivot
-    hoanDoi(arr[viTriPivot], arr[right]);              // dua pivot ve cuoi
+    int pivotIdx = ChonPivot(arr, left, right);   // chon pivot
+    hoanDoi(arr[pivotIdx], arr[right]);           // dua pivot ve cuoi
+    PTRDS pivot = arr[right];                     // lay gia tri pivot
+    if (!pivot) return left;                      // tranh loi null
 
-    PTRDS pivot = arr[right];                          // lay gia tri pivot
-    if (!pivot) return left;                           // tranh loi null
-
-    int viTriNho = left - 1;                           // chi so vung nho
-
+    // Chia mang: tat ca <= pivot ve ben trai (Lomuto)
+    int i = left - 1;                             // chi so vung nho
     for (int j = left; j < right; ++j) {
-        if (!arr[j]) continue;                         // bo qua null
-        if (arr[j]->tenSach <= pivot->tenSach) {       // nho hon hoac bang pivot
-            viTriNho++;
-            hoanDoi(arr[viTriNho], arr[j]);           // dua sang ben trai
+        if (!arr[j]) continue;                   // bo qua null
+        if (arr[j]->tenSach <= pivot->tenSach) { // nho hon hoac bang pivot
+            i++;
+            hoanDoi(arr[i], arr[j]);            // dua sang ben trai
         }
     }
 
-    hoanDoi(arr[viTriNho + 1], arr[right]);           // dat pivot dung vi tri
-    return viTriNho + 1;                              // tra ve vi tri pivot
+    // Dua pivot ve dung vi tri
+    hoanDoi(arr[i + 1], arr[right]);             // dat pivot dung vi tri
+    return i + 1;                                // tra ve vi tri pivot
 }
 
-// quicksort dau sach theo ten  O(N log N)
+// Quicksort dau sach theo ten O(N log N)
 void sapXepDauSachTheoTen(PTRDS arr[], int left, int right) {
-    if (left >= right || left < 0 || right >= MAX_DAUSACH) return;    // dung khi rong, 1 ptu, > maxDuaSach
+    if (left >= right || left < 0 || right >= MAX_DAUSACH)
+        return;                          // dung khi mang rong, 1 phan tu, > max
 
-    int viTriGiua = phanVung(arr, left, right);        // chia mang
+    int p = PhanHoach(arr, left, right); // phan hoach, chia mang
 
-    sapXepDauSachTheoTen(arr, left, viTriGiua - 1);    // de quy trai
-    sapXepDauSachTheoTen(arr, viTriGiua + 1, right);   // de quy phai
+    sapXepDauSachTheoTen(arr, left, p - 1);  // de quy trai
+    sapXepDauSachTheoTen(arr, p + 1, right); // de quy phai
 }
 
 // insertion sort ban sao O(N^2)
@@ -394,6 +388,15 @@ void SapXepTheLoaiTheoTen(std::string arr[], int n) {
         arr[j + 1] = key;                                      // chen vao vi tri dung
     }
 }
+
+
+// hoan doi ket qua tim kiem
+void hoanDoiKetQua(KetQuaTimKiem &a, KetQuaTimKiem &b) {
+    KetQuaTimKiem temp = a;
+    a = b;
+    b = temp;
+}
+
 
 // phan hoach ket qua O(N)
 static int phanHoachKetQua(KetQuaTimKiem arr[], std::string tenThuong[], int left, int right) {
