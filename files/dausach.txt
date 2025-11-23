@@ -1,7 +1,7 @@
 9786040000644|Ai Trong Doi Song|733|Pham Thao|2023|Tri Tue Nhan Tao
 9786040000675|An Ninh Mang|858|Nguyen Thanh|2021|An Toan Thong Tin
-9786040000491|An Toan Thong Tin|133|Bui Thi Lan|2018|An Toan Thong Tin
 9786040000392|An Toan Thong Tin|363|Bui Thi Lan|2008|An Toan Thong Tin
+9786040000491|An Toan Thong Tin|133|Bui Thi Lan|2018|An Toan Thong Tin
 9786040001023|Attack On Titan|850|Hajime Isayama|2009|Nhat Ban
 9786040000590|Bao Mat Mang|518|Ngo Duc Manh|2023|An Toan Thong Tin
 9786040000613|Blockchain Co Ban|603|Nguyen Hai|2020|Blockchain
@@ -62,8 +62,8 @@
 9786040000576|Thuat Toan Nang Cao|432|Pham Thu Hang|2021|Thuat Toan
 9786040000835|Thuat Toan Ung Dung|600|Pham Hung|2022|Thuat Toan
 9786040000712|Thuc Tap An Ninh|120|Ngo Hoai Nam|2020|An Toan Thong Tin
-9786040000477|Tri Tue Nhan Tao|659|Tran Thi B|2016|Tri Tue Nhan Tao
 9786040000378|Tri Tue Nhan Tao|289|Tran Thi B|2006|Tri Tue Nhan Tao
+9786040000477|Tri Tue Nhan Tao|659|Tran Thi B|2016|Tri Tue Nhan Tao
 9786040000774|Tri Tue Nhan Tao Nang Cao|360|Tran Thi Ha|2021|Tri Tue Nhan Tao
 9876046789465|Trong Nhung Nam Qua|736|Cham Roch Thi|2025|Cuoc Song
 9786040793225|Vi Em|453|Cham Roch Thi|2025|Tinh Yeu

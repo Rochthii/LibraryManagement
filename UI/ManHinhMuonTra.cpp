@@ -323,6 +323,10 @@ static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const 
             for (int i = 0; i < currentState.slSachDangMuon && i < 3; ++i) {
                 const ThongTinSachDangMuon_DTO& dto = currentState.listSachDangMuon[i];
                 
+                // Kiểm tra quá hạn (>7 ngày)
+                bool quaHan = (dto.soNgayGiu > 7);
+                bool sapQuaHan = (dto.soNgayGiu >= 5 && dto.soNgayGiu <= 7);
+                
                 // Row highlight if selected (khi hover hoặc đã click)
                 bool isSelected = (dto.maSach == currentState.maSachDangChon);
                 
@@ -333,16 +337,23 @@ static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const 
                     isHovering = true;
                 }
                 
+                // Background color dựa trên trạng thái
+                sf::Color bgColor = sf::Color::Transparent;
                 if (isSelected) {
-                    sf::RectangleShape rowHighlight(sf::Vector2f(contentWidth - 2.f, 22.f));
-                    rowHighlight.setPosition(labelX + 1.f, tableY);
-                    rowHighlight.setFillColor(sf::Color(255, 250, 205, 180));  // Vàng sáng
-                    window.draw(rowHighlight);
+                    bgColor = sf::Color(255, 250, 205, 180);  // Vàng sáng khi chọn
+                } else if (quaHan) {
+                    bgColor = sf::Color(255, 100, 100, 80);  // Đỏ nhạt nếu quá hạn
+                } else if (sapQuaHan) {
+                    bgColor = sf::Color(255, 200, 100, 60);  // Cam nhạt nếu sắp quá hạn
                 } else if (isHovering) {
-                    sf::RectangleShape rowHover(sf::Vector2f(contentWidth - 2.f, 22.f));
-                    rowHover.setPosition(labelX + 1.f, tableY);
-                    rowHover.setFillColor(sf::Color(80, 80, 100, 50));  // Xám nhạt
-                    window.draw(rowHover);
+                    bgColor = sf::Color(80, 80, 100, 50);  // Xám nhạt khi hover
+                }
+                
+                if (bgColor != sf::Color::Transparent) {
+                    sf::RectangleShape rowBg(sf::Vector2f(contentWidth - 2.f, 22.f));
+                    rowBg.setPosition(labelX + 1.f, tableY);
+                    rowBg.setFillColor(bgColor);
+                    window.draw(rowBg);
                 }
                 
                 // Store row bounds for click detection (invisible hitbox)
@@ -356,15 +367,25 @@ static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const 
                     cacElement[soLuongElement++] = elem;
                 }
                 
-                sf::Text cell1 = TaoVanBan(font, CatChuoiVoiDauCham(dto.maSach, 15), FONT_SIZE_NHO - 1, MAU_CHU);
+                // Màu text dựa trên trạng thái quá hạn
+                sf::Color textColor = quaHan ? sf::Color(220, 50, 50) : (sapQuaHan ? sf::Color(255, 150, 0) : MAU_CHU);
+                
+                sf::Text cell1 = TaoVanBan(font, CatChuoiVoiDauCham(dto.maSach, 15), FONT_SIZE_NHO - 1, textColor);
                 cell1.setPosition(labelX + 8.f, tableY + 4.f);
                 window.draw(cell1);
                 
-                sf::Text cell2 = TaoVanBan(font, CatChuoiVoiDauCham(dto.tenSach, 22), FONT_SIZE_NHO - 1, MAU_CHU);
+                sf::Text cell2 = TaoVanBan(font, CatChuoiVoiDauCham(dto.tenSach, 22), FONT_SIZE_NHO - 1, textColor);
                 cell2.setPosition(labelX + contentWidth * 0.35f, tableY + 4.f);
                 window.draw(cell2);
                 
-                sf::Text cell3 = TaoVanBan(font, dto.ngayMuon, FONT_SIZE_NHO - 1, MAU_CHU);
+                // Ngày mượn + cảnh báo quá hạn
+                std::string ngayText = dto.ngayMuon;
+                if (quaHan) {
+                    ngayText += " (!" + std::to_string(dto.soNgayGiu) + " ngay)";
+                } else if (sapQuaHan) {
+                    ngayText += " (" + std::to_string(dto.soNgayGiu) + " ngay)";
+                }
+                sf::Text cell3 = TaoVanBan(font, ngayText, FONT_SIZE_NHO - 1, textColor);
                 cell3.setPosition(labelX + contentWidth * 0.75f, tableY + 4.f);
                 window.draw(cell3);
                 
@@ -400,52 +421,65 @@ static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font, const 
         bool daDienMaSach = !currentState.chuoiMaSach.empty();
         bool daChonSachDangMuon = !currentState.maSachDangChon.empty();
         bool coTheMuon = (currentState.slSachDangMuon < 3);
+        bool docGiaBiKhoa = (dg->data.TrangThai == 0);
         
         // CONTEXT 1: Đã chọn sách đang mượn → chỉ hiện TRA + BAO MAT
         if (daChonSachDangMuon && daDienMaSach) {
+            // Disable nếu độc giả bị khoá
+            sf::Color mauTra = docGiaBiKhoa ? sf::Color(100, 100, 100) : MAU_THANH_CONG;
+            sf::Color mauBaoMat = docGiaBiKhoa ? sf::Color(100, 100, 100) : MAU_LOI;
+            
             // Nút TRA SACH (nổi bật)
-            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH + 3.f, "TRA SACH", MAU_THANH_CONG, MAU_CHU_NUT);
+            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH + 3.f, "TRA SACH", mauTra, MAU_CHU_NUT);
             currentY += btnH + 11.f;
             
             // Nút BÁO MẤT
-            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", MAU_LOI, MAU_CHU_NUT);
+            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", mauBaoMat, MAU_CHU_NUT);
             currentY += btnH + 10.f;
             
             // Helper text with icon
-            std::string iconCheck = "\u2713 ";
-            sf::Text txtHelp = TaoVanBan(font, iconCheck + "Da chon sach dang muon. Chon thao tac ben tren.", 
-                                        FONT_SIZE_NHO - 2, sf::Color(100, 200, 100));
+            std::string helpMsg = docGiaBiKhoa 
+                ? "⚠ Doc gia bi khoa. Khong the thao tac."
+                : "✓ Da chon sach dang muon. Chon thao tac ben tren.";
+            sf::Color helpColor = docGiaBiKhoa ? sf::Color(255, 150, 0) : sf::Color(100, 200, 100);
+            sf::Text txtHelp = TaoVanBan(font, helpMsg, FONT_SIZE_NHO - 2, helpColor);
             txtHelp.setPosition(labelX, currentY);
             window.draw(txtHelp);
         }
         // CONTEXT 2: Chưa chọn/nhập mã sách mới → hiện đủ 3 nút
         else {
-            sf::Color mauMuon = coTheMuon ? MAU_THANH_CONG : sf::Color(120, 120, 120);
+            bool coSachDeTra = (currentState.slSachDangMuon > 0);
+            sf::Color mauMuon = (coTheMuon && !docGiaBiKhoa) ? MAU_THANH_CONG : sf::Color(100, 100, 100);
+            sf::Color mauTra = (coSachDeTra && !docGiaBiKhoa) ? MAU_NHAN : sf::Color(100, 100, 100);
+            sf::Color mauBaoMat = (coSachDeTra && !docGiaBiKhoa) ? MAU_LOI : sf::Color(100, 100, 100);
             
             // Nút MƯỢN SÁCH
             TaoNut(font, NUT_MT_XAC_NHAN_MUON, labelX, currentY, btnW, btnH, "MUON SACH", mauMuon, MAU_CHU_NUT);
             currentY += btnH + 8.f;
             
             // Nút TRẢ SÁCH
-            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH, "TRA SACH", MAU_NHAN, MAU_CHU_NUT);
+            TaoNut(font, NUT_MT_XAC_NHAN_TRA, labelX, currentY, btnW, btnH, "TRA SACH", mauTra, MAU_CHU_NUT);
             currentY += btnH + 8.f;
             
             // Nút BÁO MẤT
-            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", MAU_LOI, MAU_CHU_NUT);
+            TaoNut(font, NUT_MT_BAO_MAT, labelX, currentY, btnW, btnH, "BAO MAT SACH", mauBaoMat, MAU_CHU_NUT);
             currentY += btnH + 10.f;
             
-            // Helper text động
+            // Helper text động với icon
             std::string helpText;
             sf::Color helpColor;
             
-            if (!coTheMuon) {
-                helpText = "! Doc gia da muon du 3 sach. Tra sach truoc khi muon tiep.";
+            if (docGiaBiKhoa) {
+                helpText = "⚠ Doc gia bi khoa. Khong the muon/tra sach.";
+                helpColor = sf::Color(220, 100, 80);
+            } else if (!coTheMuon) {
+                helpText = "⚠ Doc gia da muon du 3 sach. Tra sach truoc khi muon tiep.";
                 helpColor = sf::Color(220, 100, 80);
             } else if (currentState.slSachDangMuon > 0) {
-                helpText = "* Click vao sach trong bang de chon, hoac nhap ma sach moi.";
+                helpText = "✓ Click vao sach trong bang de chon, hoac nhap ma sach moi.";
                 helpColor = sf::Color(120, 120, 140);
             } else {
-                helpText = "* Nhap ma sach de muon cho doc gia.";
+                helpText = "→ Nhap ma sach de muon cho doc gia.";
                 helpColor = sf::Color(120, 120, 140);
             }
             
@@ -547,30 +581,49 @@ static void VeModalTop10(sf::RenderWindow &window, const sf::Font &font, MuonTra
     }
     currentY += 30.f;
 
-    // Draw rows với highlight top 3
+    // Draw rows với highlight top 3 và icon medal
     for (int i = 0; i < currentState.soLuongTop && i < 10; ++i) {
         const TopSachDTO& dto = currentState.top10[i];
         if (!dto.dauSach) continue;
         
-        sf::Color bgColor = sf::Color::White;
-        if (i == 0) bgColor = sf::Color(255, 215, 0); // Gold
-        else if (i == 1) bgColor = sf::Color(192, 192, 192); // Silver
-        else if (i == 2) bgColor = sf::Color(205, 127, 50); // Bronze
+        // Background color với alpha nhẹ hơn
+        sf::Color bgColor = sf::Color::Transparent;
+        std::string medalIcon = "";
+        if (i == 0) {
+            bgColor = sf::Color(255, 215, 0, 100); // Gold nhạt
+            medalIcon = "1";  // 🥇
+        } else if (i == 1) {
+            bgColor = sf::Color(192, 192, 192, 100); // Silver nhạt
+            medalIcon = "2";  // 🥈
+        } else if (i == 2) {
+            bgColor = sf::Color(205, 127, 50, 100); // Bronze nhạt
+            medalIcon = "3";  // 🥉
+        }
         
-        sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 25.f));
-        rowBg.setPosition(labelX, currentY);
-        rowBg.setFillColor(bgColor);
-        window.draw(rowBg);
+        if (bgColor != sf::Color::Transparent) {
+            sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 28.f));
+            rowBg.setPosition(labelX, currentY);
+            rowBg.setFillColor(bgColor);
+            window.draw(rowBg);
+        }
 
         sf::Text cellText;
         cellText.setFont(font);
         cellText.setCharacterSize(FONT_SIZE_NHO);
         cellText.setFillColor(MAU_CHU);
 
-        cellText.setString(std::to_string(i + 1));
+        // Rank với icon medal cho top 3
+        std::string rankText = medalIcon.empty() ? std::to_string(i + 1) : medalIcon + " #" + std::to_string(i + 1);
+        cellText.setString(rankText);
         cellText.setPosition(colX[0], currentY + 5.f);
+        if (!medalIcon.empty()) {
+            cellText.setStyle(sf::Text::Bold);
+            cellText.setFillColor(MAU_NHAN);
+        }
         window.draw(cellText);
+        cellText.setStyle(sf::Text::Regular);
 
+        cellText.setFillColor(MAU_CHU);
         cellText.setString(CatChuoiVoiDauCham(dto.dauSach->ISBN, 12));
         cellText.setPosition(colX[1], currentY + 5.f);
         window.draw(cellText);
@@ -641,12 +694,26 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         if (!dto.docGia) continue;
         PTRDG dg = dto.docGia;
         
-        // Color based on days
-        sf::Color bgColor = sf::Color::White;
-        if (dto.soNgayQuaHanMax > 14) bgColor = sf::Color(255, 182, 193); // Red
-        else if (dto.soNgayQuaHanMax > 7) bgColor = sf::Color(255, 255, 224); // Yellow
+        // Color based on severity với alpha nhẹ hơn và icon cảnh báo
+        sf::Color bgColor = sf::Color::Transparent;
+        sf::Color textColor = MAU_CHU;
+        std::string warnIcon = "";
         
-        sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 25.f));
+        if (dto.soNgayQuaHanMax > 14) {
+            bgColor = sf::Color(255, 100, 100, 80); // Đỏ nhạt - nghiêm trọng
+            textColor = sf::Color(200, 50, 50);
+            warnIcon = "!!! ";
+        } else if (dto.soNgayQuaHanMax > 7) {
+            bgColor = sf::Color(255, 200, 100, 60); // Cam nhạt - cảnh báo
+            textColor = sf::Color(220, 120, 0);
+            warnIcon = "!! ";
+        } else {
+            bgColor = sf::Color(255, 255, 150, 50); // Vàng nhạt - nhẹ
+            textColor = sf::Color(180, 150, 0);
+            warnIcon = "! ";
+        }
+        
+        sf::RectangleShape rowBg(sf::Vector2f(modalW - 2 * PADDING, 28.f));
         rowBg.setPosition(labelX, currentY);
         rowBg.setFillColor(bgColor);
         window.draw(rowBg);
@@ -654,7 +721,7 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         sf::Text cellText;
         cellText.setFont(font);
         cellText.setCharacterSize(FONT_SIZE_NHO);
-        cellText.setFillColor(MAU_CHU);
+        cellText.setFillColor(textColor);
 
         cellText.setString(std::to_string(i + 1));
         cellText.setPosition(colX[0], currentY + 5.f);
@@ -670,6 +737,7 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         window.draw(cellText);
 
         cellText.setString("(xem the doc gia)");
+        cellText.setFillColor(sf::Color(120, 120, 140));
         cellText.setPosition(colX[3], currentY + 5.f);
         window.draw(cellText);
 
@@ -677,7 +745,11 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         cellText.setPosition(colX[4], currentY + 5.f);
         window.draw(cellText);
 
-        cellText.setString(std::to_string(dto.soNgayQuaHanMax) + " ngay");
+        // Hiển thị số ngày quá hạn với icon cảnh báo
+        std::string ngayText = warnIcon + std::to_string(dto.soNgayQuaHanMax) + " ngay";
+        cellText.setFillColor(textColor);
+        cellText.setStyle(sf::Text::Bold);
+        cellText.setString(ngayText);
         cellText.setPosition(colX[5], currentY + 5.f);
         window.draw(cellText);
 
@@ -1058,7 +1130,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
             state.slSachDangMuon = 0;
             state.chuoiMaSach = "";
             inputHoatDong = KHONG_XAC_DINH;
-            CapNhatThongBaoSFML("Da huy chon doc gia.", 0);
+            CapNhatThongBaoSFML("✓ Da huy chon doc gia.", 0);
         }
         // CLICK vào sách đang mượn trong mini table → auto-fill mã sách
         else if (elementNhan >= static_cast<MaUI>(HANG_SACH + 1000) && 
@@ -1069,7 +1141,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                 state.maSachDangChon = dto.maSach;
                 state.chuoiMaSach = dto.maSach;  // Auto-fill vào input
                 inputHoatDong = KHONG_XAC_DINH;  // Không focus để người dùng thấy buttons rõ hơn
-                CapNhatThongBaoSFML("\u2713 Da chon: " + dto.tenSach + ". Bay gio chi can bam TRA SACH hoac BAO MAT.", 2);
+                CapNhatThongBaoSFML("✓ Da chon sach: " + dto.tenSach + ". Bay gio chi can bam TRA SACH hoac BAO MAT.", 2);
             }
         }
         
@@ -1093,8 +1165,14 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                 if (elapsed < state.THOI_GIAN_DOUBLE_CLICK && clickedMaThe == state.maTheClickCuoi) {
                     state.docGiaDangChon = clickedDG;
                     state.maTheDocGiaDuocChon = clickedMaThe;
+                    
+                    // Reset input & state khi đổi độc giả
+                    state.maSachDangChon = "";
+                    state.chuoiMaSach = "";
+                    inputHoatDong = KHONG_XAC_DINH;
+                    
                     CapNhatSachDangMuon(state);
-                    CapNhatThongBaoSFML("Da chon doc gia: " + clickedDG->data.Ho + " " + clickedDG->data.Ten, 0);
+                    CapNhatThongBaoSFML("✓ Da chon doc gia: " + clickedDG->data.Ho + " " + clickedDG->data.Ten, 2);
                     state.maTheClickCuoi = 0;
                 } else {
                     state.maTheClickCuoi = clickedMaThe;
