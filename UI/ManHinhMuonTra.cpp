@@ -1,14 +1,14 @@
 
-#include "include/GiaoDienMuonTra.h"
-#include "include/TrangThaiManHinhMuonTra.h"
-#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
-#include "include/DocGia.h"
-#include "include/QuanLySach.h"
-#include "include/XuLyChuoi.h"
-#include "include/KiemTraDuLieu.h"
-#include "include/NgayThang.h"
-#include "include/Constants.h"
+#include "GiaoDienMuonTra.h"
+#include "TrangThaiManHinhMuonTra.h"
+#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
+#include "DocGia.h"
+#include "QuanLySach.h"
+#include "XuLyChuoi.h"
+#include "KiemTraDuLieu.h"
+#include "NgayThang.h"
+#include "Constants.h"
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -118,6 +118,27 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const M
     headerLine.setPosition(BANG_MT_X + PADDING, contentY + 30.f);
     headerLine.setFillColor(MAU_BANG_BORDER);
     window.draw(headerLine);
+
+
+    // Định nghĩa hitbox bắt đầu ngay từ đường kẻ dưới header.
+    float tableBodyTop = contentY + 30.f; // Tọa độ Y bắt đầu vùng dữ liệu
+    float tableBodyHeight = tableBottom - tableBodyTop; // Chiều cao vùng dữ liệu
+
+    // Tạo vùng hình chữ nhật ảo (không cần fill color vì chỉ dùng để bắt click)
+    sf::RectangleShape tableHitbox(sf::Vector2f(BANG_MT_RONG, tableBodyHeight));
+    tableHitbox.setPosition(BANG_MT_X, tableBodyTop);
+
+    tableHitbox.setFillColor(sf::Color::Transparent);
+
+    // Đăng ký vào hệ thống UI
+    UIElement elemTable;
+    elemTable.hinhDang = tableHitbox;
+    elemTable.id = HANG_SACH; // Gán ID quan trọng này
+
+    // Đẩy vào mảng quản lý element toàn cục
+    if (soLuongElement < SO_ELEMENT_TOI_DA) {
+        cacElement[soLuongElement++] = elemTable;
+    }
 
     float currentY = contentY + 35.f;
     int startIndex = (currentState.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
@@ -1150,8 +1171,15 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
             const float headerY = BANG_MT_Y;
             const float contentY = headerY + 40.f + 35.f;
             const float rowHeight = 30.f;
+            int rowIndex = static_cast<int>((event.mouseButton.y - contentY) / rowHeight);
+
+            // LOGIC FIX: Nếu click hơi lệch lên trên (rowIndex = -1) nhưng vẫn nằm trong vùng HANG_SACH
+            // thì ta ép nó về dòng 0
+            if (rowIndex == -1 && (event.mouseButton.y - contentY) > -10.f) {
+                rowIndex = 0;
+            }
+
             const int startIndex = (state.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
-            const int rowIndex = static_cast<int>((event.mouseButton.y - contentY) / rowHeight);
             const int actualIndex = startIndex + rowIndex;
 
             if (actualIndex >= 0 && actualIndex < state.soLuongKetQuaTimKiem && 

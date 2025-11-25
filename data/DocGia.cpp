@@ -312,15 +312,15 @@ void inDocGiaInOrder(PTRDG root) {
 // Helper: So sánh hai chuỗi theo Tên + Họ (sử dụng BoDauVaThuong)
 static int SoSanhTenHo(PTRDG dg1, PTRDG dg2) {
     // 1. So sánh theo Tên (không dấu, không phân biệt hoa/thường)
-    std::string ten1 = BoDauVaThuong(dg1->data.Ten);
-    std::string ten2 = BoDauVaThuong(dg2->data.Ten);
+    std::string ten1 = ChuanHoaChuoiTimKiem(dg1->data.Ten);
+    std::string ten2 = ChuanHoaChuoiTimKiem(dg2->data.Ten);
     if (ten1 != ten2) {
         return (ten1 < ten2) ? -1 : 1;
     }
     
     // 2. Nếu Tên bằng nhau, so sánh theo Họ
-    std::string ho1 = BoDauVaThuong(dg1->data.Ho);
-    std::string ho2 = BoDauVaThuong(dg2->data.Ho);
+    std::string ho1 = ChuanHoaChuoiTimKiem(dg1->data.Ho);
+    std::string ho2 = ChuanHoaChuoiTimKiem(dg2->data.Ho);
     if (ho1 != ho2) {
         return (ho1 < ho2) ? -1 : 1;
     }
@@ -444,7 +444,25 @@ int DemBanSaoCoTheMuon(PTRDS dauSach) {
 // ham backend: muon sach (O(log N) + O(M))
 std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach) {
     if (docGia == nullptr) return "Loi: Doc gia khong hop le!";
+    // Duyệt qua danh sách sách đang mượn để kiểm tra xem có cuốn nào quá hạn không
+    MUONTRA p = docGia->data.dsmt;
+    std::stringstream dummyStream; // Dùng stream ảo để hứng log (không in ra màn hình)
     
+    while (p != nullptr) {
+        // Chỉ kiểm tra sách đang mượn (TrangThai == 0)
+        if (p->data.TrangThai == 0) {
+            // Gọi hàm tinhSoNgayQuaHan từ NgayThang.cpp
+            int soNgayQua = tinhSoNgayQuaHan(p->data.NgayMuon, dummyStream);
+            
+            // Nếu > 0 nghĩa là đã quá hạn (số ngày giữ > SO_NGAY_MUON_TOI_DA)
+            if (soNgayQua > 0) {
+                return "Loi: Doc gia co sach qua han " + std::to_string(soNgayQua) + " ngay! Vui long tra sach truoc.";
+            }
+        }
+        p = p->next;
+    }
+    // ----------------------------------------
+
     // B1: Kiem tra gioi han muon (3 cuon)
     if (docGia->data.soSachDangMuon >= 3) {
         return "Loi: Doc gia da muon toi da 3 cuon!";
@@ -467,9 +485,8 @@ std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], i
     
     // B5: Them vao lich su muon tra
     MuonTra mt;
-    //gan con tro truc tiep, khong truy cap truong con
     mt.banSaoSach = banSao;
-    mt.NgayMuon = layNgayHienTai(std::cout);
+    mt.NgayMuon = layNgayHienTai(dummyStream); // Dùng dummyStream để tránh in log rác
     mt.NgayTra = "";
     mt.TrangThai = 0;  // dang muon
     
@@ -787,8 +804,8 @@ static int SoSanhLM(const TopSachDTO& a, const TopSachDTO& b){
     }
 
     //Sap xep tenSach (tang dan)
-    std::string tenA = (a.dauSach != nullptr) ? BoDauVaThuong(a.dauSach->tenSach) : "";
-    std::string tenB = (b.dauSach != nullptr) ? BoDauVaThuong(b.dauSach->tenSach) : "";
+    std::string tenA = (a.dauSach != nullptr) ? ChuanHoaChuoiTimKiem(a.dauSach->tenSach) : "";
+    std::string tenB = (b.dauSach != nullptr) ? ChuanHoaChuoiTimKiem(b.dauSach->tenSach) : "";
     
     if (tenA != tenB) {
         return (tenA < tenB) ? -1 : 1;
