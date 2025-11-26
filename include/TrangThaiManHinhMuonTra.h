@@ -10,7 +10,7 @@
 // Hang so phan trang (đồng bộ với SACH_MOI_TRANG)
 const int DOC_GIA_MOI_TRANG = 17; // So doc gia hien thi moi trang (giống SACH_MOI_TRANG)
 
-// Cau truc DTO cho doc gia hien thi trong bang (similar to KetQuaTimKiem)
+// Cau truc DTO cho doc gia hien thi trong bang (giong KetQuaTimKiem)
 struct DocGiaTableDTO {
     PTRDG docGia;
     int loaiKhop; // 0: Exact match, 1: Partial match, 2: No search (show all)

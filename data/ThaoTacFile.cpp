@@ -103,6 +103,7 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
 
         // them dau sach vao mang
         if (themDauSach(dsDauSach, soLuongDauSach, isbn, tenSach, soTrang, tacGia, namXuatBan, theLoai, true)) {
+            dsDauSach[soLuongDauSach - 1]->soLuotMuon = 0;
             ++thanhCong;                                                        // them thanh cong
         } else {
             thongBao(out, thongBaoLoi(soDong, "Khong the them dau sach (da day?): " + truong[1], true), CANH_BAO);
