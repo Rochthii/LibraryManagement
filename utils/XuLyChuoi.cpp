@@ -68,52 +68,52 @@ std::string ChuyenThanhTitleCase(const std::string& chuoi) {
 }
 
 // Bo dau tieng Viet va chuyen thanh chu thuong (dung cho so sanh)
-std::string BoDauVaThuong(const std::string& chuoi) {
-    // Buoc 1: Chuyen sang chu thuong
-    std::string ketQua = ChuyenInThuong(chuoi);
+// std::string BoDauVaThuong(const std::string& chuoi) {
+//     // Buoc 1: Chuyen sang chu thuong
+//     std::string ketQua = ChuyenInThuong(chuoi);
     
-    // Buoc 2: Bo dau Unicode tieng Viet (thay the ky tu co dau thanh khong dau)
-    // Map: ky tu co dau -> ky tu khong dau (dung cho tieng Viet UTF-8)
-    const char* coDau[] = {
-        "à", "á", "ả", "ã", "ạ", "ă", "ằ", "ắ", "ẳ", "ẵ", "ặ",
-        "â", "ầ", "ấ", "ẩ", "ẫ", "ậ",
-        "è", "é", "ẻ", "ẽ", "ẹ", "ê", "ề", "ế", "ể", "ễ", "ệ",
-        "ì", "í", "ỉ", "ĩ", "ị",
-        "ò", "ó", "ỏ", "õ", "ọ", "ô", "ồ", "ố", "ổ", "ỗ", "ộ",
-        "ơ", "ờ", "ớ", "ở", "ỡ", "ợ",
-        "ù", "ú", "ủ", "ũ", "ụ", "ư", "ừ", "ứ", "ử", "ữ", "ự",
-        "ỳ", "ý", "ỷ", "ỹ", "ỵ",
-        "đ"
-    };
-    const char* khongDau[] = {
-        "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a",
-        "a", "a", "a", "a", "a", "a",
-        "e", "e", "e", "e", "e", "e", "e", "e", "e", "e", "e",
-        "i", "i", "i", "i", "i",
-        "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o",
-        "o", "o", "o", "o", "o", "o",
-        "u", "u", "u", "u", "u", "u", "u", "u", "u", "u", "u",
-        "y", "y", "y", "y", "y",
-        "d"
-    };
+//     // Buoc 2: Bo dau Unicode tieng Viet (thay the ky tu co dau thanh khong dau)
+//     // Map: ky tu co dau -> ky tu khong dau (dung cho tieng Viet UTF-8)
+//     const char* coDau[] = {
+//         "à", "á", "ả", "ã", "ạ", "ă", "ằ", "ắ", "ẳ", "ẵ", "ặ",
+//         "â", "ầ", "ấ", "ẩ", "ẫ", "ậ",
+//         "è", "é", "ẻ", "ẽ", "ẹ", "ê", "ề", "ế", "ể", "ễ", "ệ",
+//         "ì", "í", "ỉ", "ĩ", "ị",
+//         "ò", "ó", "ỏ", "õ", "ọ", "ô", "ồ", "ố", "ổ", "ỗ", "ộ",
+//         "ơ", "ờ", "ớ", "ở", "ỡ", "ợ",
+//         "ù", "ú", "ủ", "ũ", "ụ", "ư", "ừ", "ứ", "ử", "ữ", "ự",
+//         "ỳ", "ý", "ỷ", "ỹ", "ỵ",
+//         "đ"
+//     };
+//     const char* khongDau[] = {
+//         "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a",
+//         "a", "a", "a", "a", "a", "a",
+//         "e", "e", "e", "e", "e", "e", "e", "e", "e", "e", "e",
+//         "i", "i", "i", "i", "i",
+//         "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o",
+//         "o", "o", "o", "o", "o", "o",
+//         "u", "u", "u", "u", "u", "u", "u", "u", "u", "u", "u",
+//         "y", "y", "y", "y", "y",
+//         "d"
+//     };
     
-    const int soKyTu = 69; // Tong so cap ky tu co dau -> khong dau
+//     const int soKyTu = 69; // Tong so cap ky tu co dau -> khong dau
     
-    // Thay the tung ky tu co dau
-    for (int i = 0; i < soKyTu; ++i) {
-        size_t pos = 0;
-        std::string timKiem = coDau[i];
-        std::string thayThe = khongDau[i];
+//     // Thay the tung ky tu co dau
+//     for (int i = 0; i < soKyTu; ++i) {
+//         size_t pos = 0;
+//         std::string timKiem = coDau[i];
+//         std::string thayThe = khongDau[i];
         
-        // Tim va thay the tat ca xuat hien
-        while ((pos = ketQua.find(timKiem, pos)) != std::string::npos) {
-            ketQua.replace(pos, timKiem.length(), thayThe);
-            pos += thayThe.length();
-        }
-    }
+//         // Tim va thay the tat ca xuat hien
+//         while ((pos = ketQua.find(timKiem, pos)) != std::string::npos) {
+//             ketQua.replace(pos, timKiem.length(), thayThe);
+//             pos += thayThe.length();
+//         }
+//     }
     
-    return ketQua;
-}
+//     return ketQua;
+// }
 
 //CAT VA CHUAN HOA KHOANG TRANG 
 

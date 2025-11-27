@@ -1,14 +1,14 @@
 
-#include "include/GiaoDienMuonTra.h"
-#include "include/TrangThaiManHinhMuonTra.h"
-#include "include/GiaoDienSFML.h"
-#include "include/TienIchGiaoDien.h"
-#include "include/DocGia.h"
-#include "include/QuanLySach.h"
-#include "include/XuLyChuoi.h"
-#include "include/KiemTraDuLieu.h"
-#include "include/NgayThang.h"
-#include "include/Constants.h"
+#include "GiaoDienMuonTra.h"
+#include "TrangThaiManHinhMuonTra.h"
+#include "GiaoDienSFML.h"
+#include "TienIchGiaoDien.h"
+#include "DocGia.h"
+#include "QuanLySach.h"
+#include "XuLyChuoi.h"
+#include "KiemTraDuLieu.h"
+#include "NgayThang.h"
+#include "Constants.h"
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -35,7 +35,7 @@ static void TaiDuLieuQuaHan(MuonTraState& currentState);
 static void XoaFormNhapLieuSFML(MuonTraState& currentState);
 static void CapNhatPhanTrangSFML(MuonTraState& currentState);
 static void CapNhatSachDangMuon(MuonTraState& currentState);
-static int LayDanhSachDocGia(PTRDG root, DocGiaTableDTO arr[], int maxKetQua);
+static int LayDanhSachDocGiaCoLoc(PTRDG root, DocGiaTableDTO arr[], int maxKetQua, const std::string& tuKhoa);
 
 // ===== HÀM TIỆN ÍCH =====
 static inline std::string CatChuoiVoiDauCham(const std::string& str, size_t maxLen) {
@@ -66,8 +66,8 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const M
     
     // Các nút cùng hàng với search (TIM, XOA TIM style)
     float btnX = BANG_MT_X + 110.f + 500.f + 10.f;
-    TaoNut(font, NUT_TIM, btnX, searchY, 100.f, NUT_CAO, "TIM", MAU_NHAN, MAU_CHU_NUT);
-    btnX += 100.f + 10.f;
+    // TaoNut(font, NUT_TIM, btnX, searchY, 100.f, NUT_CAO, "TIM", MAU_NHAN, MAU_CHU_NUT);
+    // btnX += 100.f + 10.f;
     TaoNut(font, NUT_XOA_TIM, btnX, searchY, 100.f, NUT_CAO, "XOA TIM", MAU_NEN_NUT, MAU_CHU_NUT);
     btnX += 100.f + 10.f;
     TaoNut(font, NUT_MT_VAO_TOP_10, btnX, searchY, 110.f, NUT_CAO, "TOP 10", MAU_NHAN, MAU_CHU_NUT);
@@ -118,6 +118,27 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const M
     headerLine.setPosition(BANG_MT_X + PADDING, contentY + 30.f);
     headerLine.setFillColor(MAU_BANG_BORDER);
     window.draw(headerLine);
+
+
+    // Định nghĩa hitbox bắt đầu ngay từ đường kẻ dưới header.
+    float tableBodyTop = contentY + 30.f; // Tọa độ Y bắt đầu vùng dữ liệu
+    float tableBodyHeight = tableBottom - tableBodyTop; // Chiều cao vùng dữ liệu
+
+    // Tạo vùng hình chữ nhật ảo (không cần fill color vì chỉ dùng để bắt click)
+    sf::RectangleShape tableHitbox(sf::Vector2f(BANG_MT_RONG, tableBodyHeight));
+    tableHitbox.setPosition(BANG_MT_X, tableBodyTop);
+
+    tableHitbox.setFillColor(sf::Color::Transparent);
+
+    // Đăng ký vào hệ thống UI
+    UIElement elemTable;
+    elemTable.hinhDang = tableHitbox;
+    elemTable.id = HANG_SACH; // Gán ID quan trọng này
+
+    // Đẩy vào mảng quản lý element toàn cục
+    if (soLuongElement < SO_ELEMENT_TOI_DA) {
+        cacElement[soLuongElement++] = elemTable;
+    }
 
     float currentY = contentY + 35.f;
     int startIndex = (currentState.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
@@ -770,22 +791,40 @@ static void CapNhatPhanTrangSFML(MuonTraState& currentState) {
         currentState.trangHienTai = currentState.tongSoTrang;
 }
 
-// Helper: In-order traversal AVL tree
-static int LayDanhSachDocGia(PTRDG root, DocGiaTableDTO arr[], int maxKetQua) {
+static int LayDanhSachDocGiaCoLoc(PTRDG root, DocGiaTableDTO arr[], int maxKetQua, const std::string& tuKhoa){
     int count = 0;
-    
-    std::function<void(PTRDG)> inorder = [&](PTRDG node) {
-        if (!node || count >= maxKetQua) return;
-        inorder(node->left);
-        if (count < maxKetQua) {
+
+    //Su dung lamda function 
+    std::function<void(PTRDG)> inorderLoc = [&](PTRDG node) {
+        if(!node || count >= maxKetQua) return;
+
+        inorderLoc(node->left);
+
+        bool thoaMan = false;
+
+        if(tuKhoa.empty()) 
+            thoaMan = true;
+        else {
+            //Logic 1: Tên Bắt đầu bằng từ khóa
+            std::string hoTen = node->data.Ho + " " + node->data.Ten;
+            if(KiemTraBatDauBang(hoTen, tuKhoa)){
+                thoaMan = true;
+            }
+            else if(KiemTraBatDauBang(std::to_string(node->data.MaThe),tuKhoa)) {
+                thoaMan = true;
+            }
+        }
+
+        //Nếu thỏa mãn thì thêm vào danh sách
+        if(thoaMan && count < maxKetQua){
             arr[count].docGia = node;
             arr[count].loaiKhop = 0;
             count++;
         }
-        inorder(node->right);
+
+        inorderLoc(node->right);
     };
-    
-    inorder(root);
+    inorderLoc(root);
     return count;
 }
 
@@ -796,7 +835,7 @@ static void ThucHienTimKiemNoiBo(MuonTraState& currentState) {
     std::string tuKhoa = ChuanHoaKhoangTrang(currentState.chuoiTimKiem);
     
     // Load tất cả (search logic có thể thêm sau)
-    currentState.soLuongKetQuaTimKiem = LayDanhSachDocGia(rootDocGia, currentState.ketQuaTimKiem, MAX_DAUSACH);
+    currentState.soLuongKetQuaTimKiem = LayDanhSachDocGiaCoLoc(rootDocGia, currentState.ketQuaTimKiem, MAX_DAUSACH, tuKhoa);    
     
     currentState.trangHienTai = 1;
     CapNhatPhanTrangSFML(currentState);
@@ -936,8 +975,15 @@ static void ThucHienBaoMatSachSFML(MuonTraState& currentState) {
 static void TaiDuLieuTop10(MuonTraState& currentState) {
     extern PTRDS dsDauSach[];
     extern int soLuongDauSach;
+
+    TopSachDTO bufferTam[MAX_DAUSACH];
+
+    int soLuongLayDuoc = LayTopSach(dsDauSach, soLuongDauSach, bufferTam);
     
-    currentState.soLuongTop = LayTopSach(dsDauSach, soLuongDauSach, currentState.top10);
+    currentState.soLuongTop = soLuongLayDuoc;
+    for(int i = 0; i < soLuongLayDuoc; ++i) {
+        currentState.top10[i] = bufferTam[i];
+    }
     
     if (currentState.soLuongTop > 0) {
         CapNhatThongBaoSFML("Tai du lieu Top 10 thanh cong.", 0);
@@ -1048,6 +1094,14 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
         return;
     }
     
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+        // Nếu đang gõ ở ô tìm kiếm độc giả
+        if (inputHoatDong == INPUT_MT_TIM_DOC_GIA) {
+            inputHoatDong = KHONG_XAC_DINH; // Bỏ focus (tùy chọn)
+            ThucHienTimKiemNoiBo(state);    // Gọi hàm tìm kiếm
+            return; // Kết thúc xử lý sự kiện này
+        }
+    }
     // Text input
     if (event.type == sf::Event::TextEntered || 
         (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Backspace)) {
@@ -1068,10 +1122,10 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
             CapNhatThongBaoSFML("", 0);
         }
         // Nút TÌM (giống màn hình sách)
-        else if (elementNhan == NUT_TIM) {
-            inputHoatDong = KHONG_XAC_DINH;
-            ThucHienTimKiemNoiBo(state);
-        }
+        // else if (elementNhan == NUT_TIM) {
+        //     inputHoatDong = KHONG_XAC_DINH;
+        //     ThucHienTimKiemNoiBo(state);
+        // }
         // Nút XÓA TÌM (giống màn hình sách)
         else if (elementNhan == NUT_XOA_TIM) {
             state.chuoiTimKiem = "";
@@ -1150,8 +1204,15 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
             const float headerY = BANG_MT_Y;
             const float contentY = headerY + 40.f + 35.f;
             const float rowHeight = 30.f;
+            int rowIndex = static_cast<int>((event.mouseButton.y - contentY) / rowHeight);
+
+            // LOGIC FIX: Nếu click hơi lệch lên trên (rowIndex = -1) nhưng vẫn nằm trong vùng HANG_SACH
+            // thì ta ép nó về dòng 0
+            if (rowIndex == -1 && (event.mouseButton.y - contentY) > -10.f) {
+                rowIndex = 0;
+            }
+
             const int startIndex = (state.trangHienTai - 1) * DOC_GIA_MOI_TRANG;
-            const int rowIndex = static_cast<int>((event.mouseButton.y - contentY) / rowHeight);
             const int actualIndex = startIndex + rowIndex;
 
             if (actualIndex >= 0 && actualIndex < state.soLuongKetQuaTimKiem && 

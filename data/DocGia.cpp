@@ -312,15 +312,15 @@ void inDocGiaInOrder(PTRDG root) {
 // Helper: So sánh hai chuỗi theo Tên + Họ (sử dụng BoDauVaThuong)
 static int SoSanhTenHo(PTRDG dg1, PTRDG dg2) {
     // 1. So sánh theo Tên (không dấu, không phân biệt hoa/thường)
-    std::string ten1 = BoDauVaThuong(dg1->data.Ten);
-    std::string ten2 = BoDauVaThuong(dg2->data.Ten);
+    std::string ten1 = ChuanHoaChuoiTimKiem(dg1->data.Ten);
+    std::string ten2 = ChuanHoaChuoiTimKiem(dg2->data.Ten);
     if (ten1 != ten2) {
         return (ten1 < ten2) ? -1 : 1;
     }
     
     // 2. Nếu Tên bằng nhau, so sánh theo Họ
-    std::string ho1 = BoDauVaThuong(dg1->data.Ho);
-    std::string ho2 = BoDauVaThuong(dg2->data.Ho);
+    std::string ho1 = ChuanHoaChuoiTimKiem(dg1->data.Ho);
+    std::string ho2 = ChuanHoaChuoiTimKiem(dg2->data.Ho);
     if (ho1 != ho2) {
         return (ho1 < ho2) ? -1 : 1;
     }
@@ -444,7 +444,25 @@ int DemBanSaoCoTheMuon(PTRDS dauSach) {
 // ham backend: muon sach (O(log N) + O(M))
 std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach) {
     if (docGia == nullptr) return "Loi: Doc gia khong hop le!";
+    // Duyệt qua danh sách sách đang mượn để kiểm tra xem có cuốn nào quá hạn không
+    MUONTRA p = docGia->data.dsmt;
+    std::stringstream dummyStream; // Dùng stream ảo để hứng log (không in ra màn hình)
     
+    while (p != nullptr) {
+        // Chỉ kiểm tra sách đang mượn (TrangThai == 0)
+        if (p->data.TrangThai == 0) {
+            // Gọi hàm tinhSoNgayQuaHan từ NgayThang.cpp
+            int soNgayQua = tinhSoNgayQuaHan(p->data.NgayMuon, dummyStream);
+            
+            // Nếu > 0 nghĩa là đã quá hạn (số ngày giữ > SO_NGAY_MUON_TOI_DA)
+            if (soNgayQua > 0) {
+                return "Loi: Doc gia co sach qua han " + std::to_string(soNgayQua) + " ngay! Vui long tra sach truoc.";
+            }
+        }
+        p = p->next;
+    }
+    // ----------------------------------------
+
     // B1: Kiem tra gioi han muon (3 cuon)
     if (docGia->data.soSachDangMuon >= 3) {
         return "Loi: Doc gia da muon toi da 3 cuon!";
@@ -467,9 +485,8 @@ std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], i
     
     // B5: Them vao lich su muon tra
     MuonTra mt;
-    //gan con tro truc tiep, khong truy cap truong con
     mt.banSaoSach = banSao;
-    mt.NgayMuon = layNgayHienTai(std::cout);
+    mt.NgayMuon = layNgayHienTai(dummyStream); // Dùng dummyStream để tránh in log rác
     mt.NgayTra = "";
     mt.TrangThai = 0;  // dang muon
     
@@ -617,17 +634,47 @@ void NapGiaoDich(PTRDG docGia, std::ifstream& file, PTRDS dsDauSach[], int n){
         mt.NgayTra = fields[2];
 
         try{
-        mt.TrangThai = stoi(fields[3]);
+            mt.TrangThai = stoi(fields[3]);
         } catch(...){
             cerr << "Loi chuyen doi trang thai giao dich: " << fields[3] << endl;
             continue;
         }
-        //Khoi phuc con tro tu ma sach
-        mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, n);
+        // //Khoi phuc con tro tu ma sach
+        // mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, n);
+
+        // //1. Lay ma sach tu file
+        // std::string maSachFile = fields[0];
+
+        // //2. Tach lay ISBN
+        // std::string isbn = TachISBNTuMaSach(maSachFile);
+
+        // //3. Tim dau sach va tang luot muon
+        // PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
+        // if(dauSach != nullptr) 
+        //     dauSach->soLuotMuon++;
+        // if(mt.banSaoSach == nullptr){
+        //     //canh bao neu con tra khong khoi phuc duoc
+        //     std::cerr << "Canh bao: khong tim thay sach " << fields[0] << " de khoi phuc con tro"<< endl;
+        // } else {
+        //     std::string isbn = TachISBNTuMaSach(fields[0]);
+        //     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
+        //     if(dauSach != nullptr)
+        //         dauSach->soLuotMuon++;
+        // }
+        std::cout << ">> Doc file MT: MaSach=" << fields[0]; 
         
-        if(mt.banSaoSach == nullptr){
-            //canh bao neu con tra khong khoi phuc duoc
-            cerr << "Canh bao: khong tim thay sach " << fields[0] << " de khoi phuc con tro"<< endl;
+        std::string maSachFile = fields[0]; 
+        std::string isbn = TachISBNTuMaSach(maSachFile); 
+        std::cout << " | ISBN tach duoc=" << isbn;
+
+        PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
+        
+        if (dauSach != nullptr) {
+            dauSach->soLuotMuon++; 
+            std::cout << " -> TIM THAY! Ten=" << dauSach->tenSach 
+                      << " -> Tang len " << dauSach->soLuotMuon << "\n";
+        } else {
+            std::cout << " -> KHONG TIM THAY SACH NAY!\n";
         }
 
         themMuonTra(docGia, mt);
@@ -787,8 +834,8 @@ static int SoSanhLM(const TopSachDTO& a, const TopSachDTO& b){
     }
 
     //Sap xep tenSach (tang dan)
-    std::string tenA = (a.dauSach != nullptr) ? BoDauVaThuong(a.dauSach->tenSach) : "";
-    std::string tenB = (b.dauSach != nullptr) ? BoDauVaThuong(b.dauSach->tenSach) : "";
+    std::string tenA = (a.dauSach != nullptr) ? ChuanHoaChuoiTimKiem(a.dauSach->tenSach) : "";
+    std::string tenB = (b.dauSach != nullptr) ? ChuanHoaChuoiTimKiem(b.dauSach->tenSach) : "";
     
     if (tenA != tenB) {
         return (tenA < tenB) ? -1 : 1;
@@ -822,12 +869,23 @@ static void QuickSortTS(TopSachDTO arr[], int low, int high){
     }
 }
 int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]){
-    if(arr == nullptr || dsDauSach == nullptr || soLuongDS == 0)  return 0;
+    // --- ĐOẠN DEBUG---
+    std::cout << "\n--- DEBUG TOP 10 ---\n";
+    std::cout << "So luong dau sach nhan duoc: " << soLuongDS << "\n";
+    
+    if(dsDauSach == nullptr) {
+        std::cout << "LOI: Mang dsDauSach bi NULL!\n";
+        return 0;
+    }
+    // -----------------
+
+    if(arr == nullptr || soLuongDS == 0)  return 0;
 
     int count = 0;
-    //B1: lay so luot muon cua tat ca dau sach, bo qua cac dau sach khong duoc muon(O(N_DS))
+    
     for(int i = 0; i < soLuongDS; i++){
-        if(dsDauSach[i] != nullptr && dsDauSach[i]->soLuotMuon > 0){
+        // ĐK QUAN TRỌNG: Lấy cả sách có lượt mượn >= 0 (thay vì > 0)
+        if(dsDauSach[i] != nullptr && dsDauSach[i]->soLuotMuon >= 0){ 
             if(count < MAX_DAUSACH){
                 arr[count].dauSach = dsDauSach[i];
                 count++;
@@ -835,7 +893,9 @@ int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]){
         }
     }
     
-    if(count == 0) return 0; //khong co danh sach nao duoc chon (tat ca deu bang 0)
+    std::cout << "So luong sach lay duoc vao Top: " << count << "\n"; // In kết quả đếm
+    
+    if(count == 0) return 0; 
 
     if(count > 1){
         QuickSortTS(arr, 0, count - 1);
@@ -944,6 +1004,20 @@ PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS){
             //Khoi phuc con tro
             mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, soLuongDS);
 
+            std::string maSachFile = fields[0];
+
+            //Kiem tra du lieu hong trong file (MT|| )
+            if(!maSachFile.empty()){
+                std::string isbn = TachISBNTuMaSach(maSachFile);
+                PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDS, isbn);
+
+                if(dauSach != nullptr){
+                    dauSach->soLuotMuon++;
+
+                    std::cout << "[DEBUG] + 1 Luot muon cho: " << dauSach->tenSach << "\n";
+                }
+            }
+
             //Them vao DSLK
             themMuonTra(docGiaHienTai, mt);
         } else if(prefix == "END_DG"){
@@ -989,4 +1063,19 @@ std::string BaoMatSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[
     }
     
     return "Loi: Khong tim thay giao dich muon sach nay!";
+}
+
+// Hàm kiểm tra chuỗi fullString có BẮT ĐẦU bằng prefix hay không
+bool KiemTraBatDauBang(const std::string& fullString, const std::string& prefix) {
+    if(prefix.empty()) return true;
+    if(prefix.length() > fullString.length()) return false;
+
+    for(size_t i = 0; i < prefix.length(); i++){
+        if(std::tolower(fullString[i]) != std::tolower(prefix[i])){
+            return false;
+        }
+    }
+    // DEBUG
+    // std::cout << "Match: [" << prefix << "] in [" << fullString << "] -> TRUE\n";
+    return true;
 }
