@@ -164,7 +164,10 @@ enum MaUI {
     
     // Additional buttons for borrow/return screen
     NUT_MT_BAO_MAT,           // Nut bao mat sach
-    NUT_MT_TAB_QUAHAN         // Nut tab qua han
+    NUT_MT_TAB_QUAHAN,         // Nut tab qua han
+
+    NUT_MT_MODAL_PREV,
+    NUT_MT_MODAL_NEXT
 };
 
 

@@ -681,7 +681,7 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
     window.draw(overlay);
 
     float modalW = CHIEU_RONG * 0.85f;
-    float modalH = CHIEU_CAO * 0.80f;
+    float modalH = CHIEU_CAO * 0.85f;
     float modalX = (CHIEU_RONG - modalW) / 2.f;
     float modalY = (CHIEU_CAO - modalH) / 2.f;
 
@@ -689,7 +689,7 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
 
     float currentY = modalY + 50.f;
     float labelX = modalX + PADDING;
-
+    // Header
     std::string headers[] = {"STT", "Ma The", "Ho Ten", "Sach Qua Han", "Ngay Muon", "So Ngay Qua"};
     float colWidths[] = {0.05f, 0.10f, 0.25f, 0.30f, 0.15f, 0.15f};
     float colX[7];
@@ -708,9 +708,22 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         headerText.setPosition(colX[i], currentY);
         window.draw(headerText);
     }
+
+    // Ve duong ke duoi header
+    sf::RectangleShape line(sf::Vector2f(modalW - 2 * PADDING, 1.f));
+    line.setPosition(labelX, currentY + 30.f);
+    line.setFillColor(sf::Color(100, 100, 100));
+    window.draw(line);
+
     currentY += 30.f;
 
-    for (int i = 0; i < currentState.soLuongQuaHan && i < 50; ++i) {
+    // Ve o du lieu co phan trang
+    int startIndex = (currentState.trangQuaHanHienTai - 1) * QUA_HAN_MOI_TRANG;
+    int endIndex = startIndex + QUA_HAN_MOI_TRANG;
+    if (endIndex > currentState.soLuongQuaHan) 
+        endIndex = currentState.soLuongQuaHan;
+
+    for (int i = startIndex; i < endIndex; ++i) {
         const DocGiaQuaHanDTO& dto = currentState.dsQuaHan[i];
         if (!dto.docGia) continue;
         PTRDG dg = dto.docGia;
@@ -744,25 +757,28 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         cellText.setCharacterSize(FONT_SIZE_NHO);
         cellText.setFillColor(textColor);
 
+        // STT
         cellText.setString(std::to_string(i + 1));
         cellText.setPosition(colX[0], currentY + 5.f);
         window.draw(cellText);
 
+        // Ma the
         cellText.setString(std::to_string(dg->data.MaThe));
         cellText.setPosition(colX[1], currentY + 5.f);
         window.draw(cellText);
 
+        // Ho ten
         std::string hoTen = dg->data.Ho + " " + dg->data.Ten;
-        cellText.setString(CatChuoiVoiDauCham(hoTen, 20));
+        cellText.setString(CatChuoiVoiDauCham(hoTen, 25)); // tang do dai cat chuoi
         cellText.setPosition(colX[2], currentY + 5.f);
         window.draw(cellText);
 
+        // Text phu
+        cellText.setFillColor(sf::Color(150, 150, 150));
         cellText.setString("(xem the doc gia)");
-        cellText.setFillColor(sf::Color(120, 120, 140));
         cellText.setPosition(colX[3], currentY + 5.f);
         window.draw(cellText);
 
-        cellText.setString("(xem the doc gia)");
         cellText.setPosition(colX[4], currentY + 5.f);
         window.draw(cellText);
 
@@ -774,11 +790,32 @@ static void VeModalQuaHan(sf::RenderWindow &window, const sf::Font &font, MuonTr
         cellText.setPosition(colX[5], currentY + 5.f);
         window.draw(cellText);
 
-        currentY += 28.f;
+        currentY += 30.f;
     }
 
-    float btnY = modalY + modalH - 60.f;
-    TaoNut(font, NUT_MT_TAB_QUAHAN, modalX + modalW - 140.f, btnY, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
+    // Ve thanh dieu huong
+    float footerY = modalY + modalH - 50.f;
+    float footerX = modalX + PADDING;
+
+    // Nut trang truoc
+    sf::Color colorPrev = (currentState.trangQuaHanHienTai > 1) ? MAU_NEN_NUT : sf::Color(80, 80, 80);
+    TaoNut(font, NUT_MT_MODAL_PREV, footerX, footerY, 100.f, 35.f, "<< Truoc", colorPrev, MAU_CHU_NUT);
+
+    // Thong tin trang
+    std::string pageInfo = "Trang " + std::to_string(currentState.trangQuaHanHienTai) + " / " + std::to_string(currentState.tongTrangQuaHan);
+    sf::Text txtPage = TaoVanBan(font, pageInfo, FONT_SIZE_BINH_THUONG, MAU_CHU);
+    txtPage.setPosition(footerX + 120.f, footerY + 8.f);
+    window.draw(txtPage);
+
+    // Nut trang sau
+    sf::Color colorNext = (currentState.trangQuaHanHienTai < currentState.tongTrangQuaHan) ? MAU_NEN_NUT : sf::Color(80, 80, 80);
+    TaoNut(font, NUT_MT_MODAL_NEXT, footerX + 250.f, footerY, 100.f, 35.f, "Sau >>", colorNext, MAU_CHU_NUT);
+
+    // Nut dong 
+    TaoNut(font, NUT_MT_TAB_QUAHAN, modalX + modalW - 140.f, footerY, 120.f, 35.f, "DONG", MAU_LOI, MAU_CHU_NUT);
+
+    // float btnY = modalY + modalH - 60.f;
+    // TaoNut(font, NUT_MT_TAB_QUAHAN, modalX + modalW - 140.f, btnY, 120.f, 40.f, "DONG", MAU_LOI, MAU_CHU_NUT);
 }
 
 // ===== LOGIC FUNCTIONS =====
@@ -996,6 +1033,14 @@ static void TaiDuLieuQuaHan(MuonTraState& currentState) {
     extern PTRDG rootDocGia;
     
     currentState.soLuongQuaHan = LayDSDocGiaQuaHan(rootDocGia, currentState.dsQuaHan, MAX_DAUSACH);
+
+    //Doan tinh trang
+    currentState.trangHienTai = 1;// Reset ve trang 1
+    if (currentState.soLuongQuaHan > 0) {
+        currentState.tongTrangQuaHan = (currentState.soLuongQuaHan + QUA_HAN_MOI_TRANG - 1) / QUA_HAN_MOI_TRANG;
+    } else {
+        currentState.tongTrangQuaHan = 1;
+    }
     
     if (currentState.soLuongQuaHan > 0) {
         CapNhatThongBaoSFML("Tim thay " + std::to_string(currentState.soLuongQuaHan) + " doc gia qua han.", 0);
@@ -1087,8 +1132,21 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
     if (state.hienThiModalQuaHan) {
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
             MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
+            
             if (elementNhan == NUT_MT_TAB_QUAHAN) {
-                state.hienThiModalQuaHan = false;
+                state.hienThiModalQuaHan = false; // Đóng modal
+            }
+            // Xử lý nút Trang Trước
+            else if (elementNhan == NUT_MT_MODAL_PREV) {
+                if (state.trangQuaHanHienTai > 1) {
+                    state.trangQuaHanHienTai--;
+                }
+            }
+            // Xử lý nút Trang Sau
+            else if (elementNhan == NUT_MT_MODAL_NEXT) {
+                if (state.trangQuaHanHienTai < state.tongTrangQuaHan) {
+                    state.trangQuaHanHienTai++;
+                }
             }
         }
         return;

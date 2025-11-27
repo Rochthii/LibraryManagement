@@ -10,6 +10,8 @@
 // Hang so phan trang (đồng bộ với SACH_MOI_TRANG)
 const int DOC_GIA_MOI_TRANG = 17; // So doc gia hien thi moi trang (giống SACH_MOI_TRANG)
 
+const int QUA_HAN_MOI_TRANG = 15; // So doc gia qua han hien thi moi trang
+
 // Cau truc DTO cho doc gia hien thi trong bang (giong KetQuaTimKiem)
 struct DocGiaTableDTO {
     PTRDG docGia;
@@ -51,6 +53,9 @@ struct MuonTraState {
     int soLuongTop;                             // So luong sach trong top 10
     DocGiaQuaHanDTO dsQuaHan[MAX_DAUSACH];      // Data doc gia qua han
     int soLuongQuaHan;                          // So luong doc gia qua han
+
+    int trangQuaHanHienTai;                     // Trang hien tai cua modal qua han
+    int tongTrangQuaHan;                       // Tong so trang cua modal hien tai
     
     // ===== TRANG THAI XAC NHAN (Confirmation State) =====
     bool xacNhanMuon;                           // Hien thi hop thoai xac nhan muon
@@ -90,6 +95,9 @@ struct MuonTraState {
         hienThiModalQuaHan = false;
         soLuongTop = 0;
         soLuongQuaHan = 0;
+
+        trangQuaHanHienTai = 1;
+        tongTrangQuaHan = 1;
         
         // Reset confirmation state
         xacNhanMuon = false;
