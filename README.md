@@ -1,141 +1,238 @@
+# 📚 Hệ Thống Quản Lý Thư Viện (Qt Desktop Application)
 
+## 🌟 Giới Thiệu
 
-# Hệ thống Quản lý Thư viện 📚
+Ứng dụng desktop hoàn chỉnh để quản lý thư viện, được xây dựng bằng **Qt 6.10.1** framework. Chạy như một ứng dụng thực sự trên Windows với giao diện đẹp mắt và nhiều tính năng mạnh mẽ.
 
-Một dự án C++ đồ họa (GUI) để quản lý thư viện, được xây dựng bằng C++17, các cấu trúc dữ liệu cơ bản (Mảng con trỏ, DSLK), và thư viện đồ họa **SFML**.
+## ✨ Tính Năng Chính
 
-## 1\. Đề bài: Tổ chức các danh sách
+### 📖 Quản Lý Sách
+- ✅ Tìm kiếm sách real-time với debounce 300ms
+- ✅ Sắp xếp theo cột (click header)
+- ✅ Thêm/Sửa/Xóa đầu sách và bản sao
+- ✅ Import/Export CSV
+- ✅ In danh sách sách với HTML formatting
+- ✅ Xem chi tiết bản sao, thanh lý sách
 
-Đây là mục tiêu của đồ án:
+### 👥 Quản Lý Độc Giả
+- ✅ Tìm kiếm và sắp xếp độc giả
+- ✅ Khóa/Mở khóa tài khoản
+- ✅ Xem lịch sử mượn trả chi tiết
+- ✅ In thẻ độc giả (khổ A7)
+- ✅ Cảnh báo quá hạn và trạng thái
+- ✅ Export danh sách CSV
+- ✅ Toolbar với các thao tác nhanh
 
-  * **Đầu sách:** Mảng con trỏ (danh sách tuyến tính) - Luôn sắp xếp tăng dần theo tên sách.
-  * **Danh mục sách:** Danh sách liên kết đơn (theo `MaSach`).
-  * **Thẻ độc giả:** Cây nhị phân tìm kiếm (theo `MATHE`).
-  * **Mượn trả:** Danh sách liên kết đơn (theo `MaSach`).
+### 📚 Mượn - Trả Sách
+- ✅ Model bảng 7 cột với màu sắc rõ ràng
+- ✅ Tự động tính phí phạt (5,000đ/ngày)
+- ✅ Gia hạn nhanh
+- ✅ In biên lai (Ctrl+P)
+- ✅ Trả nhiều sách cùng lúc
+- ✅ Tự động cập nhật khi đổi độc giả
 
-## 2\. Tiến Độ Chức Năng Hiện Tại
+### 📊 Báo Cáo & Thống Kê
 
-Dự án đã được tách thành backend (logic) và frontend (UI SFML).
+#### 🏆 Top 10 Sách (Nâng Cao)
+- ✅ Bộ lọc thời gian: Tất cả, Tháng này, Tháng trước, Tùy chỉnh
+- ✅ So sánh xu hướng với kỳ trước (🔼/🔽)
+- ✅ Bảng 7 cột với chỉ số thay đổi
+- ✅ Panel phân tích xu hướng màu sắc
+- ✅ Xuất báo cáo PDF (Ctrl+P)
 
-### ✅ Đã Hoàn Thành (Backend & UI)
+#### ⚠️ Báo Cáo Quá Hạn (Nâng Cao)
+- ✅ Thống kê doanh thu từ phí phạt
+- ✅ Đếm độc giả hoạt động (7/30 ngày)
+- ✅ Bảng 8 cột với cột phí phạt
+- ✅ Xem chi tiết từng độc giả
+- ✅ Breakdown sách quá hạn và phí
+- ✅ Xuất báo cáo PDF với tổng kết
 
-  * **c. Nhập đầu sách và đánh mã sách tự động:**
-      * Giao diện "Thêm Đầu Sách" cho phép nhập thông tin.
-      * Tự động sinh `MaSach` (ví dụ: `ISBN-1`, `ISBN-2`) khi thêm bản sao.
-  * **d. In danh sách đầu sách theo thể loại:**
-      * Tích hợp vào màn hình Quản lý Sách với chế độ **"Xem theo Thể Loại"**.
-      * Danh sách được gom nhóm theo thể loại (sắp xếp A-Z) và hỗ trợ **cuộn chuột** (`sf::View` hoặc `sf::RenderTexture`).
-  * **e. Tìm thông tin sách dựa vào tên sách:**
-      * Ô "Tìm Kiếm" cho phép lọc sách theo Tên, Tác giả, ISBN, và Thể loại.
-      * Nút **"Chi Tiết"** mở cửa sổ modal hiển thị đầy đủ "các mã sách" và "trạng thái" của chúng.
-  * **(Bổ sung) Quản lý Bản Sao:**
-      * Hỗ trợ **"Thêm Bản Sao"** cho một đầu sách đã có (có modal riêng).
-      * Hỗ trợ **"Thanh Lý"** các bản sao (trạng thái 0 -\> 2) với hộp thoại xác nhận.
+#### 📈 Thống Kê Hệ Thống
+- ✅ Tổng quan sách: Đầu sách, bản sao, tỷ lệ cho mượn
+- ✅ Thống kê độc giả: Tổng số, hoạt động, bị khóa
+- ✅ Số sách đang mượn và quá hạn
+- ✅ Giao diện 2 cột với màu sắc trực quan
 
-### ❌ Chưa Triển Khai
+### 💾 Backup & Restore
+- ✅ Backup tự động với timestamp
+- ✅ Khôi phục từ các bản backup
+- ✅ Quản lý danh sách backup
 
-  * **a-b. Quản lý độc giả (Thêm, xóa, sửa, in danh sách).**
-  * **f-g. Xử lý mượn/trả sách.**
-  * **h. Liệt kê sách độc giả đang mượn.**
-  * **i. In danh sách độc giả quá hạn.**
-  * **j. Top 10 sách mượn nhiều nhất.**
+## 🚀 Cài Đặt & Chạy
 
-## 3\. Cấu Trúc Thư Mục (Đã Cập Nhật cho SFML)
+### Yêu Cầu Hệ Thống
+- **Windows 10/11** (64-bit)
+- **Qt 6.10.1** (MinGW 13.1.0)
+- **C++17** compiler
 
-Cấu trúc thư mục dự án được tổ chức theo mô hình tách biệt Giao diện (UI) và Logic (Backend):
-
-```
-📦 LibraryManagement/
-├── 📂 data/            # Ma nguon .cpp cho logic backend (QuanLySach.cpp, ...)
-├── 📂 files/           # Chua cac file du lieu .txt
-├── 📂 include/         # Chua TAT CA cac file header .h
-├── 📂 utils/           # Ma nguon .cpp cho cac ham tien ich (XuLyChuoi.cpp, ...)
-├── 📂 ui/              # Ma nguon .cpp cho Giao dien SFML (ManHinh...)
-├── 📂 lib/             # Thu muc chua thu vien SFML
-├── 📂 bin/             # Thu muc chua file .exe da bien dich va font
-├── 📂 .vscode/         # Cau hinh cho VS Code (tasks.json)
-├── 📝 main.cpp         # Diem vao chuong trinh (Khoi tao SFML)
-├── .gitignore
-└── 📖 README.md
-```
-
-## 4\. Yêu Cầu & Biên Dịch (SFML)
-
-Phiên bản này yêu cầu thư viện đồ họa **SFML**.
-
-  * **Trình biên dịch:** MinGW-w64 g++ (Hỗ trợ C++17)
-  * **Thư viện:** SFML (ví dụ: 2.5.1) cho MinGW
-  * **Hệ điều hành:** Windows
-
-### 1\. Cài đặt SFML
-
-  * Tải SFML cho MinGW (32-bit hoặc 64-bit tùy trình biên dịch của bạn).
-  * Giải nén và đặt các thư mục `include`, `lib` của SFML vào trong thư mục `/lib/SFML` của dự án (hoặc một vị trí khác và cập nhật đường dẫn biên dịch).
-
-### 2\. Biên dịch (Lệnh khuyên dùng)
-
-Mở terminal tại thư mục gốc `LibraryManagement` và chạy lệnh sau:
-
+### Cách 1: Chạy File EXE (Đơn Giản)
 ```bash
-g++ -std=c++17 -Wall -Wextra -Iinclude -Ilib/SFML/include -g main.cpp ui/*.cpp data/*.cpp utils/*.cpp -Llib/SFML/lib -lsfml-graphics -lsfml-window -lsfml-system -o bin/main.exe
+# Chỉ cần double-click file:
+release\LibraryManagement.exe
 ```
 
-**Giải thích lệnh:**
-
-  * `g++ ... -g`: Gọi trình biên dịch với cờ debug.
-  * `main.cpp ui/*.cpp data/*.cpp utils/*.cpp`: Gom tất cả các file mã nguồn `.cpp` cần thiết (UI, data, utils).
-  * `-Iinclude -Ilib/SFML/include`: Chỉ dẫn trình biên dịch tìm file header (`.h`) trong thư mục `include/` và `lib/SFML/include/`.
-  * `-Llib/SFML/lib`: Chỉ dẫn linker tìm file thư viện (`.a`) trong thư mục `lib/SFML/lib/`.
-  * `-lsfml-graphics -lsfml-window -lsfml-system`: **(Quan trọng)** Liên kết với các module SFML cần thiết.
-  * `-o bin/main.exe`: Tạo file thực thi tên là `main.exe` trong thư mục `bin/`.
-
-### 3\. Chạy chương trình
-
-Sau khi biên dịch thành công:
-
+### Cách 2: Sử Dụng Script
 ```bash
-.\bin\main.exe
+# Build và chạy lần đầu
+build-and-run.bat
+
+# Chạy nhanh (không build lại)
+run-app.bat
 ```
 
-*Lưu ý: Cần sao chép file font (ví dụ: `DejaVuSans.ttf`) vào thư mục `bin/` để chương trình có thể tải font và chạy.*
+### Cách 3: Build Thủ Công
+```bash
+# 1. Generate Makefile
+C:\Qt\6.10.1\mingw_64\bin\qmake.exe LibraryManagement.pro
 
-## 5\. Hướng Dẫn Sử Dụng Giao Diện
+# 2. Build application
+C:\Qt\Tools\mingw1310_64\bin\mingw32-make.exe
 
-### Màn Hình Chính (Menu)
+# 3. Run
+release\LibraryManagement.exe
+```
 
-  * **1. QUAN LY DAU SACH:** Đi đến màn hình quản lý sách.
-  * **(2, 3):** (Chưa triển khai) Sẽ dùng cho Độc Giả và Mượn Trả.
-  * **4. THONG TIN:** Xem thông tin đồ án.
-  * **5. THOAT:** Thoát chương trình (sẽ tự động lưu nếu có thay đổi).
-
-### Màn Hình Quản Lý Sách
-
-Đây là màn hình chính với 2 khu vực:
-
-#### Khu vực bên trái (Bảng)
-
-  * **Tìm kiếm:** Gõ Tên/Tác giả/ISBN/Thể loại vào ô "Tìm Kiếm" và nhấn "TIM".
-  * **Xem Tất Cả:** Nhấn "XÓA TIM" để xem tất cả sách (có phân trang).
-  * **Xem theo Thể Loại:**
-      * Nhấn **"Xem theo The Loai"** để chuyển sang chế độ xem gom nhóm (sắp xếp A-Z).
-      * Dùng **bánh xe chuột** để cuộn xem hết danh sách.
-      * Nhấn "Xem Tim Kiem/Tat Ca" để quay lại chế độ bảng.
-  * **Chọn Sách:** **Double-click** (nhấn đúp chuột) vào một hàng sách trong bảng (chỉ ở chế độ "Tìm Kiếm") để chọn.
-  * **Chức năng (sau khi chọn):**
-      * `THEM BAN SAO`: Mở modal để thêm bản sao mới cho sách đã chọn.
-      * `CHI TIET`: Mở modal xem danh sách các bản sao (đã sắp xếp tăng dần 1, 2, 3,..), cho phép "Thanh Lý".
-      * `SUA`: Chuyển form bên phải sang chế độ "HIỆU CHỈNH ĐẦU SÁCH".
-      * `XOA`: Yêu cầu xác nhận xóa (chỉ khi sách không còn bản sao nào).
-      * `HUY CHON`: Bỏ chọn sách hiện tại.
-
-#### Khu vực bên phải (Form & Thông Báo)
-
-  * **Form Thêm/Sửa:**
-      * Có gợi ý chữ mờ cho các ô nhập liệu (ví dụ: "10 hoac 13 chu so", "Toi da 100 ky tu",...).
-      * **Undo Nhập Liệu:** Khi đang gõ, nhấn **Ctrl+Z** để hoàn tác. Hướng dẫn được ghi trên form.
-  * **Khung Thông Báo:**
-      * Hiển thị lỗi (màu đỏ), thành công (màu xanh lá), hoặc các hộp thoại xác nhận ("Xác nhận Xóa", "Xác nhận Thanh Lý").
-
+## 📂 Cấu Trúc Project
 
 ```
+LibraryManagement/
+├── src/
+│   ├── main.cpp                    # Qt Application entry point
+│   ├── models/                     # Business logic
+│   │   ├── DocGia.cpp             # Reader management (AVL tree)
+│   │   ├── QuanLySach.cpp         # Book management
+│   │   ├── MuonTra.cpp            # Loan/return operations
+│   │   └── ThaoTacFile.cpp        # File I/O
+│   ├── views/
+│   │   ├── MainWindow.cpp         # Main window with tabs
+│   │   ├── WidgetQuanLySach.cpp   # Book management widget
+│   │   ├── WidgetQuanLyDocGia.cpp # Reader management widget
+│   │   ├── WidgetMuonTraSach.cpp  # Loan/return widget
+│   │   └── dialogs/               # Dialog windows
+│   │       ├── ManHinhTop10.cpp   # Advanced Top 10 report
+│   │       ├── ManHinhQuaHan.cpp  # Overdue report with revenue
+│   │       ├── ManHinhThongKe.cpp # System statistics
+│   │       └── ...
+│   └── utils/                      # Utilities
+│       ├── NgayThang.cpp          # Date calculations
+│       ├── XuLyChuoi.cpp          # String processing
+│       └── BackupManager.cpp      # Backup system
+├── include/                        # Header files
+├── files/                          # Data files
+│   ├── dausach.txt                # Book catalog
+│   ├── danhmucsach.txt            # Book copies
+│   ├── docgia.txt                 # Readers
+│   └── muontra.txt                # Loan records
+├── release/
+│   └── LibraryManagement.exe      # Final executable
+├── LibraryManagement.pro          # Qt project file
+├── build-and-run.bat              # Build & run script
+└── run-app.bat                    # Quick run script
 ```
+
+## 🎨 Giao Diện
+
+### Màn Hình Chính
+- 🏠 **Home Screen**: Menu với 6 nút lớn
+- 📚 **Tab Quản Lý Sách**: Bảng sách + Form thêm/sửa
+- 👥 **Tab Quản Lý Độc Giả**: Bảng độc giả + Lịch sử
+- 📖 **Tab Mượn Trả**: Tìm độc giả + Bảng sách mượn
+
+### Phím Tắt
+- **Ctrl+B**: Quản lý sách
+- **Ctrl+R**: Quản lý độc giả
+- **Ctrl+L**: Mượn trả sách
+- **Ctrl+T**: Top 10 sách
+- **Ctrl+S**: Thống kê hệ thống
+- **Ctrl+H**: Báo cáo quá hạn
+- **Ctrl+P**: In báo cáo (trong dialogs)
+- **Ctrl+Q**: Thoát ứng dụng
+
+## 📊 Dữ Liệu
+
+### Cấu Trúc Dữ Liệu
+- **Sách**: Mảng con trỏ, sắp xếp theo tên
+- **Độc Giả**: Cây AVL cân bằng, key = MaThe
+- **Mượn Trả**: Danh sách liên kết đơn cho mỗi độc giả
+
+### File Dữ Liệu
+- `dausach.txt`: ISBN|Tên|Trang|Tác giả|Năm|Thể loại|Số lượng
+- `danhmucsach.txt`: MaSach|ISBN|TrangThai|ViTri
+- `docgia.txt`: MaThe|Ho|Ten|Phai|TrangThai
+- `muontra.txt`: MaThe|MaSach|NgayMuon|NgayTra|TrangThai
+
+### Backup Tự Động
+- Backup tạo timestamp: `backup_YYYYMMDD_HHMMSS_*.txt`
+- Lưu trong thư mục `files/`
+- Khôi phục 1-click từ dialog Backup
+
+## 🔧 Phát Triển
+
+### Build Modes
+```bash
+# Release mode (optimized, small size)
+qmake CONFIG+=release
+mingw32-make
+
+# Debug mode (with symbols)
+qmake CONFIG+=debug
+mingw32-make
+```
+
+### Thêm Module Mới
+1. Tạo `.cpp` và `.h` trong `src/` và `include/`
+2. Thêm vào `LibraryManagement.pro`:
+```qmake
+SOURCES += src/views/MyNewWidget.cpp
+HEADERS += include/views/MyNewWidget.h
+```
+3. Rebuild: `qmake && mingw32-make`
+
+### Coding Style
+- C++17 standard
+- Qt naming conventions
+- Tiếng Việt cho UI text
+- English for code/comments
+
+## 📝 Changelog
+
+### Version 2.0.0 (December 2025)
+- ✅ Chuyển đổi hoàn toàn từ SFML sang Qt 6.10.1
+- ✅ Xây dựng ứng dụng desktop đầy đủ
+- ✅ 3 widget chính: Sách, Độc giả, Mượn trả
+- ✅ Báo cáo nâng cao với PDF export
+- ✅ Revenue tracking cho phí phạt
+- ✅ Trend analysis cho Top 10
+- ✅ System statistics dashboard
+- ✅ Backup & restore system
+
+### Version 1.0.0 (2024)
+- SFML-based console application
+- Basic book/reader management
+- Simple loan/return operations
+
+## 🐛 Known Issues
+
+- ⚠️ IntelliSense có thể báo lỗi Qt headers (không ảnh hưởng build)
+- ⚠️ Resource file (resources.qrc) empty warning (có thể bỏ qua)
+
+## 📞 Support
+
+Nếu gặp lỗi khi build:
+1. Check Qt installation path trong `.pro` file
+2. Verify MinGW 13.1.0 installed
+3. Run `qmake` trước khi `mingw32-make`
+4. Clean build: `mingw32-make clean`
+
+## 📜 License
+
+Educational project - Free to use for learning purposes.
+
+---
+
+**🎉 Chúc bạn sử dụng app vui vẻ!**
+
+*Built with ❤️ using Qt 6.10.1*
+#   Q u a n L y T h u V i e n  
+ 
