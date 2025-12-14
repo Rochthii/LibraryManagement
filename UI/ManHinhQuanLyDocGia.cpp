@@ -839,7 +839,49 @@ void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event) {
             default:
                 break;
         }
+        // Trong XuLySuKienManHinhDocGia, thêm sau switch(element)
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+            float mouseX = static_cast<float>(event.mouseButton.x);
+            float mouseY = static_cast<float>(event.mouseButton.y);
+            
+            // Tính tọa độ radio Phái (dựa trên VeFormNhapDocGia)
+            float phaiY = FORM_Y + 40.f + INPUT_CAO + (INPUT_CAO + PADDING / 2.f);  // currentY cho Phái
+            float radioSize = 15.f;
+            float radioNamX = FORM_X + PADDING + 110.f;
+            float radioNuX = radioNamX + 100.f;
+            
+            // Khu vực click cho Nam (vòng tròn + nhãn)
+            sf::FloatRect areaNam(radioNamX - 5.f, phaiY - 5.f, radioSize + 50.f, INPUT_CAO + 10.f);  // Mở rộng để dễ click
+            if (areaNam.contains(mouseX, mouseY)) {
+                state.phaiDuocChon = 0;  // Nam
+                CapNhatThongBaoSFML("Da chon Phai: Nam", 0);
+            }
+            
+            sf::FloatRect areaNu(radioNuX - 5.f, phaiY - 5.f, radioSize + 50.f, INPUT_CAO + 10.f);
+            if (areaNu.contains(mouseX, mouseY)) {
+                state.phaiDuocChon = 1;  // Nữ
+                CapNhatThongBaoSFML("Da chon Phai: Nu", 0);
+            }
+            
+            // Tương tự cho Trạng Thái
+            float trangThaiY = phaiY + INPUT_CAO + PADDING / 2.f;
+            float radioHDX = FORM_X + PADDING + 110.f;
+            float radioKhoaX = radioHDX + 140.f;
+            
+            sf::FloatRect areaHD(radioHDX - 5.f, trangThaiY - 5.f, radioSize + 100.f, INPUT_CAO + 10.f);
+            if (areaHD.contains(mouseX, mouseY)) {
+                state.trangThaiDuocChon = 1;  // Hoạt động
+                CapNhatThongBaoSFML("Da chon Trang Thai: Hoat dong", 0);
+            }
+            
+            sf::FloatRect areaKhoa(radioKhoaX - 5.f, trangThaiY - 5.f, radioSize + 100.f, INPUT_CAO + 10.f);
+            if (areaKhoa.contains(mouseX, mouseY)) {
+                state.trangThaiDuocChon = 0;  // Khóa
+                CapNhatThongBaoSFML("Da chon Trang Thai: Khoa", 0);
+            }
+        }
     }
+    
     
     // Xử lý ESC
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {

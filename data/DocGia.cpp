@@ -140,6 +140,31 @@ void InsertDocGia(PTRDG &root, PTRDG node) {
     root = InsertDocGiaRec(root, node);
 }
 
+static void TinhLaiSoSachDangMuonRec(PTRDG node) {
+    if (node == nullptr) return;
+    
+    // Đệ quy trái phải trước (InOrder)
+    TinhLaiSoSachDangMuonRec(node->left);
+    
+    // Tính lại cho node hiện tại
+    node->data.soSachDangMuon = 0;  // Reset
+    MUONTRA p = node->data.dsmt;
+    while (p) {
+        if (p->data.TrangThai == 0 && p->data.banSaoSach != nullptr) {  // Chỉ đếm nếu đang mượn và con trỏ hợp lệ
+            node->data.soSachDangMuon++;
+        }
+        p = p->next;
+    }
+    
+    TinhLaiSoSachDangMuonRec(node->right);
+}
+
+// Hàm chính gọi sau load
+void TinhLaiSoSachDangMuon(PTRDG root) {
+    TinhLaiSoSachDangMuonRec(root);
+    std::cout << "[DEBUG] Da tinh lai soSachDangMuon cho toan bo cay." << std::endl;
+}
+
 // quan ly cay doc gia
 // tao PTRDG docgia
 PTRDG taoDocGia(std::string ho, std::string ten, bool phai, int trangthai, PTRDG root) {
@@ -640,43 +665,24 @@ void NapGiaoDich(PTRDG docGia, std::ifstream& file, PTRDS dsDauSach[], int n){
             continue;
         }
         // //Khoi phuc con tro tu ma sach
-        // mt.banSaoSach = MaSach_to_PTRDMS(fields[0], dsDauSach, n);
-
-        // //1. Lay ma sach tu file
-        // std::string maSachFile = fields[0];
-
-        // //2. Tach lay ISBN
-        // std::string isbn = TachISBNTuMaSach(maSachFile);
-
-        // //3. Tim dau sach va tang luot muon
-        // PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
-        // if(dauSach != nullptr) 
-        //     dauSach->soLuotMuon++;
-        // if(mt.banSaoSach == nullptr){
-        //     //canh bao neu con tra khong khoi phuc duoc
-        //     std::cerr << "Canh bao: khong tim thay sach " << fields[0] << " de khoi phuc con tro"<< endl;
-        // } else {
-        //     std::string isbn = TachISBNTuMaSach(fields[0]);
-        //     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
-        //     if(dauSach != nullptr)
-        //         dauSach->soLuotMuon++;
-        // }
-        std::cout << ">> Doc file MT: MaSach=" << fields[0]; 
-        
-        std::string maSachFile = fields[0]; 
-        std::string isbn = TachISBNTuMaSach(maSachFile); 
-        std::cout << " | ISBN tach duoc=" << isbn;
-
-        PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
-        
-        if (dauSach != nullptr) {
-            dauSach->soLuotMuon++; 
-            std::cout << " -> TIM THAY! Ten=" << dauSach->tenSach 
-                      << " -> Tang len " << dauSach->soLuotMuon << "\n";
+       std::string maSachFile = fields[0];
+        if (!maSachFile.empty()) {  // Kiem tra rong truoc
+            mt.banSaoSach = MaSach_to_PTRDMS(maSachFile, dsDauSach, n);
+            
+            std::string isbn = TachISBNTuMaSach(maSachFile);
+            PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, n, isbn);
+            
+            if (dauSach != nullptr) {
+                dauSach->soLuotMuon++;  // Tang cho moi giao dich muon (lich su)
+                std::cout << "[DEBUG] +1 Luot muon cho: " << dauSach->tenSach << "\n";
+            } else {
+                std::cerr << "Canh bao: Khong tim thay dau sach cho MT: " << maSachFile << endl;
+            }
         } else {
-            std::cout << " -> KHONG TIM THAY SACH NAY!\n";
+            std::cerr << "Canh bao: MT co ma sach rong!" << endl;
         }
-
+        
+        // Them vao DSLK
         themMuonTra(docGia, mt);
     }
 }
@@ -1025,6 +1031,8 @@ PTRDG loadDocGia(PTRDS dsDauSach[], int soLuongDS){
         }
     }
     file.close();
+
+    TinhLaiSoSachDangMuon(root);  // Tính lại để đồng bộ
     return root;
 }
 
