@@ -227,7 +227,7 @@ static void VeFormNhapDocGia(sf::RenderWindow &window, const sf::Font &font, con
     lblPhai.setPosition(labelX, currentY);
     window.draw(lblPhai);
     
-    float radioX = labelX + 110.f;
+    float radioX = labelX + 130.f;
     float radioSize = 15.f;
     
     // Radio Nam
@@ -250,7 +250,7 @@ static void VeFormNhapDocGia(sf::RenderWindow &window, const sf::Font &font, con
     window.draw(txtNam);
     
     // Radio Nữ
-    radioX += 100.f;
+    radioX += 120.f;
     sf::CircleShape radioNu(radioSize / 2.f);
     radioNu.setPosition(radioX, currentY + 5.f);
     radioNu.setFillColor(sf::Color::Transparent);
@@ -276,7 +276,7 @@ static void VeFormNhapDocGia(sf::RenderWindow &window, const sf::Font &font, con
     lblTrangThai.setPosition(labelX, currentY);
     window.draw(lblTrangThai);
     
-    radioX = labelX + 110.f;
+    radioX = labelX + 130.f;
     
     // Radio Hoạt động
     sf::CircleShape radioHD(radioSize / 2.f);
@@ -298,7 +298,7 @@ static void VeFormNhapDocGia(sf::RenderWindow &window, const sf::Font &font, con
     window.draw(txtHD);
     
     // Radio Khóa
-    radioX += 140.f;
+    radioX += 160.f;
     sf::CircleShape radioKhoa(radioSize / 2.f);
     radioKhoa.setPosition(radioX, currentY + 5.f);
     radioKhoa.setFillColor(sf::Color::Transparent);
