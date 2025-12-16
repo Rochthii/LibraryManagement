@@ -217,71 +217,88 @@ void GiaiPhongCay(PTRDG &root) {
 static PTRDG xoaDocGiaRec(PTRDG root, int mathe) {
     if (root == nullptr) return root;
 
-    if (mathe < root->data.MaThe) {
+    // buoc 1: tim node can xoa (BST search)
+    if (mathe < root->data.MaThe)
         root->left = xoaDocGiaRec(root->left, mathe);
-    } else if (mathe > root->data.MaThe) {
+    else if (mathe > root->data.MaThe)
         root->right = xoaDocGiaRec(root->right, mathe);
-    } else {
-        // found node
+    else {
+        // buoc 2: da tim thay node can xoa
         if (root->left == nullptr || root->right == nullptr) {
-            // Trường hợp 0 hoặc 1 con
-            giaiPhongDsmt(root->data.dsmt);
-            PTRDG temp = root->left ? root->left : root->right;
-            delete root;
-            return temp;
+            // truong hop 0 hoac 1 con
+            PTRDG temp = (root->left != nullptr) ? root->left : root->right;
+            
+            if (temp == nullptr) {
+                // khong co con nao - xoa truc tiep
+                giaiPhongDsmt(root->data.dsmt);
+                delete root;
+                return nullptr;
+            } else {
+                // co 1 con - thay the bang con do
+                giaiPhongDsmt(root->data.dsmt);  // giai phong data cu
+                PTRDG nodeCanXoa = root;
+                root = temp;  // gan con tro root = con (DUNG)
+                delete nodeCanXoa;  // xoa node cu
+            }
         } else {
-            // Trường hợp 2 con: lấy inorder successor (succ)
-            PTRDG succ = root->right;
-            while (succ->left != nullptr) succ = succ->left;
-
-            // CẢI TIẾN: Sửa lỗi bộ nhớ và cập nhật trường mới
-            giaiPhongDsmt(root->data.dsmt); 
+            // truong hop 2 con - dung successor (node nho nhat ben phai)
+            PTRDG successor = root->right;
+            while (successor->left != nullptr) 
+                successor = successor->left;
             
-            // Sao chép dữ liệu của succ sang root
-            root->data.MaThe = succ->data.MaThe;
-            root->data.Ho = succ->data.Ho;
-            root->data.Ten = succ->data.Ten;
-            root->data.Phai = succ->data.Phai;
-            root->data.TrangThai = succ->data.TrangThai;
-            root->data.soSachDangMuon = succ->data.soSachDangMuon; // Cập nhật trường mới
+            // giai phong dsmt cu cua root truoc khi copy
+            giaiPhongDsmt(root->data.dsmt);
             
-            // Chuyển quyền sở hữu con trỏ dsmt từ succ sang root
-            root->data.dsmt = succ->data.dsmt;
-            succ->data.dsmt = nullptr;
-
-            // Đệ quy xóa nút successor
-            root->right = xoaDocGiaRec(root->right, root->data.MaThe);
+            // copy data tu successor (khong copy con tro left/right)
+            root->data.MaThe = successor->data.MaThe;
+            root->data.Ho = successor->data.Ho;
+            root->data.Ten = successor->data.Ten;
+            root->data.Phai = successor->data.Phai;
+            root->data.TrangThai = successor->data.TrangThai;
+            root->data.soSachDangMuon = successor->data.soSachDangMuon;
+            
+            // chuyen quyen so huu dsmt (tranh copy)
+            root->data.dsmt = successor->data.dsmt;
+            successor->data.dsmt = nullptr;  // tranh double free
+            
+            // xoa successor (la hoac 1 con phai)
+            root->right = xoaDocGiaRec(root->right, successor->data.MaThe);
         }
     }
-
-    // cap nhat height va rebalance 
+    
+    // buoc 3: cap nhat height
     if (root == nullptr) return root;
     updateHeight(root);
+    
+    // buoc 4: rebalance
     int balance = getBalance(root);
-    int leftBalance = getBalance(root->left);
-    int rightBalance = getBalance(root->right);
-
-    // LL
-    if (balance > 1 && leftBalance >= 0)
+    
+    // LL: balance > 1 va cay con trai lech trai
+    if (balance > 1 && getBalance(root->left) >= 0)
         return RotateRight(root);
-    // LR
-    if (balance > 1 && leftBalance < 0) {
+    
+    // LR: balance > 1 va cay con trai lech phai
+    if (balance > 1 && getBalance(root->left) < 0) {
         root->left = RotateLeft(root->left);
         return RotateRight(root);
     }
-    // RR
-    if (balance < -1 && rightBalance <= 0)
+    
+    // RR: balance < -1 va cay con phai lech phai
+    if (balance < -1 && getBalance(root->right) <= 0)
         return RotateLeft(root);
-    // RL
-    if (balance < -1 && rightBalance > 0) {
+    
+    // RL: balance < -1 va cay con phai lech trai
+    if (balance < -1 && getBalance(root->right) > 0) {
         root->right = RotateRight(root->right);
         return RotateLeft(root);
     }
-
+    
     return root;
 }
+
 void xoaDocGia(PTRDG& root, int mathe) {
     root = xoaDocGiaRec(root, mathe);
+    duLieuDaThayDoi = true;
 }
 
 // tim doc gia
@@ -469,26 +486,25 @@ int DemBanSaoCoTheMuon(PTRDS dauSach) {
 // ham backend: muon sach (O(log N) + O(M))
 std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach) {
     if (docGia == nullptr) return "Loi: Doc gia khong hop le!";
-    // Duyệt qua danh sách sách đang mượn để kiểm tra xem có cuốn nào quá hạn không
-    MUONTRA p = docGia->data.dsmt;
-    std::stringstream dummyStream; // Dùng stream ảo để hứng log (không in ra màn hình)
     
+    // kiem tra the bi khoa
+    if (docGia->data.TrangThai == 0) 
+        return "Loi: The doc gia da bi khoa!";
+    
+    // kiem tra qua han (DA CO ROI)
+    MUONTRA p = docGia->data.dsmt;
+    std::stringstream dummyStream;
     while (p != nullptr) {
-        // Chỉ kiểm tra sách đang mượn (TrangThai == 0)
         if (p->data.TrangThai == 0) {
-            // Gọi hàm tinhSoNgayQuaHan từ NgayThang.cpp
             int soNgayQua = tinhSoNgayQuaHan(p->data.NgayMuon, dummyStream);
-            
-            // Nếu > 0 nghĩa là đã quá hạn (số ngày giữ > SO_NGAY_MUON_TOI_DA)
             if (soNgayQua > 0) {
-                return "Loi: Doc gia co sach qua han " + std::to_string(soNgayQua) + " ngay! Vui long tra sach truoc.";
+                return "Loi: Doc gia co sach qua han " + std::to_string(soNgayQua) + " ngay!";
             }
         }
         p = p->next;
     }
-    // ----------------------------------------
-
-    // B1: Kiem tra gioi han muon (3 cuon)
+    
+    // B1: Kiem tra gioi han muon (toi da 3)
     if (docGia->data.soSachDangMuon >= 3) {
         return "Loi: Doc gia da muon toi da 3 cuon!";
     }
@@ -875,23 +891,13 @@ static void QuickSortTS(TopSachDTO arr[], int low, int high){
     }
 }
 int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]){
-    // --- ĐOẠN DEBUG---
-    std::cout << "\n--- DEBUG TOP 10 ---\n";
-    std::cout << "So luong dau sach nhan duoc: " << soLuongDS << "\n";
-    
-    if(dsDauSach == nullptr) {
-        std::cout << "LOI: Mang dsDauSach bi NULL!\n";
-        return 0;
-    }
-    // -----------------
-
-    if(arr == nullptr || soLuongDS == 0)  return 0;
+    if(arr == nullptr || dsDauSach == nullptr || soLuongDS == 0) return 0;
 
     int count = 0;
     
+    // chi lay sach co luot muon > 0
     for(int i = 0; i < soLuongDS; i++){
-        // ĐK QUAN TRỌNG: Lấy cả sách có lượt mượn >= 0 (thay vì > 0)
-        if(dsDauSach[i] != nullptr && dsDauSach[i]->soLuotMuon >= 0){ 
+        if(dsDauSach[i] != nullptr && dsDauSach[i]->soLuotMuon > 0){  // > 0, khong >= 0
             if(count < MAX_DAUSACH){
                 arr[count].dauSach = dsDauSach[i];
                 count++;
@@ -899,14 +905,14 @@ int LayTopSach(PTRDS dsDauSach[], int soLuongDS, TopSachDTO arr[]){
         }
     }
     
-    std::cout << "So luong sach lay duoc vao Top: " << count << "\n"; // In kết quả đếm
-    
-    if(count == 0) return 0; 
+    if(count == 0) return 0;
 
+    // sap xep
     if(count > 1){
         QuickSortTS(arr, 0, count - 1);
     }
 
+    // tra ve toi da 10 sach hoac it hon neu khong du
     return (count < 10) ? count : 10;
 }
 

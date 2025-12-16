@@ -39,5 +39,6 @@ constexpr int SO_TRUONG_DMS = 3;               // so truong trong file DanhMucSa
 
 // cau hinh Muon Tra Sach
 constexpr int SO_NGAY_MUON_TOI_DA = 7;         // so ngay muon toi da cho phep
+constexpr int MAX_SACH_MUON_MOT_LUC = 3; 
 
 #endif // CONSTANTS_H
