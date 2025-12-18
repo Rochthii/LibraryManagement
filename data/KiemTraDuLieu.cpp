@@ -80,7 +80,6 @@ std::string KiemTraTongSoBanSao(const std::string& isbn, int soLuongThem){
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if(!dauSach) return ""; // hong tim thay dau sach
     
-    //Tan dung field tongBanSao
     int soBanSaoHienTai = dauSach->tongBanSao;
     int tongSoSauKhiThem = soBanSaoHienTai + soLuongThem;
     

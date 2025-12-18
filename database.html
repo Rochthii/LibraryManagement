@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema - Quản Lý Thư Viện</title>
+    <!-- Nhúng thư viện Mermaid.js để vẽ sơ đồ tự động -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <!-- Nhúng Font Awesome cho icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --card-bg: #252526;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --border-color: #3e3e3e;
+            --header-bg: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 20px;
+        }
+
+        h1 { color: #4ec9b0; margin: 0; }
+        h2 { color: #9cdcfe; border-left: 4px solid var(--accent-color); padding-left: 10px; margin-top: 30px; }
+        p { color: #cccccc; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .diagram-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .schema-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .table-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background-color: var(--header-bg);
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #569cd6;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+        }
+        .badge-array { background-color: #ce9178; }
+        .badge-linkedlist { background-color: #c586c0; }
+        .badge-avl { background-color: #4ec9b0; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            padding: 8px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th { color: #dcdcaa; font-weight: normal; }
+        td:first-child { color: #9cdcfe; font-family: monospace; } /* Field Name */
+        td:nth-child(2) { color: #4ec9b0; font-family: monospace; } /* Type */
+        
+        .key-pk { color: #dcdcaa; margin-right: 5px; }
+        .key-fk { color: #ce9178; margin-right: 5px; }
+
+        .note-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #2d2d2d;
+            border-left: 4px solid #ce9178;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fas fa-database"></i> Cấu Trúc Dữ Liệu Hệ Thống</h1>
+        <p>Phân tích từ mã nguồn C++ (DauSach.h, DocGia.h)</p>
+    </div>
+
+    <div class="container">
+        <!-- Khu vực hiển thị biểu đồ -->
+        <div class="diagram-container">
+            <h3 style="text-align: center; color: #dcdcaa;">Biểu Đồ Quan Hệ (ERD)</h3>
+            <div class="mermaid">
+                erDiagram
+                    %% Thực thể Đầu Sách
+                    DAU_SACH {
+                        string ISBN PK "Khóa chính"
+                        string TenSach
+                        int SoTrang
+                        string TacGia
+                        int NamXuatBan
+                        string TheLoai
+                        int SoLuotMuon
+                        pointer dms "Con trỏ tới Linked List bản sao"
+                    }
+
+                    %% Thực thể Danh Mục Sách (Bản sao)
+                    DANH_MUC_SACH {
+                        string MaSach PK "Sinh tự động (ISBN-Index)"
+                        int TrangThai "0: Cho mượn, 1: Đã mượn, 2: Thanh lý"
+                        string ViTri "Vị trí kệ"
+                        pointer next "Con trỏ node tiếp theo"
+                    }
+
+                    %% Thực thể Độc Giả
+                    THE_DOC_GIA {
+                        int MaThe PK "Random ID"
+                        string Ho
+                        string Ten
+                        bool Phai
+                        int TrangThai "0: Khóa, 1: Hoạt động"
+                        pointer left "Cây con trái (AVL)"
+                        pointer right "Cây con phải (AVL)"
+                        pointer dsmt "Con trỏ tới Linked List mượn trả"
+                    }
+
+                    %% Thực thể Mượn Trả
+                    MUON_TRA {
+                        string NgayMuon
+                        string NgayTra
+                        int TrangThai "0: Đang mượn, 1: Đã trả, 2: Mất"
+                        pointer banSaoSach FK "Con trỏ trực tiếp tới vùng nhớ DANH_MUC_SACH"
+                        pointer next "Con trỏ node tiếp theo"
+                    }
+
+                    %% Các mối quan hệ
+                    DAU_SACH ||--o{ DANH_MUC_SACH : "Quản lý (1-n)"
+                    THE_DOC_GIA ||--o{ MUON_TRA : "Thực hiện (1-n)"
+                    MUON_TRA }|--|| DANH_MUC_SACH : "Tham chiếu (Direct Pointer)"
+            </div>
+            
+            <div class="note-box">
+                <strong><i class="fas fa-info-circle"></i> Giải thích cơ chế liên kết trong RAM:</strong><br>
+                Hệ thống không sử dụng `JOIN` như SQL mà sử dụng <strong>Con trỏ (Pointers)</strong>:
+                <ul>
+                    <li><strong>DauSach -> DanhMucSach:</strong> Một con trỏ <code>dms</code> trỏ đến đầu danh sách liên kết các cuốn sách.</li>
+                    <li><strong>TheDocGia -> MuonTra:</strong> Một con trỏ <code>dsmt</code> trỏ đến đầu danh sách lịch sử mượn trả.</li>
+                    <li><strong>MuonTra -> DanhMucSach:</strong> Đây là điểm đặc biệt. Thay vì lưu mã sách (string), struct <code>MuonTra</code> lưu trực tiếp địa chỉ bộ nhớ (<code>PTRDMS</code>) của cuốn sách trong <code>DanhMucSach</code>. Điều này giúp truy xuất trạng thái sách cực nhanh O(1).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chi tiết các bảng -->
+        <div class="schema-details">
+            
+            <!-- Bảng Đầu Sách -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span><i class="fas fa-book"></i> DAU_SACH</span>
+                    <span class="badge badge-array">Mảng Con Trỏ Tuyến Tính</span>
+                </div>
+                <table>
+                    <tr><th>Tên Trường</th><th>Kiểu Dữ Liệu</th><th>Mô Tả</th></tr>
+                    <tr><td><i class="fas fa-key key-pk"></i>ISBN</td><td>std::string</td><td>Mã sách chuẩn quốc tế</td></tr>
+                    <tr><td>tenSach</td><td>std::string</td><td>Tên sách (Title Case)</td></tr>
+                    <tr><td>soTrang</td><td>int</td><td>Số trang</td></tr>
+                    <tr><td>tacGia</td><td>std::string</td><td>Tên tác giả</td></tr>
+                    <tr><td>namXuatBan</td><td>int</td><td>Năm xuất bản</td></tr>
+                    <tr><td>theLoai</td><td>std::string</td><td>Thể loại</td></tr>
+                    <tr><td>dms</td><td>PTRDMS</td><td>Con trỏ trỏ đến danh sách bản sao</td></tr>
+                </table>
+            </div>
+
+            <!-- Bảng Danh Mục Sách -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span><i class="fas fa-copy"></i> DANH_MUC_SACH</span>
+                    <span class="badge badge-linkedlist">Danh Sách Liên Kết Đơn</span>
+                </div>
+                <table>
+                    <tr><th>Tên Trường</th><th>Kiểu Dữ Liệu</th><th>Mô Tả</th></tr>
+                    <tr><td><i class="fas fa-key key-pk"></i>maSach</td><td>std::string</td><td>Mã cá biệt (VD: 978-123-1)</td></tr>
+                    <tr><td>trangThai</td><td>int (Enum)</td><td>0: Cho mượn, 1: Đã mượn, 2: Thanh lý</td></tr>
+                    <tr><td>viTri</td><td>std::string</td><td>Vị trí lưu trữ (Kệ/Ngăn)</td></tr>
+                    <tr><td>next</td><td>PTRDMS</td><td>Trỏ tới cuốn sách tiếp theo</td></tr>
+                </table>
+            </div>
+
+            <!-- Bảng Độc Giả -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span><i class="fas fa-user"></i> THE_DOC_GIA</span>
+                    <span class="badge badge-avl">Cây Nhị Phân (AVL Tree)</span>
+                </div>
+                <table>
+                    <tr><th>Tên Trường</th><th>Kiểu Dữ Liệu</th><th>Mô Tả</th></tr>
+                    <tr><td><i class="fas fa-key key-pk"></i>MaThe</td><td>int</td><td>Mã thẻ (Random int)</td></tr>
+                    <tr><td>Ho</td><td>std::string</td><td>Họ và tên đệm</td></tr>
+                    <tr><td>Ten</td><td>std::string</td><td>Tên</td></tr>
+                    <tr><td>Phai</td><td>bool</td><td>Phái (0: Nam, 1: Nữ)</td></tr>
+                    <tr><td>TrangThai</td><td>int</td><td>0: Bị khóa, 1: Hoạt động</td></tr>
+                    <tr><td>dsmt</td><td>MUONTRA</td><td>Con trỏ trỏ đến lịch sử mượn</td></tr>
+                </table>
+            </div>
+
+            <!-- Bảng Mượn Trả -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span><i class="fas fa-exchange-alt"></i> MUON_TRA</span>
+                    <span class="badge badge-linkedlist">Danh Sách Liên Kết Đơn</span>
+                </div>
+                <table>
+                    <tr><th>Tên Trường</th><th>Kiểu Dữ Liệu</th><th>Mô Tả</th></tr>
+                    <tr><td><i class="fas fa-link key-fk"></i>banSaoSach</td><td>PTRDMS</td><td>Con trỏ trỏ thẳng vào DanhMucSach</td></tr>
+                    <tr><td>NgayMuon</td><td>std::string</td><td>Ngày mượn (dd/mm/yyyy)</td></tr>
+                    <tr><td>NgayTra</td><td>std::string</td><td>Ngày trả (dd/mm/yyyy)</td></tr>
+                    <tr><td>TrangThai</td><td>int</td><td>0: Đang mượn, 1: Đã trả, 2: Mất</td></tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            er: {
+                useMaxWidth: true,
+                diagramPadding: 20,
+                layoutDirection: 'TB',
+                minEntityWidth: 100,
+                entityPadding: 15,
+                stroke: '#569cd6',
+                fill: '#252526',
+                fontSize: 14
+            }
+        });
+    </script>
+</body>
+</html>

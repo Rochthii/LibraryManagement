@@ -26,6 +26,7 @@ run_debug.log
 
 # 7. Không đẩy file backup, file IDE
 files/backup_*
+files/
 main
 *.xcodeproj
 *.xcworkspace

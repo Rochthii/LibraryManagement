@@ -10,8 +10,8 @@
 9898798767656|Cha Oi|436|Cham Roch Thi|2025|Gia Dinh
 9786048679456|Chao Mung Ngay Moi|542|Cham Roch Thi|2025|Cuoc Song
 9786040001016|Chi Pheo|200|Nam Cao|1941|Viet Nam
-9786043450224|Chung Ta Hien Tai|435|Cham Roch Thi|2025|Cuoc Song
-9786046414759|Chung Ta Sau Nay|435|Cham Roch Thi|2025|Cuoc Song
+9786043450224|Chung Ta Cua Hien Tai|435|Cham Roch Thi|2025|Cuoc Song
+9786046414759|Chung Ta Cua Tuong Lai|435|Cham Roch Thi|2025|Cuoc Song
 9786040001009|Co Kiem Ky Dam|500|Thuong Hai|2010|Kiem Hiep
 9786040000453|Co So Du Lieu|585|Hoang Anh|2014|Co So Du Lieu
 9786040000781|Cong Nghe Iot|400|Nguyen Van C|2022|Iot
@@ -66,6 +66,5 @@
 9786040000774|Tri Tue Nhan Tao Nang Cao|360|Tran Thi Ha|2021|Tri Tue Nhan Tao
 9876046789465|Trong Nhung Nam Qua|736|Cham Roch Thi|2025|Cuoc Song
 9786040793225|Vi Em|453|Cham Roch Thi|2025|Tinh Yeu
-9876048888467|Vi Yeu Em|433|Cham Roch Thi|2025|Tinh Yeu
 9786040000620|Xu Ly Anh|645|Tran Van Loc|2021|Xu Ly Anh
 9786040000736|Xu Ly Ngon Ngu Tu Nhien|200|Do Van Cuong|2022|Nlp
