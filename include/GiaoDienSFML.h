@@ -52,7 +52,7 @@ const float KHUNG_THONG_BAO_CAO = 140.f;
 const float NUT_CAO = 40.f;
 const float INPUT_CAO = 40.f;
 const float INPUT_RONG = FORM_RONG - 2 * PADDING - 110.f;
-const int SACH_MOI_TRANG = 17;
+const int SACH_MOI_TRANG = 14;
 
 
 // Enum cac trang thai man hinh
