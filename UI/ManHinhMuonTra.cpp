@@ -4,6 +4,7 @@
 #include "GiaoDienMuonTra.h"
 #include "GiaoDienSFML.h"
 #include "KiemTraDuLieu.h"
+#include "MuonTra.h"
 #include "NgayThang.h"
 #include "QuanLySach.h"
 #include "TienIchGiaoDien.h"
@@ -1558,16 +1559,8 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
           if (state.isbnClickCuoi == isbn &&
               elapsedTime < state.THOI_GIAN_DOUBLE_CLICK) {
             // DOUBLE CLICK - Chon sach de muon
-            PTRDMS mangBS[100];
-            int nBS = LayDanhSachBanSaoSapXep(isbn, mangBS, 100);
-            std::string maChon = "";
-
-            for (int i = 0; i < nBS; ++i) {
-              if (mangBS[i]->trangThai == CHO_MUON_DUOC) {
-                maChon = mangBS[i]->maSach;
-                break;
-              }
-            }
+            // DOUBLE CLICK - Chon sach de muon
+            std::string maChon = TimMaSachCoTheMuon(isbn);
 
             if (!maChon.empty()) {
               state.chuoiMaSach = maChon;
@@ -1842,16 +1835,8 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
 }
 
 static void CapNhatSachDangMuon(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-
-  if (!s.docGiaDangChon) {
-    s.slSachDangMuon = 0;
-    return;
-  }
-
-  s.slSachDangMuon = LayDSSachDangMuon(s.docGiaDangChon, s.listSachDangMuon, 10,
-                                       dsDauSach, soLuongDauSach);
+  s.slSachDangMuon =
+      LayDSSachDangMuonBackend(s.docGiaDangChon, s.listSachDangMuon);
 }
 
 static void XoaFormNhapLieuSFML(MuonTraState &s) {
@@ -1861,16 +1846,12 @@ static void XoaFormNhapLieuSFML(MuonTraState &s) {
 }
 
 static void ThucHienMuonSachSFML(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-  extern bool duLieuDaThayDoi;
-
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
   }
 
-  // Kiểm tra đã mượn đủ 3 sách chưa
+  // Kiểm tra đã mượn đủ 3 sách chưa (UI constraint)
   if (s.slSachDangMuon >= 3) {
     CapNhatThongBaoSFML("Loi: Doc gia da muon du 3 sach!\nVui long tra sach "
                         "truoc khi muon tiep.",
@@ -1885,23 +1866,10 @@ static void ThucHienMuonSachSFML(MuonTraState &s) {
     return;
   }
 
-  // Validate format: ISBN-XXX
-  size_t dashPos = maSach.find('-');
-  if (dashPos == std::string::npos || dashPos == 0 ||
-      dashPos == maSach.length() - 1) {
-    CapNhatThongBaoSFML("Loi: Ma sach khong hop le!\nDinh dang: ISBN-XXX\nVi "
-                        "du: 9780321563842-001",
-                        1);
-    inputHoatDong = INPUT_MT_TIM_SACH;
-    return;
-  }
-
   // Call backend
-  std::string loi =
-      MuonSach(s.docGiaDangChon, maSach, dsDauSach, soLuongDauSach);
+  std::string loi = ThucHienMuonSachBackend(s.docGiaDangChon, maSach);
 
   if (loi.empty()) {
-    duLieuDaThayDoi = true;
     CapNhatThongBaoSFML("Muon sach thanh cong: " + maSach, 2);
     CapNhatSachDangMuon(s);
     XoaFormNhapLieuSFML(s);
@@ -1913,10 +1881,6 @@ static void ThucHienMuonSachSFML(MuonTraState &s) {
 }
 
 static void ThucHienTraSachSFML(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-  extern bool duLieuDaThayDoi;
-
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
@@ -1930,11 +1894,9 @@ static void ThucHienTraSachSFML(MuonTraState &s) {
     return;
   }
 
-  std::string loi =
-      TraSach(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach);
+  std::string loi = ThucHienTraSachBackend(s.docGiaDangChon, s.maSachDangChon);
 
   if (loi.empty()) {
-    duLieuDaThayDoi = true;
     CapNhatThongBaoSFML("Tra sach thanh cong: " + s.maSachDangChon, 2);
     CapNhatSachDangMuon(s);
     XoaFormNhapLieuSFML(s);
@@ -1944,10 +1906,6 @@ static void ThucHienTraSachSFML(MuonTraState &s) {
 }
 
 static void ThucHienBaoMatSachSFML(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-  extern bool duLieuDaThayDoi;
-
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
@@ -1960,11 +1918,9 @@ static void ThucHienBaoMatSachSFML(MuonTraState &s) {
     return;
   }
 
-  std::string loi =
-      BaoMatSach(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach);
+  std::string loi = ThucHienMatSachBackend(s.docGiaDangChon, s.maSachDangChon);
 
   if (loi.empty()) {
-    duLieuDaThayDoi = true;
     CapNhatThongBaoSFML("Bao mat sach thanh cong: " + s.maSachDangChon, 2);
     CapNhatSachDangMuon(s);
     XoaFormNhapLieuSFML(s);
@@ -2004,127 +1960,18 @@ static void ThucHienXoaDocGia(MuonTraState &s) {
 
 // ===== HAM LOGIC =====
 static void ThucHienTimKiemDocGia(MuonTraState &s) {
-  extern PTRDG rootDocGia;
+  bool laCheDoQuaHan = (s.cheDoHienTai == CHE_DO_QUA_HAN);
+  bool sapXepTheoTen = (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO);
 
-  s.soLuongKetQuaDocGia = 0;
+  LayDanhSachDocGiaBackend(s.chuoiTimKiemDocGia, laCheDoQuaHan, sapXepTheoTen,
+                           s.ketQuaTimKiemDocGia, s.soLuongKetQuaDocGia);
 
-  // Lay tat ca doc gia ra mang
-  PTRDG mangTam[MAX_DAUSACH];
-  int count = 0;
-  DuyetCayRaMang(rootDocGia, mangTam, count);
-
-  if (s.chuoiTimKiemDocGia.empty()) {
-    // Hien tat ca
-    for (int i = 0; i < count && i < MAX_DAUSACH; ++i) {
-      s.ketQuaTimKiemDocGia[i].docGia = mangTam[i];
-      s.ketQuaTimKiemDocGia[i].loaiKhop = 2; // Show all
-      s.ketQuaTimKiemDocGia[i].overdueDays = 0;
-      s.soLuongKetQuaDocGia++;
-    }
-  } else {
-    // Tim kiem theo ma the hoac ten
-    std::string tuKhoa = s.chuoiTimKiemDocGia;
-    bool laTimTheoMa = true;
-
-    // Kiem tra neu la so thi tim theo ma the
-    for (char c : tuKhoa) {
-      if (!isdigit(c)) {
-        laTimTheoMa = false;
-        break;
-      }
-    }
-
-    if (laTimTheoMa) {
-      // Tim theo ma the
-      int maThe = std::stoi(tuKhoa);
-      for (int i = 0; i < count; ++i) {
-        if (mangTam[i]->data.MaThe == maThe) {
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].docGia = mangTam[i];
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].loaiKhop = 0; // Exact
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].overdueDays = 0;
-          s.soLuongKetQuaDocGia++;
-          break;
-        }
-      }
-    } else {
-      // Tim theo ten (khong phan biet hoa/thuong)
-      std::string tuKhoaLower = tuKhoa;
-      for (char &c : tuKhoaLower)
-        c = tolower(c);
-
-      for (int i = 0; i < count && s.soLuongKetQuaDocGia < MAX_DAUSACH; ++i) {
-        std::string hoTen = mangTam[i]->data.Ho + " " + mangTam[i]->data.Ten;
-        std::string hoTenLower = hoTen;
-        for (char &c : hoTenLower)
-          c = tolower(c);
-
-        if (hoTenLower.find(tuKhoaLower) != std::string::npos) {
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].docGia = mangTam[i];
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].loaiKhop = 1; // Partial
-          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].overdueDays = 0;
-          s.soLuongKetQuaDocGia++;
-        }
-      }
-    }
-  }
-
-  // Loc theo che do qua han neu dang o che do do
-  if (s.cheDoHienTai == CHE_DO_QUA_HAN) {
-    DocGiaTableDTO ketQuaTam[MAX_DAUSACH];
-    int soLuongTam = 0;
-
-    for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
-      PTRDG dg = s.ketQuaTimKiemDocGia[i].docGia;
-      if (dg && dg->data.soSachDangMuon > 0) {
-        // Kiem tra xem co sach qua han khong bang ham co san
-        int soNgayMax = TinhSoNgayQuaHanLonNhat(dg);
-        if (soNgayMax > 7) {
-          ketQuaTam[soLuongTam] = s.ketQuaTimKiemDocGia[i];
-          ketQuaTam[soLuongTam].overdueDays = soNgayMax;
-          soLuongTam++;
-        }
-      }
-    }
-
-    // Cap nhat lai ket qua
-    for (int i = 0; i < soLuongTam; ++i) {
-      s.ketQuaTimKiemDocGia[i] = ketQuaTam[i];
-    }
-    s.soLuongKetQuaDocGia = soLuongTam;
-
-    // SAP XEP THEO SO NGAY QUA HAN GIAM DAN (Yeu cau moi)
-    std::sort(s.ketQuaTimKiemDocGia,
-              s.ketQuaTimKiemDocGia + s.soLuongKetQuaDocGia,
-              [](const DocGiaTableDTO &a, const DocGiaTableDTO &b) {
-                return b.overdueDays < a.overdueDays; // Giam dan
-              });
-  } else {
-    // Sap xep ket qua theo che do sap xep (Chi chay khi khong phai qua han)
-    if (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO && s.soLuongKetQuaDocGia > 0) {
-      // Tao mang tam de sap xep
-      PTRDG mangSapXep[MAX_DAUSACH];
-      for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
-        mangSapXep[i] = s.ketQuaTimKiemDocGia[i].docGia;
-      }
-
-      // Goi ham QuickSort (da co san tu ManHinhQuanLyDocGia)
-      QuickSortDocGia(mangSapXep, 0, s.soLuongKetQuaDocGia - 1);
-
-      // Copy lai vao ket qua
-      for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
-        s.ketQuaTimKiemDocGia[i].docGia = mangSapXep[i];
-      }
-    }
-    // Neu SAP_XEP_THEO_MA_THE thi giu nguyen (da duyet InOrder - sap xep san)
-  }
-
-  // --- COMMON LOGIC ---
-
+  // --- UI LOGIC ---
   s.trangHienTaiDocGia = 1;
   CapNhatPhanTrangDocGia(s);
 
   if (s.soLuongKetQuaDocGia > 0) {
-    if (s.cheDoHienTai == CHE_DO_QUA_HAN) {
+    if (laCheDoQuaHan) {
       CapNhatThongBaoSFML("Tim thay " + std::to_string(s.soLuongKetQuaDocGia) +
                               " doc gia qua han.",
                           0);
@@ -2147,67 +1994,8 @@ static void CapNhatPhanTrangDocGia(MuonTraState &s) {
 }
 
 static void ThucHienTimKiemSach(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-
-  s.soLuongKetQuaSach = 0;
-
-  if (s.chuoiTimKiemSach.empty()) {
-    // Hien tat ca sach
-    for (int i = 0; i < soLuongDauSach && i < MAX_DAUSACH; ++i) {
-      if (dsDauSach[i]) {
-        s.ketQuaTimKiemSach[s.soLuongKetQuaSach].dauSach = dsDauSach[i];
-        s.ketQuaTimKiemSach[s.soLuongKetQuaSach].loaiKhop = 2; // Show all
-        s.soLuongKetQuaSach++;
-      }
-    }
-  } else {
-    // Tim kiem theo ISBN, ten sach, hoac tac gia
-    std::string tuKhoa = s.chuoiTimKiemSach;
-    std::string tuKhoaLower = tuKhoa;
-    for (char &c : tuKhoaLower)
-      c = tolower(c);
-
-    for (int i = 0; i < soLuongDauSach && s.soLuongKetQuaSach < MAX_DAUSACH;
-         ++i) {
-      if (!dsDauSach[i])
-        continue;
-
-      PTRDS dau = dsDauSach[i];
-      std::string isbn = dau->ISBN;
-      std::string ten = dau->tenSach;
-      std::string tacGia = dau->tacGia;
-
-      // Convert to lowercase
-      std::string isbnLower = isbn;
-      std::string tenLower = ten;
-      std::string tacGiaLower = tacGia;
-      for (char &c : isbnLower)
-        c = tolower(c);
-      for (char &c : tenLower)
-        c = tolower(c);
-      for (char &c : tacGiaLower)
-        c = tolower(c);
-
-      bool khop = false;
-      int loaiKhop = 1; // Partial
-
-      if (isbnLower == tuKhoaLower) {
-        khop = true;
-        loaiKhop = 0; // Exact
-      } else if (isbnLower.find(tuKhoaLower) != std::string::npos ||
-                 tenLower.find(tuKhoaLower) != std::string::npos ||
-                 tacGiaLower.find(tuKhoaLower) != std::string::npos) {
-        khop = true;
-      }
-
-      if (khop) {
-        s.ketQuaTimKiemSach[s.soLuongKetQuaSach].dauSach = dau;
-        s.ketQuaTimKiemSach[s.soLuongKetQuaSach].loaiKhop = loaiKhop;
-        s.soLuongKetQuaSach++;
-      }
-    }
-  }
+  LayDanhSachSachBackend(s.chuoiTimKiemSach, s.ketQuaTimKiemSach,
+                         s.soLuongKetQuaSach);
 
   s.trangHienTaiSach = 1;
   CapNhatPhanTrangSach(s);
@@ -2230,9 +2018,6 @@ static void CapNhatPhanTrangSach(MuonTraState &s) {
 }
 
 static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
-
   if (!docGia)
     return;
 
@@ -2240,9 +2025,8 @@ static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia) {
   s.maTheDocGiaDuocChon = docGia->data.MaThe;
   s.dangHienThiBangSach = true;
 
-  // Lay danh sach sach dang muon
-  s.slSachDangMuon = LayDSSachDangMuon(docGia, s.listSachDangMuon, 10,
-                                       dsDauSach, soLuongDauSach);
+  // Lay danh sach sach dang muon tu backend
+  CapNhatSachDangMuon(s);
 
   // Tim kiem sach (hien tat ca ban dau)
   s.chuoiTimKiemSach = "";
