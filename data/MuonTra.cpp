@@ -4,10 +4,9 @@
 #include "DocGia.h"
 #include "NgayThang.h"
 #include "QuanLySach.h"
+#include "TrangThaiManHinhMuonTra.h" // Needed for DTO/State
 #include "XuLyChuoi.h"
-#include <algorithm>
 #include <iostream>
-
 
 // --- SHARED DATA ---
 extern PTRDG rootDocGia;
@@ -15,27 +14,62 @@ extern PTRDS dsDauSach[];
 extern int soLuongDauSach;
 extern bool duLieuDaThayDoi;
 
-// --- HELPERS ---
+// --- HELPERS (Custom Algorithms) ---
 
-static void QuickSortDocGiaLocal(PTRDG arr[], int left, int right) {
+static void QuickSortByName(DocGiaTableDTO_Backend arr[], int left, int right) {
   int i = left, j = right;
-  std::string pivot =
-      arr[(left + right) / 2]->data.Ten + arr[(left + right) / 2]->data.Ho;
+  PTRDG pivotDg = arr[(left + right) / 2].docGia;
+  std::string pivot = pivotDg->data.Ten + pivotDg->data.Ho;
   while (i <= j) {
-    while (arr[i]->data.Ten + arr[i]->data.Ho < pivot)
+    while (arr[i].docGia->data.Ten + arr[i].docGia->data.Ho < pivot)
       i++;
-    while (arr[j]->data.Ten + arr[j]->data.Ho > pivot)
+    while (arr[j].docGia->data.Ten + arr[j].docGia->data.Ho > pivot)
       j--;
     if (i <= j) {
-      std::swap(arr[i], arr[j]);
+      DocGiaTableDTO_Backend temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
       i++;
       j--;
     }
   }
   if (left < j)
-    QuickSortDocGiaLocal(arr, left, j);
+    QuickSortByName(arr, left, j);
   if (i < right)
-    QuickSortDocGiaLocal(arr, i, right);
+    QuickSortByName(arr, i, right);
+}
+
+static void QuickSortByOverdue(DocGiaTableDTO_Backend arr[], int left,
+                               int right) {
+  int i = left, j = right;
+  int pivot = arr[(left + right) / 2].overdueDays;
+  while (i <= j) {
+    while (arr[i].overdueDays > pivot)
+      i++; // Descending
+    while (arr[j].overdueDays < pivot)
+      j--;
+    if (i <= j) {
+      DocGiaTableDTO_Backend temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+      i++;
+      j--;
+    }
+  }
+  if (left < j)
+    QuickSortByOverdue(arr, left, j);
+  if (i < right)
+    QuickSortByOverdue(arr, i, right);
+}
+
+static bool LaChuoiSo(const std::string &s) {
+  if (s.empty())
+    return false;
+  for (size_t i = 0; i < s.length(); ++i) {
+    if (s[i] < '0' || s[i] > '9')
+      return false;
+  }
+  return true;
 }
 
 // --- DATA ACCESS & SEARCH ---
@@ -45,53 +79,51 @@ void LayDanhSachDocGiaBackend(const std::string &tuKhoa, bool laCheDoQuaHan,
                               DocGiaTableDTO_Backend *ketQua, int &soLuong) {
   soLuong = 0;
 
+  // 1. TOI UU TIM KIEM THEO MA THE (O(log N))
+  if (!tuKhoa.empty() && LaChuoiSo(tuKhoa) && !laCheDoQuaHan) {
+    int maThe = 0;
+    if (ChuyenChuoiThanhSoNguyen(tuKhoa, maThe, true)) {
+      PTRDG dg = timDocGia(rootDocGia, maThe); // AVL Search O(log N)
+      if (dg) {
+        ketQua[soLuong].docGia = dg;
+        ketQua[soLuong].loaiKhop = 0; // Exact
+        ketQua[soLuong].overdueDays = 0;
+        soLuong++;
+      }
+      return;
+    }
+  }
+
+  // 2. TIM KIEM THEO TEN HOAC TAT CA (O(N))
   // Lay tat ca doc gia ra mang
   PTRDG mangTam[MAX_DAUSACH];
-  int count = 0;
-  DuyetCayRaMang(rootDocGia, mangTam, count);
+  int countTotal = 0;
+  DuyetCayRaMang(rootDocGia, mangTam, countTotal);
 
   if (tuKhoa.empty()) {
-    for (int i = 0; i < count && i < MAX_DAUSACH; ++i) {
+    // Show all
+    for (int i = 0; i < countTotal && i < MAX_DAUSACH; ++i) {
       ketQua[soLuong].docGia = mangTam[i];
-      ketQua[soLuong].loaiKhop = 2; // Show all
+      ketQua[soLuong].loaiKhop = 2;
       ketQua[soLuong].overdueDays = 0;
       soLuong++;
     }
   } else {
-    bool laTimTheoMa = true;
-    for (char c : tuKhoa) {
-      if (!isdigit(c)) {
-        laTimTheoMa = false;
-        break;
-      }
-    }
-
-    if (laTimTheoMa) {
-      int maThe = std::stoi(tuKhoa);
-      for (int i = 0; i < count; ++i) {
-        if (mangTam[i]->data.MaThe == maThe) {
-          ketQua[soLuong].docGia = mangTam[i];
-          ketQua[soLuong].loaiKhop = 0; // Exact
-          ketQua[soLuong].overdueDays = 0;
-          soLuong++;
-          break;
-        }
-      }
-    } else {
-      std::string tuKhoaLower = ChuyenInThuong(tuKhoa);
-      for (int i = 0; i < count && soLuong < MAX_DAUSACH; ++i) {
-        std::string hoTenLower =
-            ChuyenInThuong(mangTam[i]->data.Ho + " " + mangTam[i]->data.Ten);
-        if (hoTenLower.find(tuKhoaLower) != std::string::npos) {
-          ketQua[soLuong].docGia = mangTam[i];
-          ketQua[soLuong].loaiKhop = 1; // Partial
-          ketQua[soLuong].overdueDays = 0;
-          soLuong++;
-        }
+    // Partial Match (Keyword search)
+    std::string tuKhoaLower = ChuyenInThuong(tuKhoa);
+    for (int i = 0; i < countTotal && soLuong < MAX_DAUSACH; ++i) {
+      std::string hoTenLower =
+          ChuyenInThuong(mangTam[i]->data.Ho + " " + mangTam[i]->data.Ten);
+      if (hoTenLower.find(tuKhoaLower) != std::string::npos) {
+        ketQua[soLuong].docGia = mangTam[i];
+        ketQua[soLuong].loaiKhop = 1; // Partial
+        ketQua[soLuong].overdueDays = 0;
+        soLuong++;
       }
     }
   }
 
+  // 3. LOC QUA HAN
   if (laCheDoQuaHan) {
     DocGiaTableDTO_Backend ketQuaTam[MAX_DAUSACH];
     int soLuongTam = 0;
@@ -110,18 +142,13 @@ void LayDanhSachDocGiaBackend(const std::string &tuKhoa, bool laCheDoQuaHan,
       ketQua[i] = ketQuaTam[i];
     soLuong = soLuongTam;
 
-    std::sort(
-        ketQua, ketQua + soLuong,
-        [](const DocGiaTableDTO_Backend &a, const DocGiaTableDTO_Backend &b) {
-          return b.overdueDays < a.overdueDays;
-        });
-  } else if (sapXepTheoTen && soLuong > 0) {
-    PTRDG mangSapXep[MAX_DAUSACH];
-    for (int i = 0; i < soLuong; ++i)
-      mangSapXep[i] = ketQua[i].docGia;
-    QuickSortDocGiaLocal(mangSapXep, 0, soLuong - 1);
-    for (int i = 0; i < soLuong; ++i)
-      ketQua[i].docGia = mangSapXep[i];
+    // Custom Sort by Overdue Desc
+    if (soLuong > 1) {
+      QuickSortByOverdue(ketQua, 0, soLuong - 1);
+    }
+  } else if (sapXepTheoTen && soLuong > 1) {
+    // Custom Sort by Name Asc
+    QuickSortByName(ketQua, 0, soLuong - 1);
   }
 }
 
