@@ -27,7 +27,8 @@ const int SACH_MOI_TRANG_MUONTRA = 14; // So sach hien thi khi da chon doc gia
 // DTO cho doc gia hien thi trong bang
 struct DocGiaTableDTO {
   PTRDG docGia;
-  int loaiKhop; // 0: Exact, 1: Partial, 2: Show all
+  int loaiKhop;    // 0: Exact, 1: Partial, 2: Show all
+  int overdueDays; // NEW: So ngay qua han
 };
 
 // DTO cho sach hien thi sau khi chon doc gia

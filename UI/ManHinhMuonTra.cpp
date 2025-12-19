@@ -31,6 +31,12 @@ static void VeKhungThongBao(sf::RenderWindow &window, const sf::Font &font,
                             const MuonTraState &s);
 
 static void ThucHienTimKiemDocGia(MuonTraState &s);
+static void ThucHienXoaDocGia(MuonTraState &s);
+static void ThucHienMuonSachSFML(MuonTraState &s);
+static void ThucHienTraSachSFML(MuonTraState &s);
+static void ThucHienBaoMatSachSFML(MuonTraState &s);
+static void CapNhatSachDangMuon(MuonTraState &s);
+static void XoaFormNhapLieuSFML(MuonTraState &s);
 static void ThucHienTimKiemSach(MuonTraState &s);
 static void CapNhatPhanTrangDocGia(MuonTraState &s);
 static void CapNhatPhanTrangSach(MuonTraState &s);
@@ -71,19 +77,22 @@ static void VeTabBar(sf::RenderWindow &window, const sf::Font &font,
     // Standard width for secondary buttons
     float btnW = 115.f;
 
-    // 3. Nut Sap Xep Ma
-    sf::Color cMa =
-        (s.cheDoSapXep == SAP_XEP_THEO_MA_THE) ? MAU_NHAN : MAU_NEN_NUT;
-    TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 10), startX, tabY, btnW,
-           tabH, "SX: MA", cMa, MAU_CHU_NUT);
-    startX += btnW + gap;
+    // 3 & 4. Nut Sap Xep (Chi hien khi khong phai che do Qua Han)
+    if (s.cheDoHienTai != CHE_DO_QUA_HAN) {
+      // 3. Nut Sap Xep Ma
+      sf::Color cMa =
+          (s.cheDoSapXep == SAP_XEP_THEO_MA_THE) ? MAU_NHAN : MAU_NEN_NUT;
+      TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 10), startX, tabY,
+             btnW, tabH, "SX: MA", cMa, MAU_CHU_NUT);
+      startX += btnW + gap;
 
-    // 4. Nut Sap Xep Ten
-    sf::Color cTen =
-        (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO) ? MAU_NHAN : MAU_NEN_NUT;
-    TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 11), startX, tabY, btnW,
-           tabH, "SX: TEN", cTen, MAU_CHU_NUT);
-    startX += btnW + gap;
+      // 4. Nut Sap Xep Ten
+      sf::Color cTen =
+          (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO) ? MAU_NHAN : MAU_NEN_NUT;
+      TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 11), startX, tabY,
+             btnW, tabH, "SX: TEN", cTen, MAU_CHU_NUT);
+      startX += btnW + gap;
+    }
 
     // 5. Nut QUA HAN
     sf::Color cQuaHan =
@@ -121,22 +130,14 @@ static void VeTabBar(sf::RenderWindow &window, const sf::Font &font,
   }
 
   // === KHU VUC 2: TREN FORM MUON TRA (RIGHT) ===
-  float formHeaderX = FORM_X;
-  float wRightBtn =
-      215.f; // Fill available space (450 - 20 padding = 430 / 2 = 215)
-  float rightGap = 10.f;
+  // 1. NUT CHUNG (TOGGLE): THEM DOC GIA / MUON TRA
+  float fullRightWidth = FORM_RONG;
+  sf::Color cToggle = s.dangHienThiFormThemDocGia ? MAU_THANH_CONG : MAU_LOI;
+  std::string lblToggle =
+      s.dangHienThiFormThemDocGia ? "THEM DOC GIA" : "MUON / TRA";
 
-  // 1. THEM DOC GIA (Right)
-  sf::Color cThem = s.dangHienThiFormThemDocGia ? MAU_THANH_CONG : MAU_NEN_NUT;
-  TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 12), formHeaderX, tabY,
-         wRightBtn, tabH, "THEM DOC GIA", cThem, MAU_CHU_NUT);
-  formHeaderX += wRightBtn + rightGap;
-
-  // 2. MUON / TRA (Right)
-  sf::Color cMuonTra =
-      (s.cheDoHienTai == CHE_DO_MUON_TRA) ? MAU_NHAN : MAU_NEN_NUT;
-  TaoNut(font, static_cast<MaUI>(NUT_MT_VAO_MUON_TRA + 100), formHeaderX, tabY,
-         wRightBtn, tabH, "MUON / TRA", cMuonTra, MAU_CHU_NUT);
+  TaoNut(font, static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 12), FORM_X, tabY,
+         fullRightWidth, tabH, lblToggle, cToggle, MAU_CHU_NUT);
 }
 
 // ===== HAM VE BANG DOC GIA =====
@@ -159,10 +160,23 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
           font);
 
   // Ve cot header (STT, Ma The, Ho Ten, Phai, Trang Thai, Sach, Qua Han)
-  float colWidths[] = {0.05f, 0.11f, 0.38f, 0.10f, 0.22f, 0.12f};
+  bool isOverdueMode = (s.cheDoHienTai == CHE_DO_QUA_HAN);
+
+  // Dinh nghia cot theo che do
+  std::vector<std::string> headers;
+  std::vector<float> colWidths;
+
+  if (isOverdueMode) {
+    headers = {"STT", "Ma The", "Ho Ten", "Phai", "S.Sach", "So Ngay QH"};
+    colWidths = {0.05f, 0.11f, 0.35f, 0.10f, 0.14f, 0.15f};
+  } else {
+    headers = {"STT", "Ma The", "Ho Ten", "Phai", "Trang Thai", "Sach"};
+    colWidths = {0.05f, 0.11f, 0.38f, 0.10f, 0.22f, 0.12f};
+  }
+
   float colX[7];
   colX[0] = BANG_X + PADDING;
-  for (int i = 0; i < 6; ++i) {
+  for (size_t i = 0; i < colWidths.size(); ++i) {
     colX[i + 1] = colX[i] + colWidths[i] * (BANG_RONG - PADDING);
   }
 
@@ -175,14 +189,12 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
   window.draw(headerBg);
 
   // Header text
-  std::string headers[] = {"STT",  "Ma The",     "Ho Ten",
-                           "Phai", "Trang Thai", "Sach"};
   sf::Text headerText;
   headerText.setFont(font);
   headerText.setCharacterSize(FONT_SIZE_BINH_THUONG);
   headerText.setFillColor(MAU_NHAN);
 
-  for (int i = 0; i < 6; ++i) {
+  for (size_t i = 0; i < headers.size(); ++i) {
     headerText.setString(headers[i]);
     headerText.setPosition(
         colX[i], contentY + (headerBoxH - headerText.getCharacterSize()) / 2.f);
@@ -207,6 +219,7 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
 
   for (int i = start; i < end; ++i) {
     PTRDG dg = s.ketQuaTimKiemDocGia[i].docGia;
+    int overdueDays = s.ketQuaTimKiemDocGia[i].overdueDays;
     if (!dg)
       continue;
 
@@ -236,7 +249,7 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
 
     // Ho Ten
     std::string hoTen = dg->data.Ho + " " + dg->data.Ten;
-    dataText.setString(CatChuoi(hoTen, 30));
+    dataText.setString(CatChuoi(hoTen, isOverdueMode ? 28 : 30));
     dataText.setPosition(colX[2], textY);
     window.draw(dataText);
 
@@ -245,20 +258,36 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
     dataText.setPosition(colX[3], textY);
     window.draw(dataText);
 
-    // Trang Thai
-    std::string tt = dg->data.TrangThai ? "Hoat dong" : "Khoa";
-    dataText.setFillColor(
-        isSelected ? sf::Color::Black
-                   : (dg->data.TrangThai ? MAU_THANH_CONG : MAU_LOI));
-    dataText.setString(tt);
-    dataText.setPosition(colX[4], textY);
-    window.draw(dataText);
+    if (isOverdueMode) {
+      // So sach dang muon
+      dataText.setString(std::to_string(dg->data.soSachDangMuon) + "/3");
+      dataText.setPosition(colX[4], textY);
+      window.draw(dataText);
 
-    // So sach dang muon
-    dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
-    dataText.setString(std::to_string(dg->data.soSachDangMuon) + "/3");
-    dataText.setPosition(colX[5], textY);
-    window.draw(dataText);
+      // So ngay qua han
+      dataText.setFillColor(isSelected ? sf::Color::Black : MAU_LOI);
+      dataText.setStyle(sf::Text::Bold);
+      dataText.setString(std::to_string(overdueDays) + " ngay");
+      dataText.setPosition(colX[5], textY);
+      window.draw(dataText);
+      dataText.setStyle(sf::Text::Regular);
+      dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
+    } else {
+      // Trang Thai
+      std::string tt = dg->data.TrangThai ? "Hoat dong" : "Khoa";
+      dataText.setFillColor(
+          isSelected ? sf::Color::Black
+                     : (dg->data.TrangThai ? MAU_THANH_CONG : MAU_LOI));
+      dataText.setString(tt);
+      dataText.setPosition(colX[4], textY);
+      window.draw(dataText);
+
+      // So sach dang muon
+      dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
+      dataText.setString(std::to_string(dg->data.soSachDangMuon) + "/3");
+      dataText.setPosition(colX[5], textY);
+      window.draw(dataText);
+    }
 
     currentY += rowH;
   }
@@ -666,7 +695,7 @@ static void VeFormMuonTra(sf::RenderWindow &window, const sf::Font &font,
         helpText = "Click vao sach trong bang de chon, hoac nhap ma sach moi.";
         helpColor = sf::Color(120, 120, 140);
       } else {
-        helpText = "-> Nhap ma sach de muon cho doc gia.";
+        helpText = "-> Double click vao sach de muon.";
         helpColor = sf::Color(120, 120, 140);
       }
 
@@ -856,24 +885,49 @@ static void VeFormThemDocGia(sf::RenderWindow &window, const sf::Font &font,
 // ===== HAM VE KHUNG THONG BAO =====
 static void VeKhungThongBao(sf::RenderWindow &window, const sf::Font &font,
                             const MuonTraState &s) {
-  (void)s;
   float effectiveNotifyY = KHUNG_THONG_BAO_Y + 5.f;
   VeKhung(window, FORM_X, effectiveNotifyY, FORM_RONG, KHUNG_THONG_BAO_CAO,
           "THONG BAO", font);
 
-  if (noiDungThongBao.empty())
-    return;
+  if (s.xacNhanXoaDocGia && s.docGiaDangChon) {
+    // VIẾT CHẾ ĐỘ XÁC NHẬN XOÁ (Tham khảo ManHinhQuanLyDocGia.cpp)
+    std::string confirmMsg = "Ban co chac muon xoa Doc Gia " +
+                             std::to_string(s.docGiaDangChon->data.MaThe) +
+                             "?\n(\"" + s.docGiaDangChon->data.Ho + " " +
+                             s.docGiaDangChon->data.Ten + "\")";
 
-  sf::Color mauChu = (loaiThongBao == 1)   ? MAU_LOI
-                     : (loaiThongBao == 2) ? MAU_THANH_CONG
-                                           : MAU_CHU;
-  float maxW = FORM_RONG - 2 * PADDING - 10.f;
-  std::string wrapped =
-      WordWrapText(font, noiDungThongBao, FONT_SIZE_BINH_THUONG, maxW);
+    float maxW = FORM_RONG - 2 * PADDING - 10.f;
+    std::string wrapped =
+        WordWrapText(font, confirmMsg, FONT_SIZE_BINH_THUONG, maxW);
 
-  sf::Text txt = TaoVanBan(font, wrapped, FONT_SIZE_BINH_THUONG, mauChu);
-  txt.setPosition(FORM_X + PADDING, effectiveNotifyY + 35.f);
-  window.draw(txt);
+    sf::Text txtMsg = TaoVanBan(font, wrapped, FONT_SIZE_BINH_THUONG, MAU_LOI);
+    txtMsg.setPosition(FORM_X + PADDING, effectiveNotifyY + 35.f);
+    window.draw(txtMsg);
+
+    // Nut Xac nhan / Huy
+    float buttonY = effectiveNotifyY + 85.f;
+    float nutRong = (FORM_RONG - 3 * PADDING) / 2.f;
+
+    TaoNut(font, NUT_XAC_NHAN_XOA_DG, FORM_X + PADDING, buttonY, nutRong,
+           NUT_CAO, "XAC NHAN XOA", MAU_LOI, MAU_CHU_NUT);
+    TaoNut(font, NUT_HUY_XOA_DG, FORM_X + PADDING + nutRong + PADDING, buttonY,
+           nutRong, NUT_CAO, "HUY", MAU_NEN_NUT, MAU_CHU_NUT);
+  } else {
+    // Hiển thị thông báo bình thường
+    if (noiDungThongBao.empty())
+      return;
+
+    sf::Color mauChu = (loaiThongBao == 1)   ? MAU_LOI
+                       : (loaiThongBao == 2) ? MAU_THANH_CONG
+                                             : MAU_CHU;
+    float maxW = FORM_RONG - 2 * PADDING - 10.f;
+    std::string wrapped =
+        WordWrapText(font, noiDungThongBao, FONT_SIZE_BINH_THUONG, maxW);
+
+    sf::Text txt = TaoVanBan(font, wrapped, FONT_SIZE_BINH_THUONG, mauChu);
+    txt.setPosition(FORM_X + PADDING, effectiveNotifyY + 35.f);
+    window.draw(txt);
+  }
 }
 
 // ===== HAM VE MODAL CHI TIET DOC GIA =====
@@ -1216,13 +1270,6 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
     }
 
     // Xu ly chuyen tab
-    if (element == static_cast<MaUI>(NUT_MT_VAO_MUON_TRA + 100)) {
-      state.cheDoHienTai = CHE_DO_MUON_TRA;
-      state.dangHienThiBangSach = false;
-      ThucHienTimKiemDocGia(state);
-      CapNhatThongBaoSFML("Che do: Muon/Tra sach", 0);
-      return;
-    }
 
     // Xu ly NUT TOP 10
     if (element == NUT_MT_VAO_TOP_10) {
@@ -1263,13 +1310,15 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       return;
     }
 
-    // Xu ly nut toggle "THEM DOC GIA"
+    // Xu ly nut toggle "THEM DOC GIA / MUON TRA" (Nut moi hop nhat)
     if (element == static_cast<MaUI>(NUT_MT_TAB_QUAHAN + 12)) {
       state.dangHienThiFormThemDocGia = !state.dangHienThiFormThemDocGia;
+
       if (state.dangHienThiFormThemDocGia) {
-        CapNhatThongBaoSFML("Che do: Them doc gia", 0);
+        CapNhatThongBaoSFML("Che do: QUAN LY DOC GIA (Them/Sua/Xoa)", 0);
       } else {
-        CapNhatThongBaoSFML("Che do: Muon/Tra sach", 0);
+        state.dangSuaDocGia = false; // Reset editing state when going back
+        CapNhatThongBaoSFML("Che do: MUON / TRA SACH", 0);
       }
       return;
     }
@@ -1322,43 +1371,64 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       return;
     }
 
-    // Xu ly action buttons (quan ly doc gia)
-    // Xu ly action buttons (quan ly doc gia)
-    if (element == NUT_CHI_TIET_DOC_GIA) {
-      if (state.docGiaDangChon) {
+    // Xu ly Action Buttons (Chi Tiet, Sua, Xoa, Huy Chon)
+    if (state.docGiaDangChon) {
+      if (element == NUT_CHI_TIET_DOC_GIA) {
         extern PTRDS dsDauSach[];
         extern int soLuongDauSach;
-        // Refresh Data
         state.slSachDangMuon =
             LayDSSachDangMuon(state.docGiaDangChon, state.listSachDangMuon, 10,
                               dsDauSach, soLuongDauSach);
         state.hienThiModalChiTiet = true;
+        return;
       }
+
+      if (element == NUT_SUA_DOC_GIA) {
+        state.dangHienThiFormThemDocGia = true;
+        state.dangSuaDocGia = true;
+        state.chuoiHo = state.docGiaDangChon->data.Ho;
+        state.chuoiTen = state.docGiaDangChon->data.Ten;
+        state.phaiDuocChon = state.docGiaDangChon->data.Phai;
+        state.trangThaiDuocChon = state.docGiaDangChon->data.TrangThai;
+        CapNhatThongBaoSFML(
+            "Da chuyen sang che do SUA. Thay doi thong tin ben phai.", 0);
+        return;
+      }
+
+      if (element == NUT_XOA_DOC_GIA) {
+        if (state.docGiaDangChon->data.soSachDangMuon > 0) {
+          CapNhatThongBaoSFML(
+              "Khong the xoa! Doc gia dang muon " +
+                  std::to_string(state.docGiaDangChon->data.soSachDangMuon) +
+                  " cuon.",
+              1);
+        } else {
+          state.xacNhanXoaDocGia = true;
+          CapNhatThongBaoSFML("", 0);
+        }
+        return;
+      }
+
+      if (element == NUT_HUY_CHON || element == NUT_HUY_CHON_DOC_GIA) {
+        state.docGiaDangChon = nullptr;
+        state.maTheDocGiaDuocChon = 0;
+        state.dangSuaDocGia = false;
+        state.chuoiHo = "";
+        state.chuoiTen = "";
+        state.xacNhanXoaDocGia = false;
+        CapNhatThongBaoSFML("Da huy chon doc gia.", 0);
+        return;
+      }
+    }
+
+    if (element == NUT_XAC_NHAN_XOA_DG) {
+      ThucHienXoaDocGia(state);
       return;
     }
 
-    if (element == NUT_SUA_DOC_GIA && state.docGiaDangChon) {
-      state.dangHienThiFormThemDocGia = true;
-      state.dangSuaDocGia = true;
-      state.chuoiHo = state.docGiaDangChon->data.Ho;
-      state.chuoiTen = state.docGiaDangChon->data.Ten;
-      state.phaiDuocChon = state.docGiaDangChon->data.Phai;
-      state.trangThaiDuocChon = state.docGiaDangChon->data.TrangThai;
-      CapNhatThongBaoSFML("Che do: Sua Doc Gia", 0);
-      return;
-    }
-
-    if (element == NUT_XOA_DOC_GIA) {
-      CapNhatThongBaoSFML("Chuc nang Xoa dang phat trien", 1);
-      return;
-    }
-
-    if (element == NUT_HUY_CHON || element == NUT_HUY_CHON_DOC_GIA) {
-      state.docGiaDangChon = nullptr;
-      state.maTheDocGiaDuocChon = 0;
-      state.dangHienThiBangSach = false;
-      state.dangSuaDocGia = false;
-      state.dangHienThiFormThemDocGia = false;
+    if (element == NUT_HUY_XOA_DG) {
+      state.xacNhanXoaDocGia = false;
+      CapNhatThongBaoSFML("Da huy xoa.", 0);
       return;
     }
 
@@ -1488,8 +1558,27 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
           if (state.isbnClickCuoi == isbn &&
               elapsedTime < state.THOI_GIAN_DOUBLE_CLICK) {
             // DOUBLE CLICK - Chon sach de muon
-            // TODO: Xu ly logic muon sach
-            CapNhatThongBaoSFML("Da chon sach: " + clickedSach->tenSach, 0);
+            PTRDMS mangBS[100];
+            int nBS = LayDanhSachBanSaoSapXep(isbn, mangBS, 100);
+            std::string maChon = "";
+
+            for (int i = 0; i < nBS; ++i) {
+              if (mangBS[i]->trangThai == CHO_MUON_DUOC) {
+                maChon = mangBS[i]->maSach;
+                break;
+              }
+            }
+
+            if (!maChon.empty()) {
+              state.chuoiMaSach = maChon;
+              inputHoatDong = INPUT_MT_TIM_SACH;
+              CapNhatThongBaoSFML("Da tu dong chon ban sao: " + maChon, 2);
+            } else {
+              state.chuoiMaSach = isbn + "-";
+              inputHoatDong = INPUT_MT_TIM_SACH;
+              CapNhatThongBaoSFML(
+                  "Loi: Dau sach nay khong con ban sao nao de muon!", 1);
+            }
           } else {
             // Single click - Highlight
             state.isbnClickCuoi = isbn;
@@ -1503,32 +1592,17 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
 
     // Xu ly cac nut muon/tra/bao mat
     if (element == NUT_MT_XAC_NHAN_MUON) {
-      // TODO: Xu ly muon sach
-      if (state.docGiaDangChon && !state.chuoiMaSach.empty()) {
-        CapNhatThongBaoSFML("Chuc nang muon sach dang phat trien...", 0);
-      } else {
-        CapNhatThongBaoSFML("Vui long nhap ma sach!", 1);
-      }
+      ThucHienMuonSachSFML(state);
       return;
     }
 
     if (element == NUT_MT_XAC_NHAN_TRA) {
-      // TODO: Xu ly tra sach
-      if (state.docGiaDangChon && !state.maSachDangChon.empty()) {
-        CapNhatThongBaoSFML("Chuc nang tra sach dang phat trien...", 0);
-      } else {
-        CapNhatThongBaoSFML("Vui long chon sach dang muon!", 1);
-      }
+      ThucHienTraSachSFML(state);
       return;
     }
 
     if (element == NUT_MT_BAO_MAT) {
-      // TODO: Xu ly bao mat sach
-      if (state.docGiaDangChon && !state.maSachDangChon.empty()) {
-        CapNhatThongBaoSFML("Chuc nang bao mat sach dang phat trien...", 0);
-      } else {
-        CapNhatThongBaoSFML("Vui long chon sach dang muon!", 1);
-      }
+      ThucHienBaoMatSachSFML(state);
       return;
     }
 
@@ -1572,6 +1646,16 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
 
         // Refresh list but keep selection
         ThucHienTimKiemDocGia(state);
+
+        // [AUTO HIGHLIGHT] Find page and select
+        int maThe = state.docGiaDangChon->data.MaThe;
+        for (int i = 0; i < state.soLuongKetQuaDocGia; ++i) {
+          if (state.ketQuaTimKiemDocGia[i].docGia->data.MaThe == maThe) {
+            state.trangHienTaiDocGia = (i / DOC_GIA_MOI_TRANG) + 1;
+            break;
+          }
+        }
+        state.dangHienThiBangSach = false; // Show readers list
       } else {
         // ADD NEW
         PTRDG dg = taoDocGia(ho, ten, state.phaiDuocChon != 0,
@@ -1586,7 +1670,20 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
 
         // Refresh list
         ThucHienTimKiemDocGia(state);
-        state.maTheDocGiaDuocChon = dg->data.MaThe;
+
+        // [AUTO HIGHLIGHT] Find page and select new reader
+        int maThe = dg->data.MaThe;
+        for (int i = 0; i < state.soLuongKetQuaDocGia; ++i) {
+          if (state.ketQuaTimKiemDocGia[i].docGia->data.MaThe == maThe) {
+            state.trangHienTaiDocGia = (i / DOC_GIA_MOI_TRANG) + 1;
+            break;
+          }
+        }
+
+        state.maTheDocGiaDuocChon = maThe;
+        state.docGiaDangChon = dg;
+        state.dangHienThiBangSach = false; // Show readers list
+
         CapNhatThongBaoSFML(
             "Them thanh cong Doc Gia: " + std::to_string(dg->data.MaThe), 2);
       }
@@ -1643,54 +1740,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       }
     }
 
-    // Xu ly Action Buttons (Chi Tiet, Sua, Xoa, Huy Chon)
-    if (state.dangHienThiFormThemDocGia && state.docGiaDangChon) {
-      if (element == NUT_CHI_TIET_DOC_GIA) {
-        CapNhatThongBaoSFML(
-            "Ma The: " + std::to_string(state.docGiaDangChon->data.MaThe) +
-                "\nHo Ten: " + state.docGiaDangChon->data.Ho + " " +
-                state.docGiaDangChon->data.Ten + "\nPhai: " +
-                (state.docGiaDangChon->data.Phai == 0 ? "Nam" : "Nu") +
-                "\nTrang Thai: " +
-                (state.docGiaDangChon->data.TrangThai == 1 ? "Hoat dong"
-                                                           : "Khoa"),
-            0);
-        return;
-      }
-
-      if (element == NUT_SUA_DOC_GIA) {
-        state.dangSuaDocGia = true;
-        state.chuoiHo = state.docGiaDangChon->data.Ho;
-        state.chuoiTen = state.docGiaDangChon->data.Ten;
-        state.phaiDuocChon = state.docGiaDangChon->data.Phai;
-        state.trangThaiDuocChon = state.docGiaDangChon->data.TrangThai;
-        CapNhatThongBaoSFML(
-            "Da chuyen sang che do SUA. Thay doi thong tin ben phai.", 0);
-        return;
-      }
-
-      if (element == NUT_XOA_DOC_GIA) {
-        if (state.docGiaDangChon->data.soSachDangMuon > 0) {
-          CapNhatThongBaoSFML("Khong the xoa! Doc gia dang muon sach.", 1);
-        } else {
-          // Thuc hien xoa (can nhap logic xoa tu cay)
-          // O day ta chi notify gia lap vi logic xoa cay phuc tap can ham
-          // helper Hoac goi XoaDocGia(rootDocGia, maThe) neu co
-          CapNhatThongBaoSFML("Chuc nang xoa dang duoc cap nhat...", 0);
-        }
-        return;
-      }
-
-      if (element == NUT_HUY_CHON) {
-        state.docGiaDangChon = nullptr;
-        state.maTheDocGiaDuocChon = 0;
-        state.dangSuaDocGia = false;
-        state.chuoiHo = "";
-        state.chuoiTen = "";
-        CapNhatThongBaoSFML("Da huy chon doc gia.", 0);
-        return;
-      }
-    }
+    // Action handling moved to consolidated block above
   }
 
   // Xu ly text input
@@ -1791,6 +1841,167 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
   }
 }
 
+static void CapNhatSachDangMuon(MuonTraState &s) {
+  extern PTRDS dsDauSach[];
+  extern int soLuongDauSach;
+
+  if (!s.docGiaDangChon) {
+    s.slSachDangMuon = 0;
+    return;
+  }
+
+  s.slSachDangMuon = LayDSSachDangMuon(s.docGiaDangChon, s.listSachDangMuon, 10,
+                                       dsDauSach, soLuongDauSach);
+}
+
+static void XoaFormNhapLieuSFML(MuonTraState &s) {
+  s.chuoiMaSach = "";
+  s.maSachDangChon = "";
+  s.indexSachDangChon = -1;
+}
+
+static void ThucHienMuonSachSFML(MuonTraState &s) {
+  extern PTRDS dsDauSach[];
+  extern int soLuongDauSach;
+  extern bool duLieuDaThayDoi;
+
+  if (!s.docGiaDangChon) {
+    CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+    return;
+  }
+
+  // Kiểm tra đã mượn đủ 3 sách chưa
+  if (s.slSachDangMuon >= 3) {
+    CapNhatThongBaoSFML("Loi: Doc gia da muon du 3 sach!\nVui long tra sach "
+                        "truoc khi muon tiep.",
+                        1);
+    return;
+  }
+
+  std::string maSach = CatKhoangTrang(s.chuoiMaSach);
+  if (maSach.empty()) {
+    CapNhatThongBaoSFML("Loi: Chua nhap ma sach!", 1);
+    inputHoatDong = INPUT_MT_TIM_SACH;
+    return;
+  }
+
+  // Validate format: ISBN-XXX
+  size_t dashPos = maSach.find('-');
+  if (dashPos == std::string::npos || dashPos == 0 ||
+      dashPos == maSach.length() - 1) {
+    CapNhatThongBaoSFML("Loi: Ma sach khong hop le!\nDinh dang: ISBN-XXX\nVi "
+                        "du: 9780321563842-001",
+                        1);
+    inputHoatDong = INPUT_MT_TIM_SACH;
+    return;
+  }
+
+  // Call backend
+  std::string loi =
+      MuonSach(s.docGiaDangChon, maSach, dsDauSach, soLuongDauSach);
+
+  if (loi.empty()) {
+    duLieuDaThayDoi = true;
+    CapNhatThongBaoSFML("Muon sach thanh cong: " + maSach, 2);
+    CapNhatSachDangMuon(s);
+    XoaFormNhapLieuSFML(s);
+    inputHoatDong = KHONG_XAC_DINH;
+  } else {
+    CapNhatThongBaoSFML(loi, 1);
+    inputHoatDong = INPUT_MT_TIM_SACH;
+  }
+}
+
+static void ThucHienTraSachSFML(MuonTraState &s) {
+  extern PTRDS dsDauSach[];
+  extern int soLuongDauSach;
+  extern bool duLieuDaThayDoi;
+
+  if (!s.docGiaDangChon) {
+    CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+    return;
+  }
+
+  if (s.maSachDangChon.empty()) {
+    CapNhatThongBaoSFML(
+        "Loi: Chua chon sach de tra!\nClick vao dong sach trong "
+        "danh sach de chon.",
+        1);
+    return;
+  }
+
+  std::string loi =
+      TraSach(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach);
+
+  if (loi.empty()) {
+    duLieuDaThayDoi = true;
+    CapNhatThongBaoSFML("Tra sach thanh cong: " + s.maSachDangChon, 2);
+    CapNhatSachDangMuon(s);
+    XoaFormNhapLieuSFML(s);
+  } else {
+    CapNhatThongBaoSFML(loi, 1);
+  }
+}
+
+static void ThucHienBaoMatSachSFML(MuonTraState &s) {
+  extern PTRDS dsDauSach[];
+  extern int soLuongDauSach;
+  extern bool duLieuDaThayDoi;
+
+  if (!s.docGiaDangChon) {
+    CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
+    return;
+  }
+
+  if (s.maSachDangChon.empty()) {
+    CapNhatThongBaoSFML("Loi: Chua chon sach de bao mat!\nClick vao dong sach "
+                        "trong danh sach de chon.",
+                        1);
+    return;
+  }
+
+  std::string loi =
+      BaoMatSach(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach);
+
+  if (loi.empty()) {
+    duLieuDaThayDoi = true;
+    CapNhatThongBaoSFML("Bao mat sach thanh cong: " + s.maSachDangChon, 2);
+    CapNhatSachDangMuon(s);
+    XoaFormNhapLieuSFML(s);
+  } else {
+    CapNhatThongBaoSFML(loi, 1);
+  }
+}
+
+static void ThucHienXoaDocGia(MuonTraState &s) {
+  extern PTRDG rootDocGia;
+  extern bool duLieuDaThayDoi;
+
+  if (s.docGiaDangChon == nullptr)
+    return;
+
+  int maThe = s.docGiaDangChon->data.MaThe;
+  std::string hoTen =
+      s.docGiaDangChon->data.Ho + " " + s.docGiaDangChon->data.Ten;
+
+  // Xóa khỏi cây AVL
+  xoaDocGia(rootDocGia, maThe);
+  duLieuDaThayDoi = true;
+
+  CapNhatThongBaoSFML("Xoa thanh cong Doc Gia: " + std::to_string(maThe) +
+                          " (" + hoTen + ")",
+                      2);
+
+  // Reset state
+  s.xacNhanXoaDocGia = false;
+  s.docGiaDangChon = nullptr;
+  s.maTheDocGiaDuocChon = 0;
+  s.dangSuaDocGia = false;
+
+  // Tải lại danh sách
+  ThucHienTimKiemDocGia(s);
+}
+
 // ===== HAM LOGIC =====
 static void ThucHienTimKiemDocGia(MuonTraState &s) {
   extern PTRDG rootDocGia;
@@ -1807,6 +2018,7 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
     for (int i = 0; i < count && i < MAX_DAUSACH; ++i) {
       s.ketQuaTimKiemDocGia[i].docGia = mangTam[i];
       s.ketQuaTimKiemDocGia[i].loaiKhop = 2; // Show all
+      s.ketQuaTimKiemDocGia[i].overdueDays = 0;
       s.soLuongKetQuaDocGia++;
     }
   } else {
@@ -1829,6 +2041,7 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
         if (mangTam[i]->data.MaThe == maThe) {
           s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].docGia = mangTam[i];
           s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].loaiKhop = 0; // Exact
+          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].overdueDays = 0;
           s.soLuongKetQuaDocGia++;
           break;
         }
@@ -1848,6 +2061,7 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
         if (hoTenLower.find(tuKhoaLower) != std::string::npos) {
           s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].docGia = mangTam[i];
           s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].loaiKhop = 1; // Partial
+          s.ketQuaTimKiemDocGia[s.soLuongKetQuaDocGia].overdueDays = 0;
           s.soLuongKetQuaDocGia++;
         }
       }
@@ -1866,6 +2080,7 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
         int soNgayMax = TinhSoNgayQuaHanLonNhat(dg);
         if (soNgayMax > 7) {
           ketQuaTam[soLuongTam] = s.ketQuaTimKiemDocGia[i];
+          ketQuaTam[soLuongTam].overdueDays = soNgayMax;
           soLuongTam++;
         }
       }
@@ -1876,32 +2091,47 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
       s.ketQuaTimKiemDocGia[i] = ketQuaTam[i];
     }
     s.soLuongKetQuaDocGia = soLuongTam;
+
+    // SAP XEP THEO SO NGAY QUA HAN GIAM DAN (Yeu cau moi)
+    std::sort(s.ketQuaTimKiemDocGia,
+              s.ketQuaTimKiemDocGia + s.soLuongKetQuaDocGia,
+              [](const DocGiaTableDTO &a, const DocGiaTableDTO &b) {
+                return b.overdueDays < a.overdueDays; // Giam dan
+              });
+  } else {
+    // Sap xep ket qua theo che do sap xep (Chi chay khi khong phai qua han)
+    if (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO && s.soLuongKetQuaDocGia > 0) {
+      // Tao mang tam de sap xep
+      PTRDG mangSapXep[MAX_DAUSACH];
+      for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
+        mangSapXep[i] = s.ketQuaTimKiemDocGia[i].docGia;
+      }
+
+      // Goi ham QuickSort (da co san tu ManHinhQuanLyDocGia)
+      QuickSortDocGia(mangSapXep, 0, s.soLuongKetQuaDocGia - 1);
+
+      // Copy lai vao ket qua
+      for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
+        s.ketQuaTimKiemDocGia[i].docGia = mangSapXep[i];
+      }
+    }
+    // Neu SAP_XEP_THEO_MA_THE thi giu nguyen (da duyet InOrder - sap xep san)
   }
 
-  // Sap xep ket qua theo che do sap xep
-  if (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO && s.soLuongKetQuaDocGia > 0) {
-    // Tao mang tam de sap xep
-    PTRDG mangSapXep[MAX_DAUSACH];
-    for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
-      mangSapXep[i] = s.ketQuaTimKiemDocGia[i].docGia;
-    }
-
-    // Goi ham QuickSort (da co san tu ManHinhQuanLyDocGia)
-    QuickSortDocGia(mangSapXep, 0, s.soLuongKetQuaDocGia - 1);
-
-    // Copy lai vao ket qua
-    for (int i = 0; i < s.soLuongKetQuaDocGia; ++i) {
-      s.ketQuaTimKiemDocGia[i].docGia = mangSapXep[i];
-    }
-  }
-  // Neu SAP_XEP_THEO_MA_THE thi giu nguyen (da duyet InOrder - sap xep san)
+  // --- COMMON LOGIC ---
 
   s.trangHienTaiDocGia = 1;
   CapNhatPhanTrangDocGia(s);
 
   if (s.soLuongKetQuaDocGia > 0) {
-    CapNhatThongBaoSFML(
-        "Tim thay " + std::to_string(s.soLuongKetQuaDocGia) + " doc gia.", 0);
+    if (s.cheDoHienTai == CHE_DO_QUA_HAN) {
+      CapNhatThongBaoSFML("Tim thay " + std::to_string(s.soLuongKetQuaDocGia) +
+                              " doc gia qua han.",
+                          0);
+    } else {
+      CapNhatThongBaoSFML(
+          "Tim thay " + std::to_string(s.soLuongKetQuaDocGia) + " doc gia.", 0);
+    }
   } else {
     CapNhatThongBaoSFML("Khong tim thay doc gia nao.", 1);
   }
