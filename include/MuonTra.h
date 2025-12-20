@@ -5,7 +5,6 @@
 #include "DocGia.h"
 #include <string>
 
-
 // --- DTOs (Data Transfer Objects) ---
 
 struct DocGiaTableDTO_Backend {
@@ -51,6 +50,14 @@ std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach);
 std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach);
 
 // --- UTILITIES ---
+/**
+ * Validates reader information (Ho, Ten) according to business rules:
+ * - Not empty
+ * - Max length
+ * - No special characters/digits (Strictly unaccented ASCII + space)
+ * @return Error message, or empty string if valid.
+ */
+std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten);
 
 std::string TimMaSachCoTheMuon(const std::string &isbn);
 

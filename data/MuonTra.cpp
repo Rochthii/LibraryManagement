@@ -1,12 +1,18 @@
-#include "MuonTra.h"
-#include "Constants.h"
-#include "DauSach.h"
-#include "DocGia.h"
-#include "NgayThang.h"
-#include "QuanLySach.h"
-#include "TrangThaiManHinhMuonTra.h" // Needed for DTO/State
-#include "XuLyChuoi.h"
+#include <algorithm>
 #include <iostream>
+#include <string>
+#include <vector>
+
+
+#include "../include/Constants.h"
+#include "../include/DauSach.h"
+#include "../include/DocGia.h"
+#include "../include/KiemTraDuLieu.h"
+#include "../include/MuonTra.h"
+#include "../include/NgayThang.h"
+#include "../include/QuanLySach.h"
+#include "../include/TrangThaiManHinhMuonTra.h"
+#include "../include/XuLyChuoi.h"
 
 // --- SHARED DATA ---
 extern PTRDG rootDocGia;
@@ -15,6 +21,55 @@ extern int soLuongDauSach;
 extern bool duLieuDaThayDoi;
 
 // --- HELPERS (Custom Algorithms) ---
+
+static bool LaKyTuChuCaiASCII(char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+/**
+ * Strictly checks for unaccented ASCII letters and spaces.
+ */
+static std::string KiemTraKyTuTenASCII(const std::string &s,
+                                       const std::string &fieldName) {
+  for (size_t i = 0; i < s.length(); ++i) {
+    char c = s[i];
+    if (!LaKyTuChuCaiASCII(c) && c != ' ') {
+      return "Loi: " + fieldName +
+             " chi duoc chua chu cai khong dau (A-Z) va khoang trang!";
+    }
+  }
+  return "";
+}
+
+std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten) {
+  // 1. Clean & Standardize
+  std::string hoChuan = ChuanHoaKhoangTrang(ho);
+  std::string tenChuan = ChuanHoaKhoangTrang(ten);
+
+  // 2. Check Empty & Length (using existing logic)
+  std::string loiHo = KiemTraChuoiVaDodai(hoChuan, "Ho", 30);
+  if (!loiHo.empty())
+    return loiHo;
+
+  std::string loiTen = KiemTraChuoiVaDodai(tenChuan, "Ten", 10);
+  if (!loiTen.empty())
+    return loiTen;
+
+  // 3. Strict ASCII Check (No accents, symbols, or digits)
+  std::string loiKyTuHo = KiemTraKyTuTenASCII(hoChuan, "Ho");
+  if (!loiKyTuHo.empty())
+    return loiKyTuHo;
+
+  std::string loiKyTuTen = KiemTraKyTuTenASCII(tenChuan, "Ten");
+  if (!loiKyTuTen.empty())
+    return loiKyTuTen;
+
+  return ""; // Valid
+}
+extern PTRDG rootDocGia;
+extern PTRDS dsDauSach[];
+extern int soLuongDauSach;
+extern bool duLieuDaThayDoi;
 
 static void QuickSortByName(DocGiaTableDTO_Backend arr[], int left, int right) {
   int i = left, j = right;

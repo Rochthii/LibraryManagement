@@ -31,14 +31,14 @@ static void VeFormThemDocGia(sf::RenderWindow &window, const sf::Font &font,
 static void VeKhungThongBao(sf::RenderWindow &window, const sf::Font &font,
                             const MuonTraState &s);
 
-static void ThucHienTimKiemDocGia(MuonTraState &s);
+static void ThucHienTimKiemDocGia(MuonTraState &s, bool silent = false);
 static void ThucHienXoaDocGia(MuonTraState &s);
 static void ThucHienMuonSachSFML(MuonTraState &s);
 static void ThucHienTraSachSFML(MuonTraState &s);
 static void ThucHienBaoMatSachSFML(MuonTraState &s);
 static void CapNhatSachDangMuon(MuonTraState &s);
 static void XoaFormNhapLieuSFML(MuonTraState &s);
-static void ThucHienTimKiemSach(MuonTraState &s);
+static void ThucHienTimKiemSach(MuonTraState &s, bool silent = false);
 static void CapNhatPhanTrangDocGia(MuonTraState &s);
 static void CapNhatPhanTrangSach(MuonTraState &s);
 static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia);
@@ -297,7 +297,7 @@ static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font,
   float actionY = tableBottom + PADDING; // Positioned below table
   float actionH = NUT_CAO;
 
-  if (s.dangHienThiFormThemDocGia && s.docGiaDangChon) {
+  if (s.docGiaDangChon) {
     float wBtn = (BANG_RONG - (PADDING * 4)) / 4.f;
     float spacing = PADDING;
     float startX = BANG_X;
@@ -740,7 +740,8 @@ static void VeFormThemDocGia(sf::RenderWindow &window, const sf::Font &font,
   float effectiveNotifyY = KHUNG_THONG_BAO_Y + 5.f;
   float formHeight = effectiveNotifyY - effectiveFormY - PADDING;
 
-  VeKhung(window, FORM_X, effectiveFormY, FORM_RONG, formHeight, "THEM DOC GIA",
+  std::string formTitle = s.dangSuaDocGia ? "SUA THONG TIN" : "THEM DOC GIA";
+  VeKhung(window, FORM_X, effectiveFormY, FORM_RONG, formHeight, formTitle,
           font);
 
   float currentY = effectiveFormY + 40.f;
@@ -1615,14 +1616,24 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       extern PTRDG rootDocGia;
       extern bool duLieuDaThayDoi;
 
-      // Validate
-      std::string ho = CatKhoangTrang(state.chuoiHo);
-      std::string ten = CatKhoangTrang(state.chuoiTen);
+      // 1. Pre-process & Standardize
+      std::string hoRaw = state.chuoiHo;
+      std::string tenRaw = state.chuoiTen;
 
-      if (ho.empty() || ten.empty()) {
-        CapNhatThongBaoSFML("Vui long nhap day du Ho va Ten!", 1);
+      // Call backend validation (which handles length and ASCII checks)
+      std::string loi = KiemTraDuLieuDocGia(hoRaw, tenRaw);
+      if (!loi.empty()) {
+        CapNhatThongBaoSFML(loi, 1);
         return;
       }
+
+      // 2. Final Normalization for Saving
+      std::string ho = ChuyenThanhTitleCase(ChuanHoaKhoangTrang(hoRaw));
+      std::string ten = ChuyenThanhTitleCase(ChuanHoaKhoangTrang(tenRaw));
+
+      // Update UI state with normalized strings for visual feedback
+      state.chuoiHo = ho;
+      state.chuoiTen = ten;
 
       if (state.dangSuaDocGia && state.docGiaDangChon) {
         // UPDATE
@@ -1637,8 +1648,8 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                 std::to_string(state.docGiaDangChon->data.MaThe),
             2);
 
-        // Refresh list but keep selection
-        ThucHienTimKiemDocGia(state);
+        // Refresh list silently but keep selection
+        ThucHienTimKiemDocGia(state, true);
 
         // [AUTO HIGHLIGHT] Find page and select
         int maThe = state.docGiaDangChon->data.MaThe;
@@ -1798,7 +1809,6 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       }
     }
 
-    // Input Ho doc gia
     if (inputHoatDong == INPUT_HO_DOC_GIA) {
       if (event.type == sf::Event::KeyPressed &&
           event.key.code == sf::Keyboard::Backspace) {
@@ -1809,13 +1819,18 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                  event.text.unicode < 128 && event.text.unicode != 8 &&
                  event.text.unicode != 13) {
         char c = static_cast<char>(event.text.unicode);
-        if (state.chuoiHo.length() < MAX_TAC_GIA) {
-          state.chuoiHo += c;
+        // Only allow A-Z, a-z and space
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ') {
+          if (state.chuoiHo.length() < 30) {
+            state.chuoiHo += c;
+          }
+        } else if (c >= 32) {
+          CapNhatThongBaoSFML("Loi: Ho chi duoc nhap chu cai khong dau (A-Z)!",
+                              1);
         }
       }
     }
 
-    // Input Ten doc gia
     if (inputHoatDong == INPUT_TEN_DOC_GIA) {
       if (event.type == sf::Event::KeyPressed &&
           event.key.code == sf::Keyboard::Backspace) {
@@ -1826,8 +1841,14 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                  event.text.unicode < 128 && event.text.unicode != 8 &&
                  event.text.unicode != 13) {
         char c = static_cast<char>(event.text.unicode);
-        if (state.chuoiTen.length() < MAX_TAC_GIA) {
-          state.chuoiTen += c;
+        // Only allow A-Z, a-z and space
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ') {
+          if (state.chuoiTen.length() < 10) {
+            state.chuoiTen += c;
+          }
+        } else if (c >= 32) {
+          CapNhatThongBaoSFML("Loi: Ten chi duoc nhap chu cai khong dau (A-Z)!",
+                              1);
         }
       }
     }
@@ -1954,12 +1975,12 @@ static void ThucHienXoaDocGia(MuonTraState &s) {
   s.maTheDocGiaDuocChon = 0;
   s.dangSuaDocGia = false;
 
-  // Tải lại danh sách
+  // Tải lại danh sách (đừng silent để xem còn bao nhiêu)
   ThucHienTimKiemDocGia(s);
 }
 
 // ===== HAM LOGIC =====
-static void ThucHienTimKiemDocGia(MuonTraState &s) {
+static void ThucHienTimKiemDocGia(MuonTraState &s, bool silent) {
   bool laCheDoQuaHan = (s.cheDoHienTai == CHE_DO_QUA_HAN);
   bool sapXepTheoTen = (s.cheDoSapXep == SAP_XEP_THEO_TEN_HO);
 
@@ -1970,17 +1991,21 @@ static void ThucHienTimKiemDocGia(MuonTraState &s) {
   s.trangHienTaiDocGia = 1;
   CapNhatPhanTrangDocGia(s);
 
-  if (s.soLuongKetQuaDocGia > 0) {
-    if (laCheDoQuaHan) {
-      CapNhatThongBaoSFML("Tim thay " + std::to_string(s.soLuongKetQuaDocGia) +
-                              " doc gia qua han.",
-                          0);
+  if (!silent) {
+    if (s.soLuongKetQuaDocGia > 0) {
+      if (laCheDoQuaHan) {
+        CapNhatThongBaoSFML("Tim thay " +
+                                std::to_string(s.soLuongKetQuaDocGia) +
+                                " doc gia qua han.",
+                            0);
+      } else {
+        CapNhatThongBaoSFML(
+            "Tim thay " + std::to_string(s.soLuongKetQuaDocGia) + " doc gia.",
+            0);
+      }
     } else {
-      CapNhatThongBaoSFML(
-          "Tim thay " + std::to_string(s.soLuongKetQuaDocGia) + " doc gia.", 0);
+      CapNhatThongBaoSFML("Khong tim thay doc gia nao.", 1);
     }
-  } else {
-    CapNhatThongBaoSFML("Khong tim thay doc gia nao.", 1);
   }
 }
 
@@ -1993,18 +2018,20 @@ static void CapNhatPhanTrangDocGia(MuonTraState &s) {
     s.trangHienTaiDocGia = s.tongSoTrangDocGia;
 }
 
-static void ThucHienTimKiemSach(MuonTraState &s) {
+static void ThucHienTimKiemSach(MuonTraState &s, bool silent) {
   LayDanhSachSachBackend(s.chuoiTimKiemSach, s.ketQuaTimKiemSach,
                          s.soLuongKetQuaSach);
 
   s.trangHienTaiSach = 1;
   CapNhatPhanTrangSach(s);
 
-  if (s.soLuongKetQuaSach > 0) {
-    CapNhatThongBaoSFML(
-        "Tim thay " + std::to_string(s.soLuongKetQuaSach) + " sach.", 0);
-  } else {
-    CapNhatThongBaoSFML("Khong tim thay sach nao.", 1);
+  if (!silent) {
+    if (s.soLuongKetQuaSach > 0) {
+      CapNhatThongBaoSFML(
+          "Tim thay " + std::to_string(s.soLuongKetQuaSach) + " sach.", 0);
+    } else {
+      CapNhatThongBaoSFML("Khong tim thay sach nao.", 1);
+    }
   }
 }
 
