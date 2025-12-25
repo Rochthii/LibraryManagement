@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-
 #include "../include/Constants.h"
 #include "../include/DauSach.h"
 #include "../include/DocGia.h"
@@ -263,10 +262,10 @@ std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach) {
   std::string maSachChuan = CatKhoangTrang(maSach);
   if (maSachChuan.empty())
     return "Loi: Ma sach trong!";
-  std::string loi = MuonSach(docGia, maSachChuan, dsDauSach, soLuongDauSach);
-  if (loi.empty())
+  std::string result = MuonSach(docGia, maSachChuan, dsDauSach, soLuongDauSach);
+  if (result.find("Loi:") == std::string::npos)
     duLieuDaThayDoi = true;
-  return loi;
+  return result;
 }
 
 std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach) {

@@ -418,11 +418,15 @@ static void VeBangSach(sf::RenderWindow &window, const sf::Font &font,
     dataText.setFillColor(isSelected ? sf::Color::Black : MAU_CHU);
     float textY = currentY + (rowH - dataText.getCharacterSize()) / 2.f;
 
-    const std::string dataCols[] = {
-        std::to_string(i + 1),    d->ISBN,
-        CatChuoi(d->tenSach, 25), std::to_string(d->soTrang),
-        CatChuoi(d->tacGia, 15),  std::to_string(d->namXuatBan),
-        CatChuoi(d->theLoai, 8),  std::to_string(d->tongBanSao)};
+    const std::string dataCols[] = {std::to_string(i + 1),
+                                    d->ISBN,
+                                    CatChuoi(d->tenSach, 25),
+                                    std::to_string(d->soTrang),
+                                    CatChuoi(d->tacGia, 15),
+                                    std::to_string(d->namXuatBan),
+                                    CatChuoi(d->theLoai, 8),
+                                    std::to_string(DemBanSaoCoTheMuon(d)) +
+                                        " / " + std::to_string(d->tongBanSao)};
 
     for (int col = 0; col < 8; ++col) {
       dataText.setString(dataCols[col]);
@@ -1790,7 +1794,6 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
       }
     }
 
-    // Input ma sach
     if (inputHoatDong == INPUT_MT_TIM_SACH) {
       if (event.type == sf::Event::KeyPressed &&
           event.key.code == sf::Keyboard::Backspace) {
@@ -1802,9 +1805,15 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event) {
                  event.text.unicode < 128 && event.text.unicode != 8 &&
                  event.text.unicode != 13) {
         char c = static_cast<char>(event.text.unicode);
-        if (state.chuoiMaSach.length() < 50) {
-          state.chuoiMaSach += c;
-          state.maSachDangChon = ""; // Clear selection when typing
+        // Only allow 0-9 and -
+        if ((c >= '0' && c <= '9') || c == '-') {
+          if (state.chuoiMaSach.length() < 50) {
+            state.chuoiMaSach += c;
+            state.maSachDangChon = ""; // Clear selection when typing
+          }
+        } else if (c >= 32) {
+          CapNhatThongBaoSFML(
+              "Loi: Ma sach chi duoc nhap so (0-9) va dau gach ngang (-).", 1);
         }
       }
     }
@@ -1888,15 +1897,15 @@ static void ThucHienMuonSachSFML(MuonTraState &s) {
   }
 
   // Call backend
-  std::string loi = ThucHienMuonSachBackend(s.docGiaDangChon, maSach);
+  std::string result = ThucHienMuonSachBackend(s.docGiaDangChon, maSach);
 
-  if (loi.empty()) {
-    CapNhatThongBaoSFML("Muon sach thanh cong: " + maSach, 2);
+  if (result.find("Loi:") == std::string::npos) {
+    CapNhatThongBaoSFML("Muon sach thanh cong: " + result, 2);
     CapNhatSachDangMuon(s);
     XoaFormNhapLieuSFML(s);
     inputHoatDong = KHONG_XAC_DINH;
   } else {
-    CapNhatThongBaoSFML(loi, 1);
+    CapNhatThongBaoSFML(result, 1);
     inputHoatDong = INPUT_MT_TIM_SACH;
   }
 }
