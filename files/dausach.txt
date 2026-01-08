@@ -1,13 +1,12 @@
 9786040000644|Ai Trong Doi Song|733|Pham Thao|2023|Tri Tue Nhan Tao
 9786040000675|An Ninh Mang|858|Nguyen Thanh|2021|An Toan Thong Tin
-9786040000491|An Toan Thong Tin|133|Bui Thi Lan|2018|An Toan Thong Tin
 9786040000392|An Toan Thong Tin|363|Bui Thi Lan|2008|An Toan Thong Tin
+9786040000491|An Toan Thong Tin|133|Bui Thi Lan|2018|An Toan Thong Tin
 9786040001023|Attack On Titan|850|Hajime Isayama|2009|Nhat Ban
 9786040000590|Bao Mat Mang|518|Ngo Duc Manh|2023|An Toan Thong Tin
 9786040000613|Blockchain Co Ban|603|Nguyen Hai|2020|Blockchain
 9786040000422|Cau Truc Du Lieu|474|Do Quang|2011|Cau Truc Du Lieu
 9786040000842|Cau Truc May Tinh|640|Ngo Thanh|2023|Kien Truc May Tinh
-9898798767656|Cha Oi|436|Cham Roch Thi|2025|Gia Dinh
 9786048679456|Chao Mung Ngay Moi|542|Cham Roch Thi|2025|Cuoc Song
 9786040001016|Chi Pheo|200|Nam Cao|1941|Viet Nam
 9786043450224|Chung Ta Cua Hien Tai|435|Cham Roch Thi|2025|Cuoc Song
@@ -18,6 +17,7 @@
 9786048369156|Cuoc Gap Go Sau Khi Xa Nhau|426|Cham Roch Thi|2025|Cuoc Song
 9878798767|Cuoc Song Moi|234|Cham Roch Thi|2025|Cuoc Song
 9786044548159|Cuoc Song Sinh Vien|648|Cham Roch Thi|2025|Cuoc Song
+9898798767656|Cuon Sach Moi|436|Cham Roch Thi|2025|Gia Dinh
 9786040000729|Deep Learning|160|Tran Thi Mai|2021|Hoc May
 9786040000750|Dien Toan Bien|280|Phan Trung|2024|Dien Toan
 9786040000606|Dien Toan Dam May|562|Hoang Yen|2024|Dien Toan Dam May
@@ -41,14 +41,14 @@
 9786040000798|Ma Hoa Va Giai Ma|440|Le Minh|2023|Mat Ma Hoc
 9786040000538|Mang Khong Day|278|Pham Minh Tu|2022|Mang May Tinh
 9786040000460|Mang May Tinh|622|Phan Tuan|2015|Mang May Tinh
-9786040000507|May Hoc Ung Dung|170|Nguyen Van An|2019|Hoc May
 9786040000408|May Hoc Ung Dung|400|Nguyen Van An|2009|Hoc May
+9786040000507|May Hoc Ung Dung|170|Nguyen Van An|2019|Hoc May
 9786040000637|Ngon Ngu Java|689|Do Thi Nhung|2022|Lap Trinh
 9786040000767|Nguyen Ly May Tinh|320|Nguyen Quoc Anh|2020|Khoa Hoc May Tinh
 9878767656545|Nho|243|Cham Roch Thi|2025|Tinh Yeu
 9789876543210|Nhung Nguoi Khon Kho|500|Victor Hugo|1862|Tieu Thuyet
-9786040000385|Phan Mem Huong Doi Tuong|326|Vu Thanh Hai|2007|Lap Trinh Huong Doi Tuong
 9786040000484|Phan Mem Huong Doi Tuong|696|Vu Thanh Hai|2017|Lap Trinh Huong Doi Tuong
+9786040000385|Phan Mem Huong Doi Tuong|326|Vu Thanh Hai|2007|Lap Trinh Huong Doi Tuong
 9786040000545|Phan Tich Du Lieu|312|Do Thao|2023|Khoa Hoc Du Lieu
 9786040000828|Phan Tich Log|560|Tran Huu|2021|An Toan Thong Tin
 9786040000743|Phan Tich Mang Xa Hoi|240|Nguyen Hoai An|2023|Khoa Hoc Du Lieu
@@ -61,8 +61,8 @@
 9786040000576|Thuat Toan Nang Cao|432|Pham Thu Hang|2021|Thuat Toan
 9786040000835|Thuat Toan Ung Dung|600|Pham Hung|2022|Thuat Toan
 9786040000712|Thuc Tap An Ninh|120|Ngo Hoai Nam|2020|An Toan Thong Tin
-9786040000378|Tri Tue Nhan Tao|289|Tran Thi B|2006|Tri Tue Nhan Tao
 9786040000477|Tri Tue Nhan Tao|659|Tran Thi B|2016|Tri Tue Nhan Tao
+9786040000378|Tri Tue Nhan Tao|289|Tran Thi B|2006|Tri Tue Nhan Tao
 9786040000774|Tri Tue Nhan Tao Nang Cao|360|Tran Thi Ha|2021|Tri Tue Nhan Tao
 9876046789465|Trong Nhung Nam Qua|736|Cham Roch Thi|2025|Cuoc Song
 9786040793225|Vi Em|453|Cham Roch Thi|2025|Tinh Yeu

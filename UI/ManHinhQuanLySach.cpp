@@ -24,7 +24,7 @@ static const sf::Color MAU_NUT_BACK_SANG(110, 110, 120);
 static void XuLyClickModalThemBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
-static void XuLyClickBangSach(const sf::Event& event, SachState& state);
+static void XuLyClickBangSach(const sf::Event& event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach);
 
 static void VeBangSach(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
 static void VeFormThemSach(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
@@ -1030,7 +1030,7 @@ static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS
     }
 }
 
-static void XuLyClickBangSach(const sf::Event& event, SachState& state) {
+static void XuLyClickBangSach(const sf::Event& event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach) {
     const float contentY = BANG_Y + 90 + 35;
     const float rowHeight = 30.f;
     const int startIndex = (state.trangHienTai - 1) * SACH_MOI_TRANG;
@@ -1051,12 +1051,19 @@ static void XuLyClickBangSach(const sf::Event& event, SachState& state) {
         std::string tenSachHienThi = CatChuoiVoiDauCham(state.ketQuaTimKiem[actualIndex].sach->tenSach, 35);
         CapNhatThongBaoSFML("Da chon: " + tenSachHienThi, 0);
         inputHoatDong = KHONG_XAC_DINH;
-        XoaFormNhapLieuSFML(state);
+        // XoaFormNhapLieuSFML(state); // Double click thi mo modal, khong can xoa form o day, hoac tuy logic
+        state.hienThiModalBanSao = true; // MO MODAL
         state.isbnClickCuoi = "";
     }
     else {
         state.isbnClickCuoi = clickedISBN;
         state.doubleClickClock.restart();
+        
+        // --- SINGLE CLICK: DIEN VAO FORM ---
+        state.isbnSachDuocChon = clickedISBN;
+        state.dangSua = true; // Chuyen sang che do sua (hoac hien thi)
+        DienFormVoiSachDuocChon(state, dsDauSach, soLuongDauSach);
+        CapNhatThongBaoSFML("Da chon sach: " + state.ketQuaTimKiem[actualIndex].sach->tenSach, 0);
     }
 }
 
@@ -1264,7 +1271,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event, PTRDS dsDa
 
         if (!clickedInput) {
             if (elementNhan == HANG_SACH) {
-                XuLyClickBangSach(event, state);
+                XuLyClickBangSach(event, state, dsDauSach, soLuongDauSach);
             } else {
                 XuLyClickMenuChinh(elementNhan, event, state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             }
