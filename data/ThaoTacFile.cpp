@@ -48,7 +48,7 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
         // isbn: kiem tra rong, dinh dang, trung
         loi = KiemTraChuoiRong(truong[0], "ISBN");                              // kiem rong
         std::string loiISBN = ChuanHoaISBNFile(truong[0], isbn);                // chuan hoa 10/13 so
-        std::string loiTrung = KiemTraTrungISBN(isbn);                          // kiem trung trong danh sach
+        std::string loiTrung = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbn);                          // kiem trung trong danh sach
 
         if (!loi.empty() || !loiISBN.empty() || !loiTrung.empty()) {            // co loi nao do
             std::string loiHienThi = loi.empty() ? (loiISBN.empty() ? loiTrung : loiISBN) : loi;
@@ -102,7 +102,8 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
         }
 
         // them dau sach vao mang
-        if (themDauSach(dsDauSach, soLuongDauSach, isbn, tenSach, soTrang, tacGia, namXuatBan, theLoai, true)) {
+        bool duLieuDaThayDoiTam = false; 
+        if (themDauSach(dsDauSach, soLuongDauSach, isbn, tenSach, soTrang, tacGia, namXuatBan, theLoai, true, duLieuDaThayDoiTam)) {
             dsDauSach[soLuongDauSach - 1]->soLuotMuon = 0;
             ++thanhCong;                                                        // them thanh cong
         } else {

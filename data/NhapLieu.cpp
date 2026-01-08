@@ -87,7 +87,7 @@ std::string NhapPhai(std::istream& in, std::ostream& out) {
 }
 
 
-std::string NhapISBNThuCong(std::istream& in, std::ostream& out) {
+std::string NhapISBNThuCong(PTRDS dsDauSach[], int soLuongDauSach, std::istream& in, std::ostream& out) {
     int soLanThu = 0;
     while (soLanThu < SO_LAN_THU_TOI_DA) {
         out << "Nhap ISBN (10 hoac 13 ky tu): ";
@@ -104,7 +104,7 @@ std::string NhapISBNThuCong(std::istream& in, std::ostream& out) {
             continue;
         }
   
-        std::string loiTrung = KiemTraTrungISBN(isbnChuan);
+        std::string loiTrung = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbnChuan);
         if (!loiTrung.empty()) {
             thongBao(out, loiTrung, LOI);
             ++soLanThu;

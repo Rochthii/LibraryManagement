@@ -6,8 +6,6 @@
 #include "DauSach.h"
 #include "Constants.h"
 
-extern PTRDS dsDauSach[];
-extern int soLuongDauSach;
 
 std::string KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTruong){
     if(chuoi.empty()) { 
@@ -19,7 +17,7 @@ std::string KiemTraChuoiRong(const std::string& chuoi, const std::string& tenTru
     return "";
 }
 
-std::string KiemTraTrungISBN(const std::string& ISBN) {
+std::string KiemTraTrungISBN(PTRDS dsDauSach[], int soLuongDauSach, const std::string& ISBN) {
     bool coDauSach = (TimDauSachTheoISBN(dsDauSach, soLuongDauSach, ISBN) != nullptr);
     if(coDauSach) {
         return "Loi: ISBN '" + ISBN + "' da ton tai trong he thong!\nVui long nhap ISBN khac hoac cap nhat dau sach da co.";
@@ -27,7 +25,7 @@ std::string KiemTraTrungISBN(const std::string& ISBN) {
     return "";
 }
 
-bool KiemTraTrungmaSach(const std::string& maSach, std::ostream& out) {
+bool KiemTraTrungmaSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, std::ostream& out) {
     bool coMaSach = (timDanhMucTheoMaSach(maSach, dsDauSach, soLuongDauSach, out, true) != nullptr);
     if(coMaSach) thongBao(out, "Trung ma sach!", LOI);
     return coMaSach;
@@ -76,7 +74,7 @@ bool KiemTraDanhSachHopLe(void* danhSach, int soLuong, int maxSize, const std::s
 }
 
 
-std::string KiemTraTongSoBanSao(const std::string& isbn, int soLuongThem){
+std::string KiemTraTongSoBanSao(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, int soLuongThem){
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if(!dauSach) return ""; // hong tim thay dau sach
     
