@@ -11,7 +11,7 @@
 
 
 int main() {
-    // Khai bao bien cuc bo (moved from global scope)
+    // Khai bao bien cuc bo 
     PTRDS dsDauSach[MAX_DAUSACH] = {nullptr};
     int soLuongDauSach = 0;
     bool duLieuDaThayDoi = false;
@@ -71,7 +71,7 @@ int main() {
 
     // Vong lap chinh cua chuong trinh
     ChayChuongTrinhSFML(window, font, rootDocGia, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
-
+    
     // Luu du lieu truoc khi thoat
     if (duLieuDaThayDoi) {
         thongBao(std::cout, "Dang luu thay doi...", THONG_TIN);

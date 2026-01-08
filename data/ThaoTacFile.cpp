@@ -49,7 +49,7 @@ void NapDanhSachDauSach(const char *path, PTRDS dsDauSach[], int &soLuongDauSach
         loi = KiemTraChuoiRong(truong[0], "ISBN");                              // kiem rong
         std::string loiISBN = ChuanHoaISBNFile(truong[0], isbn);                // chuan hoa 10/13 so
         std::string loiTrung = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbn);                          // kiem trung trong danh sach
-
+        
         if (!loi.empty() || !loiISBN.empty() || !loiTrung.empty()) {            // co loi nao do
             std::string loiHienThi = loi.empty() ? (loiISBN.empty() ? loiTrung : loiISBN) : loi;
             thongBao(out, thongBaoLoi(soDong, loiHienThi + " ('" + truong[0] + "')", true), CANH_BAO);
