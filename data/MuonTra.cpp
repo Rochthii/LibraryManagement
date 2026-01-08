@@ -283,7 +283,7 @@ std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach) {
 
 std::string TimMaSachCoTheMuon(const std::string &isbn) {
   PTRDMS mangBS[100];
-  int nBS = LayDanhSachBanSaoSapXep(isbn, mangBS, 100);
+  int nBS = LayDanhSachBanSaoSapXep(dsDauSach, soLuongDauSach, isbn, mangBS, 100);
   for (int i = 0; i < nBS; ++i) {
     if (mangBS[i]->trangThai == CHO_MUON_DUOC)
       return mangBS[i]->maSach;

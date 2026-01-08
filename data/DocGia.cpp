@@ -443,7 +443,7 @@ PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach) {
 
   // Use sorted list to ensure lowest ID priority (Requirement)
   PTRDMS mangBS[MAX_BAN_SAO];
-  int nBS = LayDanhSachBanSaoSapXep(dauSach->ISBN, mangBS, MAX_BAN_SAO);
+  int nBS = LayDanhSachBanSaoSapXep(dsDauSach, soLuongDauSach, dauSach->ISBN, mangBS, MAX_BAN_SAO);
 
   for (int i = 0; i < nBS; ++i) {
     if (mangBS[i]->trangThai == CHO_MUON_DUOC) {

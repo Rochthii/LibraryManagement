@@ -2,6 +2,7 @@
 #define MANHINHQUANLYSACH_H
 
 #include <SFML/Graphics.hpp>
+#include "DauSach.h"
 
 // Khai báo các hàm public cho màn hình sách
 void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);

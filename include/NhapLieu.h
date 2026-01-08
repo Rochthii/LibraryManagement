@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include "DauSach.h"
 #include "ThongBao.h"
 #include "Constants.h"
 

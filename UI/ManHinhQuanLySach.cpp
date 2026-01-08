@@ -29,21 +29,21 @@ static void XuLyClickBangSach(const sf::Event& event, SachState& state);
 static void VeBangSach(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
 static void VeFormThemSach(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
 static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
-static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font, SachState& currentState);
+static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font, SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
 static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font, SachState& currentState);
 static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 
-static void XuLyTextInput(sf::Event event, SachState& currentState);
+static void XuLyTextInput(sf::Event event, SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 static void ThucHienTimKiemNoiBo(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi);
 static void ThucHienXoaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi);
-static void ThucHienThanhLySach(SachState& currentState, const std::string& maSach);
-static void ThucHienXoaBanSao(SachState& currentState, const std::string& maSach);
-static void ThucHienThemBanSao(SachState& currentState);
+static void ThucHienThanhLySach(SachState& currentState, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
+static void ThucHienXoaBanSao(SachState& currentState, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
+static void ThucHienThemBanSao(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 
 static void XoaFormNhapLieuSFML(SachState& currentState);
-static void DienFormVoiSachDuocChon(SachState& currentState);
+static void DienFormVoiSachDuocChon(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 static void CapNhatPhanTrangSFML(SachState& currentState);
 static void ResetVaTaiLaiDuLieu(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach, bool xoaForm = true, bool xoaISBN = false);
 
@@ -431,14 +431,14 @@ static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, 
     }
 }
 
-static void ThucHienThemBanSao(SachState& currentState) {
+static void ThucHienThemBanSao(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
     int soLuongThem = 0;
     const std::string chuoiSach = CatKhoangTrang(currentState.soLuongBanSaoCanThemStr);
     if (!ChuyenChuoiThanhSoNguyen(chuoiSach, soLuongThem, true)) {
         soLuongThem = 0;
     }
 
-    std::string ketQua = ThemBanSaoMoi(currentState.isbnSachDuocChon, soLuongThem);
+    std::string ketQua = ThemBanSaoMoi(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon, soLuongThem, "", duLieuDaThayDoi);
     
     if (!ketQua.empty()) {
         CapNhatThongBaoSFML(ketQua, 1);
@@ -450,7 +450,7 @@ static void ThucHienThemBanSao(SachState& currentState) {
     currentState.hienThiModalThemBS = false;
     currentState.soLuongBanSaoCanThemStr = "";
     inputHoatDong = KHONG_XAC_DINH;
-    ThucHienTimKiemNoiBo(currentState);
+    ThucHienTimKiemNoiBo(currentState, dsDauSach, soLuongDauSach);
 }
 
 static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState) {
@@ -688,7 +688,7 @@ void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font, PTRDS d
     VeKhungThongBaoSFML(window, font, state); // ve khung thong bao ben duoi form
 
     if (state.hienThiModalBanSao) { // modal chi tiet ban sao
-        VeModalChiTietBanSao(window, font, state);
+        VeModalChiTietBanSao(window, font, state, dsDauSach, soLuongDauSach);
     }
     else if (state.hienThiModalThemBS) { // modal them ban sao
         VeModalThemBanSao(window, font, state);
@@ -696,8 +696,8 @@ void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font, PTRDS d
 }
 
 // Ham xu ly backend cho modal
-static void ThucHienThanhLySach(SachState& /*currentState*/, const std::string& maSach) {
-    std::string ketQua = ThanhLyBanSaoTheoMa(maSach);
+static void ThucHienThanhLySach(SachState& /*currentState*/, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
+    std::string ketQua = ThanhLyBanSaoTheoMa(dsDauSach, soLuongDauSach, maSach, duLieuDaThayDoi);
     
     if (ketQua.empty()) {
         CapNhatThongBaoSFML("Da thanh ly ma sach: " + maSach, 2);
@@ -706,8 +706,8 @@ static void ThucHienThanhLySach(SachState& /*currentState*/, const std::string& 
     }
 }
 
-static void ThucHienXoaBanSao(SachState& /*currentState*/, const std::string& maSach) {
-    std::string ketQua = XoaBanSaoTheoMa(maSach);
+static void ThucHienXoaBanSao(SachState& /*currentState*/, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
+    std::string ketQua = XoaBanSaoTheoMa(dsDauSach, soLuongDauSach, maSach, duLieuDaThayDoi);
     
     if (ketQua.empty()) {
         CapNhatThongBaoSFML("Da xoa ban sao: " + maSach, 2);
@@ -717,8 +717,8 @@ static void ThucHienXoaBanSao(SachState& /*currentState*/, const std::string& ma
 }
 
 
-static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font, SachState& currentState) {
-    PTRDS dauSach = TimDauSach(currentState.idModalSachDuocChon);
+static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font, SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach) {
+    PTRDS dauSach = TimDauSach(dsDauSach, soLuongDauSach, currentState.idModalSachDuocChon);
     if (!dauSach) {
         CapNhatThongBaoSFML("Loi: Khong tim thay dau sach de xem chi tiet!", 1);
         currentState.hienThiModalBanSao = false;
@@ -772,7 +772,7 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
     currentY += 30.f;
 
     PTRDMS tempBanSao[MAX_BAN_SAO];
-    int soLuongBSTrongDSLK = LayDanhSachBanSaoSapXep(dauSach->ISBN, tempBanSao, MAX_BAN_SAO);
+    int soLuongBSTrongDSLK = LayDanhSachBanSaoSapXep(dsDauSach, soLuongDauSach, dauSach->ISBN, tempBanSao, MAX_BAN_SAO);
     sf::Text dataText = TaoVanBan(font, "", FONT_SIZE_NHO, MAU_CHU);
     int sttBatDau = (currentState.trangModal - 1) * SO_SACH_MOI_TRANG_MODAL;
     int sttKetThuc = sttBatDau + SO_SACH_MOI_TRANG_MODAL;
@@ -928,21 +928,21 @@ static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font,
 // CAC HAM XU LY SU KIEN CON (REFRACTORED)
 // =============================================================
 
-static void XuLyClickModalThemBanSao(sf::Event event, SachState& state) {
+static void XuLyClickModalThemBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
     if (event.type == sf::Event::TextEntered || 
         (event.type == sf::Event::KeyPressed && 
          (event.key.code == sf::Keyboard::Backspace || 
           event.key.code == sf::Keyboard::Tab ||
           event.key.code == sf::Keyboard::Z))) {
         if (inputHoatDong == INPUT_SO_LUONG_THEM) {
-            XuLyTextInput(event, state);
+            XuLyTextInput(event, state, dsDauSach, soLuongDauSach);
         }
     }
     if (event.type == sf::Event::MouseButtonPressed) {
         if (event.mouseButton.button == sf::Mouse::Left) {
             MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
             if (elementNhan == NUT_XAC_NHAN_THEM_BS) {
-                ThucHienThemBanSao(state);
+                ThucHienThemBanSao(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             }
             else if (elementNhan == NUT_HUY_THEM_BS) {
                 state.hienThiModalThemBS = false;
@@ -960,13 +960,14 @@ static void XuLyClickModalThemBanSao(sf::Event event, SachState& state) {
     }
 }
 
+
 static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
         MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
 
         if (state.xacNhanThanhLy) {
             if (elementNhan == NUT_XAC_NHAN_THANHLY) {
-                ThucHienThanhLySach(state, state.maSachCanThanhLy);
+                ThucHienThanhLySach(state, state.maSachCanThanhLy, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
                 state.xacNhanThanhLy = false;
                 state.maSachCanThanhLy = "";
             }
@@ -980,7 +981,7 @@ static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS
         
         if (state.xacNhanXoaBanSao) {
             if (elementNhan == NUT_XAC_NHAN_XOA_BANSAO) {
-                ThucHienXoaBanSao(state, state.maSachCanXoa);
+                ThucHienXoaBanSao(state, state.maSachCanXoa, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
                 state.xacNhanXoaBanSao = false;
                 state.maSachCanXoa = "";
             }
@@ -1139,7 +1140,7 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
             if (state.cheDoXemHienTai != XEM_TIM_KIEM || state.isbnSachDuocChon.empty()) {
                 CapNhatThongBaoSFML(state.cheDoXemHienTai != XEM_TIM_KIEM ? "Khong dung o che do The Loai!" : "Vui long chon sach de sua!", 1);
             } else {
-                DienFormVoiSachDuocChon(state);
+                DienFormVoiSachDuocChon(state, dsDauSach, soLuongDauSach);
                 state.dangSua = true;
                 state.xacNhanXoa = false;
                 inputHoatDong = INPUT_TEN_SACH;
@@ -1223,7 +1224,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event, PTRDS dsDa
           event.key.code == sf::Keyboard::Tab ||
           event.key.code == sf::Keyboard::Z))) { 
         if (inputHoatDong != KHONG_XAC_DINH) {
-            XuLyTextInput(event, state);
+            XuLyTextInput(event, state, dsDauSach, soLuongDauSach);
         }
     }
 
@@ -1290,7 +1291,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event, PTRDS dsDa
 
 
 // Ham xu ly nhap lieu text 
-static void XuLyTextInput(sf::Event event, SachState& currentState) {
+static void XuLyTextInput(sf::Event event, SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach) {
     // Kiem tra xem co input nao dang active khong
     if (inputHoatDong == KHONG_XAC_DINH) return;
     // Khong xu ly Tab neu la o nhap so luong trong modal Them BS
@@ -1362,7 +1363,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
     // Xu ly Enter cho INPUT_SO_LUONG_THEM (xac nhan them ban sao)
     if (event.type == sf::Event::KeyPressed && inputHoatDong == INPUT_SO_LUONG_THEM) {
         if (event.key.code == sf::Keyboard::Return || event.key.code == sf::Keyboard::Enter) {
-            ThucHienThemBanSao(currentState); // currentState o day la tham so SachState&
+            ThucHienThemBanSao(currentState, dsDauSach, soLuongDauSach, duLieuDaThayDoi); // currentState o day la tham so SachState&
             return;
         }
     }
@@ -1527,7 +1528,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
 
      //Xu ly Enter ngay tai o Tim Kiem -> Goi tim kiem luon
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter && inputHoatDong == INPUT_TIM_SACH) {
-        ThucHienTimKiemNoiBo(currentState);
+        ThucHienTimKiemNoiBo(currentState, dsDauSach, soLuongDauSach);
         CapNhatThongBaoSFML("", 0); // Xoa thong bao cu
         inputHoatDong = KHONG_XAC_DINH; // Bo focus de user nhin ket qua
         return; 
@@ -1547,7 +1548,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
                     if (!loiChuan.empty()) {
                         loiCuoi = loiChuan;
                     } else if (!currentState.dangSua) {
-                        std::string loiTrung = KiemTraTrungISBN(isbnChuanTam);
+                        std::string loiTrung = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbnChuanTam);
                         if (!loiTrung.empty()) loiCuoi = loiTrung;
                     }
                 }
@@ -1577,7 +1578,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
                 CapNhatThongBaoSFML("", 0);
             } else if (inputHoatDong == INPUT_SO_LUONG) {
                 inputHoatDong = KHONG_XAC_DINH;
-                if (event.key.code == sf::Keyboard::Enter) ThucHienThemHoacSuaSachSFML(currentState);
+                if (event.key.code == sf::Keyboard::Enter) ThucHienThemHoacSuaSachSFML(currentState, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             } else {
                 inputHoatDong = KHONG_XAC_DINH;
             }
@@ -1648,8 +1649,8 @@ static void XoaFormNhapLieuSFML(SachState& currentState) {
     currentState.chuoiSoLuong = "";
 }
 
-static void DienFormVoiSachDuocChon(SachState& currentState) {
-    PTRDS sach = TimDauSach(currentState.isbnSachDuocChon);
+static void DienFormVoiSachDuocChon(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach) {
+    PTRDS sach = TimDauSach(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon);
     if (sach) {
         currentState.chuoiISBN = sach->ISBN;
         currentState.chuoiTenSach = sach->tenSach;
@@ -1657,7 +1658,7 @@ static void DienFormVoiSachDuocChon(SachState& currentState) {
         currentState.chuoiTacGia = sach->tacGia;
         currentState.chuoiNamXB = std::to_string(sach->namXuatBan);
         currentState.chuoiTheLoai = sach->theLoai;
-        currentState.chuoiViTri = LayViTriDauTienCuaDauSach(sach->ISBN);
+        currentState.chuoiViTri = LayViTriDauTienCuaDauSach(dsDauSach, soLuongDauSach, sach->ISBN);
     }
     else {
         CapNhatThongBaoSFML("Loi: Khong tim thay sach de sua!", 1);
@@ -1712,7 +1713,7 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach
         // Validation ISBN
         if (!(loi = KiemTraChuoiRong(currentState.chuoiISBN, "ISBN")).empty() ||
             !(loi = ChuanHoaISBNFile(currentState.chuoiISBN, isbnChuan)).empty() ||
-            !(loi = KiemTraTrungISBN(isbnChuan)).empty()) {
+            !(loi = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbnChuan)).empty()) {
             CapNhatThongBaoSFML(loi, 1);
             inputHoatDong = INPUT_ISBN;
             return;
@@ -1725,7 +1726,7 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach
             INPUT_SO_LUONG
         );
 
-        loi = KiemTraTongSoBanSao(isbnChuan, soLuong);
+        loi = KiemTraTongSoBanSao(dsDauSach, soLuongDauSach, isbnChuan, soLuong);
         VALIDATE_AND_RETURN(!loi.empty(), loi, INPUT_SO_LUONG);
 
         std::string ketQua = ThemDauSachMoi(dsDauSach, soLuongDauSach, isbnChuan, currentState.chuoiTenSach, soTrang,

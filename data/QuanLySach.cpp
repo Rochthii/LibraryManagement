@@ -186,7 +186,7 @@ const std::string &tg, int nam, const std::string &tl, bool anLang, bool &duLieu
 
     if (!KiemTraChuoiRong(isbn, "ISBN").empty() ||
     !(loi = ChuanHoaISBNFile(isbn, isbnChuan)).empty() ||
-    !(loi = KiemTraTrungISBN(isbnChuan)).empty()) {
+    !(loi = KiemTraTrungISBN(dsDauSach, soLuongDauSach, isbnChuan)).empty()) {
         if (!anLang) thongBao(std::cout, loi, LOI);
         return false;
     }

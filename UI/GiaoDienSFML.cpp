@@ -70,7 +70,7 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font, PTR
     VeManHinhThongTinSFML(window, font);
     break;
   case QUAN_LY_SACH:
-    VeManHinhQuanLySach(window, font);
+    VeManHinhQuanLySach(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     break;
   case QUAN_LY_DOC_GIA:
     VeManHinhQuanLyDocGia(window, font);
@@ -106,7 +106,7 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font, PTR
 }
 
 // ham xu ly su kien tong quat
-static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia) {
+static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia, PTRDS dsDauSach[], int &soLuongDauSach, bool &duLieuDaThayDoi) {
   sf::Event event;
 
   // cap nhat hover (element dang di chuot qua)
@@ -140,7 +140,7 @@ static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia) {
       XuLySuKienThongTin(window, event);
       break;
     case QUAN_LY_SACH:
-      XuLySuKienManHinhSach(window, event);
+      XuLySuKienManHinhSach(window, event, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       break;
     case QUAN_LY_DOC_GIA:
       XuLySuKienManHinhDocGia(window, event, rootDocGia);
@@ -168,7 +168,7 @@ void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font, PTRDG rootDoc
   yeuCauThoat = false; // reset co thoat
 
   while (window.isOpen() && !yeuCauThoat) { // vong lap chinh (60 FPS mac dinh)
-    XuLySuKienSFML(window, rootDocGia);                 // xu ly su kien (chuot, phim, ...)
+    XuLySuKienSFML(window, rootDocGia, dsDauSach, soLuongDauSach, duLieuDaThayDoi);                 // xu ly su kien (chuot, phim, ...)
     VeManHinhHienTai(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);         // ve man hinh hien tai
     window.display();                       // hien thi len man hinh
   }

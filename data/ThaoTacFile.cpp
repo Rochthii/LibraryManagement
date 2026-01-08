@@ -161,7 +161,7 @@ void NapDanhMucSach(const char *path, PTRDS dsDauSach[], int soLuongDauSach, std
             continue;
         }
 
-        if (KiemTraTrungmaSach(maSach, out)) {                                  // ma sach da ton tai
+        if (KiemTraTrungmaSach(dsDauSach, soLuongDauSach, maSach, out)) {                                  // ma sach da ton tai
             ++boQua;
             continue;
         }
