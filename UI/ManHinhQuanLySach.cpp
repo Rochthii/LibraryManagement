@@ -1336,6 +1336,7 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
 
     // Xu ly Ctrl + Z (Undo) - XU LY TRUOC cac event khac
     // Dung sf::Keyboard::isKeyPressed vi event.key.control khong on dinh tren Windows
+    // CHI xu ly khi event la KeyPressed (khong phai TextEntered)
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z && 
         (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))) {
         
@@ -1367,7 +1368,9 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
     }
 
     // Xu ly go phim (CHI khi khong phai Ctrl+Z da duoc xu ly)
-    if (event.type == sf::Event::TextEntered && !(event.type == sf::Event::KeyPressed && event.key.control && event.key.code == sf::Keyboard::Z)) {
+    // Luu y: ASCII 26 la Ctrl+Z
+    if (event.type == sf::Event::TextEntered && event.text.unicode != 26 && 
+        !(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))) {
         // Chi lay ky tu ASCII, khong lay Backspace, Enter, Tab
         if (event.text.unicode < 128 && event.text.unicode != 8 && event.text.unicode != 13 && event.text.unicode != 9) {
             char enteredChar = static_cast<char>(event.text.unicode);
@@ -1520,6 +1523,14 @@ static void XuLyTextInput(sf::Event event, SachState& currentState) {
                 CapNhatThongBaoSFML("", 0);
             }
         }
+    }
+
+     //Xu ly Enter ngay tai o Tim Kiem -> Goi tim kiem luon
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter && inputHoatDong == INPUT_TIM_SACH) {
+        ThucHienTimKiemNoiBo(currentState);
+        CapNhatThongBaoSFML("", 0); // Xoa thong bao cu
+        inputHoatDong = KHONG_XAC_DINH; // Bo focus de user nhin ket qua
+        return; 
     }
 
     // Xu ly nhan Enter/Tab de nhay input (khong ap dung cho modal)

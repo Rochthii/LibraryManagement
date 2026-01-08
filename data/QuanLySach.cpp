@@ -385,6 +385,7 @@ void hoanDoi(PTRDS &a, PTRDS &b) {
 
 // quicksort O(NlogN)
 void sapXepDauSachTheoTen(PTRDS arr[], int left, int right) {
+    if (left >= right) return;  // tranh crash khi mang rong
     int i = left, j = right;
     std::string pivot = arr[(left + right) / 2]->tenSach; // pivot giua de balance
 
@@ -740,7 +741,6 @@ int soLuongBanSao, const std::string& viTri) {
     std::string loiThem = ThemNhieuBanSao(dauSach, soLuongBanSao, viTriCanDung);
     if (!loiThem.empty()) return loiThem;
 
-    sapXepDauSachTheoTen(dsDauSach, 0, soLuongDauSach - 1);
     duLieuDaThayDoi = true;
 
     return "";
@@ -772,7 +772,6 @@ const std::string& viTri) {
     std::string loi = CapNhatDauSach(dsDauSach, soLuongDauSach, isbn, ten, trang, tg, nam, tl, viTri);
 
     if (loi.empty()) {
-        sapXepDauSachTheoTen(dsDauSach, 0, soLuongDauSach - 1);
         duLieuDaThayDoi = true;
     }
 
@@ -790,9 +789,6 @@ std::string XoaDauSachTheoISBN(const std::string& isbn) {
     std::string loi = XoaDauSach(dsDauSach, soLuongDauSach, isbn);
 
     if (loi.empty()) {
-        if (soLuongDauSach > 1) {
-            sapXepDauSachTheoTen(dsDauSach, 0, soLuongDauSach - 1);
-        }
         duLieuDaThayDoi = true;
     }
 
@@ -826,7 +822,6 @@ std::string XoaBanSaoTheoMa(const std::string& maSach) {
     bool thanhCong = XoaSachTheoMaSach(dsDauSach, soLuongDauSach, maSach, dummy);
     if (!thanhCong) return "Loi: Khong xoa duoc!";
 
-    CapNhatTongBanSao(dsDauSach, soLuongDauSach);
     duLieuDaThayDoi = true;
 
     return "";
