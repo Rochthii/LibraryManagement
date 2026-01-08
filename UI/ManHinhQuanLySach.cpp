@@ -1081,18 +1081,18 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
             inputHoatDong = KHONG_XAC_DINH;
             state.cheDoXemHienTai = XEM_TIM_KIEM;
             state.scrollOffsetYTheLoai = 0.f;
-            ThucHienTimKiemNoiBo(state);
+            ThucHienTimKiemNoiBo(state, dsDauSach, soLuongDauSach);
             break;
         case NUT_XOA_TIM:
             state.chuoiTimKiem = "";
             inputHoatDong = KHONG_XAC_DINH;
             state.cheDoXemHienTai = XEM_TIM_KIEM;
             state.scrollOffsetYTheLoai = 0.f;
-            ThucHienTimKiemNoiBo(state);
+            ThucHienTimKiemNoiBo(state, dsDauSach, soLuongDauSach);
             break;
         case NUT_THEM_SACH:
             inputHoatDong = KHONG_XAC_DINH;
-            ThucHienThemHoacSuaSachSFML(state);
+            ThucHienThemHoacSuaSachSFML(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             break;
         case NUT_CHUYEN_CHE_DO_XEM:
             if (state.cheDoXemHienTai == XEM_TIM_KIEM) {
@@ -1102,12 +1102,12 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
                 state.dangSua = false;
                 state.xacNhanXoa = false;
                 inputHoatDong = KHONG_XAC_DINH;
-                CapNhatDuLieuXemTheoTheLoai(state); 
+                CapNhatDuLieuXemTheoTheLoai(state, dsDauSach, soLuongDauSach); 
                 CapNhatThongBaoSFML("Dang xem theo the loai.", 0);
             } else {
                 state.cheDoXemHienTai = XEM_TIM_KIEM;
                 state.scrollOffsetYTheLoai = 0.f;
-                ThucHienTimKiemNoiBo(state);
+                ThucHienTimKiemNoiBo(state, dsDauSach, soLuongDauSach);
             }
             break;
         case NUT_TRANG_TRUOC:
@@ -1163,7 +1163,7 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
             }
             break;
         case NUT_XAC_NHAN_XOA:
-            if (state.xacNhanXoa && !state.isbnSachDuocChon.empty()) ThucHienXoaSachSFML(state);
+            if (state.xacNhanXoa && !state.isbnSachDuocChon.empty()) ThucHienXoaSachSFML(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             state.xacNhanXoa = false;
             break;
         case NUT_HUY_XOA:
@@ -1633,7 +1633,8 @@ static void ThucHienTimKiemNoiBo(SachState& currentState, PTRDS dsDauSach[], int
 }
 
 void KhoiTaoManHinhSach() {
-    ThucHienTimKiemNoiBo(state);
+    // ThucHienTimKiemNoiBo will be called when screen is first rendered from VeManHinhQuanLySach
+    // ThucHienTimKiemNoiBo(state, dsDauSach, soLuongDauSach);
 }
 
 static void XoaFormNhapLieuSFML(SachState& currentState) {
@@ -1736,7 +1737,7 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach
             CapNhatThongBaoSFML("Them thanh cong: " + tenHienThi, 2);
             currentState.vuaThucHienThanhCong = true;
             
-            ResetVaTaiLaiDuLieu(currentState);
+            ResetVaTaiLaiDuLieu(currentState, dsDauSach, soLuongDauSach);
             inputHoatDong = KHONG_XAC_DINH;
         }
         else {
@@ -1753,7 +1754,7 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach
             CapNhatThongBaoSFML("Cap nhat thanh cong: " + tenHienThi, 2);
             currentState.vuaThucHienThanhCong = true;
             
-            ResetVaTaiLaiDuLieu(currentState);
+            ResetVaTaiLaiDuLieu(currentState, dsDauSach, soLuongDauSach);
             currentState.dangSua = false;
             inputHoatDong = KHONG_XAC_DINH;
             currentState.isbnSachDuocChon = "";
