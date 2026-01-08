@@ -5,15 +5,12 @@
 #include <iostream>
 #include "DauSach.h"
 
-// bien toan cuc
-extern PTRDS dsDauSach[MAX_DAUSACH];   
-extern int soLuongDauSach;             
-extern bool duLieuDaThayDoi;           
+// Global variables now passed as parameters (no longer extern)           
 
 
 // 1. Xu ly ma sach va trang thai
 
-std::string sinhMaSach(const std::string &chiSo, int &soThuTu);                 
+std::string sinhMaSach(const std::string &chiSo, int &soThuTu, PTRDS dsDauSach[], int soLuongDauSach);                 
 const char* TenTrangThai(TrangThaiSach tt);                                     
 int PhanTichTrangThaiSach(const std::string &s, std::ostream &out);             
 
@@ -26,13 +23,13 @@ bool ChenNodeDMSVaoDauSach(PTRDS d, const std::string &ma, int tt, const std::st
 bool capNhatTrangThaiSach(PTRDMS dms, const std::string &ma, TrangThaiSach tt);                         
 PTRDMS timDanhMucTheoMaSach(const std::string &ma, PTRDS ds[], int n, std::ostream &out, bool silent = false); 
 int TimSoThuTuLonNhat(PTRDS dauSach);                                                                     
-std::string ThemNhieuBanSao(PTRDS dauSach, int soLuong, const std::string &viTri = "");                  
+std::string ThemNhieuBanSao(PTRDS dauSach, int soLuong, const std::string &viTri, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);                  
 
 
 // 3. Quan ly Dau Sach (Mang Pointer)
 
-bool themDauSach(PTRDS ds[], int &n, const std::string &isbn, const std::string &ten, int trang,
-                 const std::string &tg, int nam, const std::string &tl, bool anLang = false);  
+bool themDauSach(PTRDS dsDauSach[], int &soLuongDauSach, const std::string &isbn, const std::string &ten, int trang,
+                 const std::string &tg, int nam, const std::string &tl, bool anLang, bool &duLieuDaThayDoi);  
 PTRDS TimDauSachTheoISBN(PTRDS ds[], int n, const std::string &isbn); // linear search O(N)                          
 
 
@@ -80,43 +77,43 @@ void CapNhatTongBanSao(PTRDS ds[], int n);
 
 // 7. Xoa & Cap nhat
 
-std::string XoaDauSach(PTRDS ds[], int &n, const std::string &isbn);                            
-bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &out);            
-std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn,
+std::string XoaDauSach(PTRDS dsDauSach[], int &soLuongDauSach, const std::string &isbn, bool &duLieuDaThayDoi);                            
+bool XoaSachTheoMaSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string &ma, std::ostream &out, bool &duLieuDaThayDoi);            
+std::string CapNhatDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn,
                            const std::string &ten, int trang, const std::string &tg,
-                           int nam, const std::string &tl, const std::string &viTri = "");     
-void CapNhatViTri(PTRDS ds[], int n, const std::string &isbn, const std::string &viTri);                  
+                           int nam, const std::string &tl, const std::string &viTri, bool &duLieuDaThayDoi);     
+void CapNhatViTri(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn, const std::string &viTri, bool &duLieuDaThayDoi);                  
 
 
 // 8. Ham ho tro UI
 
-void LayDanhSachTimKiem(const std::string& tuKhoa, KetQuaTimKiem* ketQua, int& soLuongKetQua); 
-void LayDanhSachTheoTheLoai(std::string* cacTheLoai, int& soTheLoai);                          
-void LayDanhSachViTri(std::string* cacViTri, int& soViTri);                                    
-int LayDanhSachSachTheoTheLoai(const std::string& theLoai, PTRDS* ketQua, int maxKetQua);     
-PTRDS TimDauSach(const std::string& isbn);                                                     
-ThongTinDauSach LayThongTinDauSach(const std::string& isbn);                                   
+void LayDanhSachTimKiem(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa, KetQuaTimKiem* ketQua, int& soLuongKetQua); 
+void LayDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach, std::string* cacTheLoai, int& soTheLoai);                          
+void LayDanhSachViTri(PTRDS dsDauSach[], int soLuongDauSach, std::string* cacViTri, int& soViTri);                                    
+int LayDanhSachSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach, const std::string& theLoai, PTRDS* ketQua, int maxKetQua);     
+PTRDS TimDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn);                                                     
+ThongTinDauSach LayThongTinDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn);                                   
 
 
 // 9. Ham thao tac
 
-std::string ThemDauSachMoi(const std::string& isbn, const std::string& ten, int trang,
+std::string ThemDauSachMoi(PTRDS dsDauSach[], int &soLuongDauSach, const std::string& isbn, const std::string& ten, int trang,
                            const std::string& tg, int nam, const std::string& tl, 
-                           int soLuongBanSao, const std::string& viTri = "");                  
-std::string ThemBanSaoMoi(const std::string& isbn, int soLuong, const std::string& viTri = ""); 
-std::string CapNhatThongTinDauSach(const std::string& isbn, const std::string& ten, int trang,
+                           int soLuongBanSao, const std::string& viTri, bool &duLieuDaThayDoi);                  
+std::string ThemBanSaoMoi(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, int soLuong, const std::string& viTri, bool &duLieuDaThayDoi); 
+std::string CapNhatThongTinDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, const std::string& ten, int trang,
                                    const std::string& tg, int nam, const std::string& tl, 
-                                   const std::string& viTri = "");                              
-std::string XoaDauSachTheoISBN(const std::string& isbn);                                       
-std::string ThanhLyBanSaoTheoMa(const std::string& maSach);                                    
-std::string XoaBanSaoTheoMa(const std::string& maSach);                                        
+                                   const std::string& viTri, bool &duLieuDaThayDoi);                              
+std::string XoaDauSachTheoISBN(PTRDS dsDauSach[], int &soLuongDauSach, const std::string& isbn, bool &duLieuDaThayDoi);                                       
+std::string ThanhLyBanSaoTheoMa(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, bool &duLieuDaThayDoi);                                    
+std::string XoaBanSaoTheoMa(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, bool &duLieuDaThayDoi);                                        
 
 
 // 10. Tien ich khac
 
-void DanhDauDuLieuThayDoi();                                                                   
-int LayDanhSachBanSaoSapXep(const std::string& isbn, PTRDMS* mangKetQua, int maxKetQua);      
-std::string LayViTriDauTienCuaDauSach(const std::string& isbn);                               
-bool CoTheBanSao(const std::string& isbn);                                                     
+void DanhDauDuLieuThayDoi(bool &duLieuDaThayDoi);                                                                   
+int LayDanhSachBanSaoSapXep(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, PTRDMS* mangKetQua, int maxKetQua);      
+std::string LayViTriDauTienCuaDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn);                               
+bool CoTheBanSao(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn);                                                     
 
 #endif // QUANLYSACH_H

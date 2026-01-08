@@ -10,14 +10,11 @@
 #include <stdexcept>
 #include <sstream>
 
-PTRDS dsDauSach[MAX_DAUSACH] = {nullptr};
-int soLuongDauSach = 0;
-bool duLieuDaThayDoi = false;
-
+// Global variables removed - now passed as parameters
 
 // 1. Xu ly ma sach va trang thai
 
-std::string sinhMaSach(const std::string &chiSo, int &soThuTu) {
+std::string sinhMaSach(const std::string &chiSo, int &soThuTu, PTRDS dsDauSach[], int soLuongDauSach) {
     std::string ma = chiSo + "-" + std::to_string(soThuTu);
     std::stringstream dummy;
 
@@ -76,7 +73,7 @@ int TimSoThuTuLonNhat(PTRDS dauSach) {
     return soLonNhat;
 }
 
-std::string ThemNhieuBanSao(PTRDS dauSach, int soLuong, const std::string &viTri) {
+std::string ThemNhieuBanSao(PTRDS dauSach, int soLuong, const std::string &viTri, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
     if (!dauSach) return "Loi: Dau sach khong ton tai!";
     if (soLuong <= 0) return "Loi: So luong phai lon hon 0!";
     if (soLuong > MAX_BAN_SAO) return "Loi: So luong khong hop le!";
@@ -180,10 +177,10 @@ PTRDMS timDanhMucTheoMaSach(const std::string &ma, PTRDS ds[], int n, std::ostre
 
 // 3. Quan ly Dau Sach
 
-bool themDauSach(PTRDS ds[], int &n, const std::string &isbn, const std::string &ten, int trang,
-const std::string &tg, int nam, const std::string &tl, bool anLang) {
+bool themDauSach(PTRDS dsDauSach[], int &soLuongDauSach, const std::string &isbn, const std::string &ten, int trang,
+const std::string &tg, int nam, const std::string &tl, bool anLang, bool &duLieuDaThayDoi) {
 
-    if (n >= MAX_DAUSACH) return false;
+    if (soLuongDauSach >= MAX_DAUSACH) return false;
 
     std::string loi, isbnChuan;
 
@@ -214,9 +211,9 @@ const std::string &tg, int nam, const std::string &tl, bool anLang) {
     node->tongBanSao = 0;
     node->soLuotMuon = 0;
 
-    ds[n++] = node;
+    dsDauSach[soLuongDauSach++] = node;
 
-    sapXepDauSachTheoTen(ds, 0, n - 1); // sxep luon O(NlogN), de tim nhanh sau
+    sapXepDauSachTheoTen(dsDauSach, 0, soLuongDauSach - 1); // sxep luon O(NlogN), de tim nhanh sau
     duLieuDaThayDoi = true;
 
     if (!anLang) thongBao(std::cout, "Them thanh cong: " + node->tenSach, THONG_TIN);
@@ -550,34 +547,34 @@ void CapNhatTongBanSao(PTRDS ds[], int n) {
 
 // 7. Xoa & Cap nhat
 
-std::string XoaDauSach(PTRDS ds[], int &n, const std::string &isbn) {
+std::string XoaDauSach(PTRDS dsDauSach[], int &soLuongDauSach, const std::string &isbn, bool &duLieuDaThayDoi) {
     int idx = -1;
-    for (int i = 0; i < n; ++i) {
-        if (ds[i] && ds[i]->ISBN == isbn) {
+    for (int i = 0; i < soLuongDauSach; ++i) {
+        if (dsDauSach[i] && dsDauSach[i]->ISBN == isbn) {
             idx = i;
             break;
         }
     }
 
     if (idx == -1)      return "Khong tim thay ISBN";
-    if (ds[idx]->dms)   return "Loi: Con ban sao!";
+    if (dsDauSach[idx]->dms)   return "Loi: Con ban sao!";
 
-    GiaiPhongDauSach(ds[idx]);
+    GiaiPhongDauSach(dsDauSach[idx]);
 
-    for (int i = idx; i < n - 1; ++i) {
-        ds[i] = ds[i + 1];
+    for (int i = idx; i < soLuongDauSach - 1; ++i) {
+        dsDauSach[i] = dsDauSach[i + 1];
     }
 
-    ds[--n] = nullptr;
+    dsDauSach[--soLuongDauSach] = nullptr;
     duLieuDaThayDoi = true;
     return "";
 }
 
-bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &out) {
+bool XoaSachTheoMaSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string &ma, std::ostream &out, bool &duLieuDaThayDoi) {
     std::string isbn = TachISBNTuMaSach(ma);
     if (isbn.empty()) return false;
 
-    PTRDS d = TimDauSachTheoISBN(ds, n, isbn);
+    PTRDS d = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (!d) return false;
 
     PTRDMS curr = d->dms;
@@ -609,9 +606,9 @@ bool XoaSachTheoMaSach(PTRDS ds[], int n, const std::string &ma, std::ostream &o
     return false;
 }
 
-std::string CapNhatDauSach(PTRDS ds[], int n, const std::string &isbn, const std::string &ten, 
-int trang, const std::string &tg, int nam, const std::string &tl, const std::string &viTri) {
-    PTRDS d = TimDauSachTheoISBN(ds, n, isbn);
+std::string CapNhatDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn, const std::string &ten, 
+int trang, const std::string &tg, int nam, const std::string &tl, const std::string &viTri, bool &duLieuDaThayDoi) {
+    PTRDS d = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (!d) return "Loi: Khong tim thay ISBN!";
 
     std::string loi;
@@ -647,15 +644,15 @@ int trang, const std::string &tg, int nam, const std::string &tl, const std::str
     }
 
     if (tenDoi) { // ten doi thi sort lai de giu thu tu
-        sapXepDauSachTheoTen(ds, 0, n - 1);
+        sapXepDauSachTheoTen(dsDauSach, 0, soLuongDauSach - 1);
     }
 
     duLieuDaThayDoi = true;
     return "";
 }
 
-void CapNhatViTri(PTRDS ds[], int n, const std::string &isbn, const std::string &viTri) {
-    PTRDS d = TimDauSachTheoISBN(ds, n, isbn);
+void CapNhatViTri(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn, const std::string &viTri, bool &duLieuDaThayDoi) {
+    PTRDS d = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (d && !viTri.empty()) {
         PTRDMS p = d->dms;
         while (p) {
@@ -669,7 +666,7 @@ void CapNhatViTri(PTRDS ds[], int n, const std::string &isbn, const std::string 
 
 // 8. Cac ham ho tro UI
 
-void LayDanhSachTimKiem(const std::string& tuKhoa, KetQuaTimKiem* ketQua, int& soLuongKetQua) {
+void LayDanhSachTimKiem(PTRDS dsDauSach[], int soLuongDauSach, const std::string& tuKhoa, KetQuaTimKiem* ketQua, int& soLuongKetQua) {
     std::string tuKhoaChuan = ChuanHoaChuoiTimKiem(tuKhoa);
     
     if (tuKhoaChuan.empty()) {
@@ -684,7 +681,7 @@ void LayDanhSachTimKiem(const std::string& tuKhoa, KetQuaTimKiem* ketQua, int& s
     }
 }
 
-void LayDanhSachTheoTheLoai(std::string* cacTheLoai, int& soTheLoai) {
+void LayDanhSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach, std::string* cacTheLoai, int& soTheLoai) {
     if (!cacTheLoai) {
         soTheLoai = 0;
         return;
@@ -692,7 +689,7 @@ void LayDanhSachTheoTheLoai(std::string* cacTheLoai, int& soTheLoai) {
     soTheLoai = TimTheLoaiDuyNhat(dsDauSach, soLuongDauSach, cacTheLoai);
 }
 
-void LayDanhSachViTri(std::string* cacViTri, int& soViTri) {
+void LayDanhSachViTri(PTRDS dsDauSach[], int soLuongDauSach, std::string* cacViTri, int& soViTri) {
     if (!cacViTri) {
         soViTri = 0;
         return;
@@ -700,16 +697,16 @@ void LayDanhSachViTri(std::string* cacViTri, int& soViTri) {
     soViTri = TimViTriDuyNhat(dsDauSach, soLuongDauSach, cacViTri);
 }
 
-int LayDanhSachSachTheoTheLoai(const std::string& theLoai, PTRDS* ketQua, int maxKetQua) {
+int LayDanhSachSachTheoTheLoai(PTRDS dsDauSach[], int soLuongDauSach, const std::string& theLoai, PTRDS* ketQua, int maxKetQua) {
     if (!ketQua || maxKetQua <= 0) return 0;
     return TimSachTheoTheLoai(dsDauSach, soLuongDauSach, theLoai, ketQua);
 }
 
-PTRDS TimDauSach(const std::string& isbn) {
+PTRDS TimDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn) {
     return TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
 }
 
-ThongTinDauSach LayThongTinDauSach(const std::string& isbn) {
+ThongTinDauSach LayThongTinDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn) {
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (!dauSach) {
         return {0, 0, 0, 0};
@@ -720,14 +717,14 @@ ThongTinDauSach LayThongTinDauSach(const std::string& isbn) {
 
 // 9. Ham thao tac nguoi dung
 
-std::string ThemDauSachMoi(const std::string& isbn, const std::string& ten, int trang,
+std::string ThemDauSachMoi(PTRDS dsDauSach[], int &soLuongDauSach, const std::string& isbn, const std::string& ten, int trang,
 const std::string& tg, int nam, const std::string& tl, 
-int soLuongBanSao, const std::string& viTri) {
+int soLuongBanSao, const std::string& viTri, bool &duLieuDaThayDoi) {
     
     if (soLuongBanSao <= 0) return "Loi: So luong phai > 0";
     if (soLuongBanSao > MAX_BAN_SAO) return "Loi: So luong qua nhieu";
 
-    bool ok = themDauSach(dsDauSach, soLuongDauSach, isbn, ten, trang, tg, nam, tl, true);
+    bool ok = themDauSach(dsDauSach, soLuongDauSach, isbn, ten, trang, tg, nam, tl, true, duLieuDaThayDoi);
     if (!ok) return "Loi: Khong them duoc dau sach!";
 
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
@@ -738,7 +735,7 @@ int soLuongBanSao, const std::string& viTri) {
         viTriCanDung = dauSach->dms->viTri;
     }
 
-    std::string loiThem = ThemNhieuBanSao(dauSach, soLuongBanSao, viTriCanDung);
+    std::string loiThem = ThemNhieuBanSao(dauSach, soLuongBanSao, viTriCanDung, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     if (!loiThem.empty()) return loiThem;
 
     duLieuDaThayDoi = true;
@@ -746,7 +743,7 @@ int soLuongBanSao, const std::string& viTri) {
     return "";
 }
 
-std::string ThemBanSaoMoi(const std::string& isbn, int soLuong, const std::string& viTri) {
+std::string ThemBanSaoMoi(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, int soLuong, const std::string& viTri, bool &duLieuDaThayDoi) {
     if (soLuong <= 0) return "Loi: So luong phai > 0";
     if (soLuong > MAX_BAN_SAO) return "Loi: So luong qua nhieu";
 
@@ -758,18 +755,18 @@ std::string ThemBanSaoMoi(const std::string& isbn, int soLuong, const std::strin
         viTriCanDung = dauSach->dms->viTri;
     }
 
-    std::string loiThem = ThemNhieuBanSao(dauSach, soLuong, viTriCanDung);
+    std::string loiThem = ThemNhieuBanSao(dauSach, soLuong, viTriCanDung, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     if (!loiThem.empty()) return loiThem;
 
     duLieuDaThayDoi = true;
     return "";
 }
 
-std::string CapNhatThongTinDauSach(const std::string& isbn, const std::string& ten, int trang,
+std::string CapNhatThongTinDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, const std::string& ten, int trang,
 const std::string& tg, int nam, const std::string& tl, 
-const std::string& viTri) {
+const std::string& viTri, bool &duLieuDaThayDoi) {
     
-    std::string loi = CapNhatDauSach(dsDauSach, soLuongDauSach, isbn, ten, trang, tg, nam, tl, viTri);
+    std::string loi = CapNhatDauSach(dsDauSach, soLuongDauSach, isbn, ten, trang, tg, nam, tl, viTri, duLieuDaThayDoi);
 
     if (loi.empty()) {
         duLieuDaThayDoi = true;
@@ -778,7 +775,7 @@ const std::string& viTri) {
     return loi;
 }
 
-std::string XoaDauSachTheoISBN(const std::string& isbn) {
+std::string XoaDauSachTheoISBN(PTRDS dsDauSach[], int &soLuongDauSach, const std::string& isbn, bool &duLieuDaThayDoi) {
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (!dauSach) return "Loi: Khong tim thay";
 
@@ -786,7 +783,7 @@ std::string XoaDauSachTheoISBN(const std::string& isbn) {
         return "Loi: Con ban sao, hay xoa ban sao truoc.";
     }
 
-    std::string loi = XoaDauSach(dsDauSach, soLuongDauSach, isbn);
+   std::string loi = XoaDauSach(dsDauSach, soLuongDauSach, isbn, duLieuDaThayDoi);
 
     if (loi.empty()) {
         duLieuDaThayDoi = true;
@@ -795,7 +792,7 @@ std::string XoaDauSachTheoISBN(const std::string& isbn) {
     return loi;
 }
 
-std::string ThanhLyBanSaoTheoMa(const std::string& maSach) {
+std::string ThanhLyBanSaoTheoMa(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, bool &duLieuDaThayDoi) {
     std::string isbn = TachISBNTuMaSach(maSach);
     if (isbn.empty()) return "Loi: Ma sach loi";
 
@@ -809,7 +806,7 @@ std::string ThanhLyBanSaoTheoMa(const std::string& maSach) {
     return "";
 }
 
-std::string XoaBanSaoTheoMa(const std::string& maSach) {
+std::string XoaBanSaoTheoMa(PTRDS dsDauSach[], int soLuongDauSach, const std::string& maSach, bool &duLieuDaThayDoi) {
     std::stringstream dummy;
     PTRDMS banSao = timDanhMucTheoMaSach(maSach, dsDauSach, soLuongDauSach, dummy, true);
 
@@ -819,7 +816,7 @@ std::string XoaBanSaoTheoMa(const std::string& maSach) {
         return "Loi: Sach dang muon, khong xoa duoc";
     }
 
-    bool thanhCong = XoaSachTheoMaSach(dsDauSach, soLuongDauSach, maSach, dummy);
+    bool thanhCong = XoaSachTheoMaSach(dsDauSach, soLuongDauSach, maSach, dummy, duLieuDaThayDoi);
     if (!thanhCong) return "Loi: Khong xoa duoc!";
 
     duLieuDaThayDoi = true;
@@ -830,11 +827,11 @@ std::string XoaBanSaoTheoMa(const std::string& maSach) {
 
 // 10. Tien ich kha
 
-void DanhDauDuLieuThayDoi() {
+void DanhDauDuLieuThayDoi(bool &duLieuDaThayDoi) {
     duLieuDaThayDoi = true;
 }
 
-int LayDanhSachBanSaoSapXep(const std::string& isbn, PTRDMS* mangKetQua, int maxKetQua) {
+int LayDanhSachBanSaoSapXep(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn, PTRDMS* mangKetQua, int maxKetQua) {
     if (!mangKetQua || maxKetQua <= 0) return 0;
 
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
@@ -853,13 +850,13 @@ int LayDanhSachBanSaoSapXep(const std::string& isbn, PTRDMS* mangKetQua, int max
     return count;
 }
 
-std::string LayViTriDauTienCuaDauSach(const std::string& isbn) {
+std::string LayViTriDauTienCuaDauSach(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn) {
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     if (!dauSach || !dauSach->dms) return "";
     return dauSach->dms->viTri;
 }
 
-bool CoTheBanSao(const std::string& isbn) {
+bool CoTheBanSao(PTRDS dsDauSach[], int soLuongDauSach, const std::string& isbn) {
     PTRDS dauSach = TimDauSachTheoISBN(dsDauSach, soLuongDauSach, isbn);
     return (dauSach && dauSach->dms != nullptr);
 }

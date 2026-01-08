@@ -9,14 +9,12 @@
 #include "DocGia.h"
 #include "NgayThang.h"
 
-// Bien toan cuc cho du lieu sach
-extern PTRDS dsDauSach[MAX_DAUSACH];
-extern int soLuongDauSach;
-extern bool duLieuDaThayDoi;
-
 
 int main() {
-    //khai bao du lieu
+    // Khai bao bien cuc bo (moved from global scope)
+    PTRDS dsDauSach[MAX_DAUSACH] = {nullptr};
+    int soLuongDauSach = 0;
+    bool duLieuDaThayDoi = false;
     PTRDG rootDocGia = nullptr;
 
     std::cout << "[main] Bat dau...\n";
@@ -72,7 +70,7 @@ int main() {
     }
 
     // Vong lap chinh cua chuong trinh
-    ChayChuongTrinhSFML(window, font, rootDocGia);
+    ChayChuongTrinhSFML(window, font, rootDocGia, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
 
     // Luu du lieu truoc khi thoat
     if (duLieuDaThayDoi) {
