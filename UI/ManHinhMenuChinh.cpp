@@ -37,7 +37,7 @@ void VeMenuChinhSFML(sf::RenderWindow &window, const sf::Font &font) {
 
 // Xu Ly Su Kien
 void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event,
-                         PTRDG rootDocGia) {
+                         PTRDG rootDocGia, PTRDS dsDauSach[], int soLuongDauSach) {
   if (event.type == sf::Event::MouseButtonPressed) {
     if (event.mouseButton.button == sf::Mouse::Left) {
       MaUI elementNhan =
@@ -46,7 +46,7 @@ void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event,
       switch (elementNhan) {
       case NUT_QUAN_LY_DAU_SACH:
         manHinhHienTai = QUAN_LY_SACH;
-        KhoiTaoManHinhSach(); // Reset lai man hinh sach
+        KhoiTaoManHinhSach(dsDauSach, soLuongDauSach); // Reset lai man hinh sach
         CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
         break;
 
@@ -76,7 +76,7 @@ void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event,
     case sf::Keyboard::Num1:
     case sf::Keyboard::Numpad1:
       manHinhHienTai = QUAN_LY_SACH;
-      KhoiTaoManHinhSach();
+      KhoiTaoManHinhSach(dsDauSach, soLuongDauSach);
       CapNhatThongBaoSFML("Chuyen den man hinh Quan Ly Sach.", 0);
       break;
 

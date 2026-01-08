@@ -309,7 +309,7 @@ static PTRDG xoaDocGiaRec(PTRDG root, int mathe) {
 
 void xoaDocGia(PTRDG &root, int mathe) {
   root = xoaDocGiaRec(root, mathe);
-  duLieuDaThayDoi = true;
+
 }
 
 // tim doc gia
@@ -437,7 +437,7 @@ void DuyetCayRaMang(PTRDG root, PTRDG arr[], int &count) {
 // F.Muon Sach
 //  quan ly muon tra
 //  tim ban sao co the muon cua 1 dau sach (O(M) - M: so ban sao)
-PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach) {
+PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach, PTRDS dsDauSach[], int soLuongDauSach) {
   if (dauSach == nullptr)
     return nullptr;
 
@@ -529,7 +529,7 @@ std::string MuonSach(PTRDG docGia, const std::string &isbn, PTRDS dsDauSach[],
 
   // Fallback to lowest ID if specific copy was not provided or is unavailable
   if (banSao == nullptr) {
-    banSao = TimBanSaoCoTheMuon(dauSach);
+    banSao = TimBanSaoCoTheMuon(dauSach, dsDauSach, soLuongDauSach);
   }
 
   if (banSao == nullptr) {
@@ -588,9 +588,9 @@ std::string MuonSach(PTRDG docGia, const std::string &isbn, PTRDS dsDauSach[],
   mt.NgayTra = "";
   mt.TrangThai = 0; // dang muon
 
-  themMuonTra(docGia, mt);
+  themMuonTra(docGia, mt.banSaoSach, dsDauSach, soLuongDauSach);
 
-  duLieuDaThayDoi = true;
+
 
   dauSach->soLuotMuon++;
   return banSao->maSach; // Success: return the actual borrowed Ma Sach
@@ -641,12 +641,12 @@ std::string TraSach(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[],
 
   docGia->data.soSachDangMuon--;
 
-  duLieuDaThayDoi = true;
+
   return ""; // thanh cong
 }
 
 // dung cho MaSach_to_PTRDMS
-void themMuonTra(PTRDG docgia, PTRDMS banSaoSach) {
+void themMuonTra(PTRDG docgia, PTRDMS banSaoSach, PTRDS dsDauSach[], int soLuongDauSach) {
   if (docgia == nullptr)
     return;
   // Giả định SO_LAN_THU_TOI_DA là hằng số cho số sách mượn tối đa (ví dụ: 3)
@@ -1154,7 +1154,7 @@ std::string BaoMatSach(PTRDG docGia, const std::string &maSach,
 
       // Thanh ly sach
       banSao->trangThai = THANH_LY;
-      duLieuDaThayDoi = true;
+
 
       return ""; // Thanh cong
     }

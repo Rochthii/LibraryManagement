@@ -196,7 +196,7 @@ extern int loaiThongBao;
 
 // Khai bao ham giao dien
 
-bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font, const std::string &fontPath);
+bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font, const std::string &fontPath, PTRDS dsDauSach[], int soLuongDauSach);
 void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font, PTRDG rootDocGia, PTRDS dsDauSach[], int &soLuongDauSach, bool &duLieuDaThayDoi);
 void CapNhatThongBaoSFML(const std::string &msg, int loai = 0);
 MaUI LayElementTaiToaDo(int mouseX, int mouseY);

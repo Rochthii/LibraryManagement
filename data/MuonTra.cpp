@@ -1,7 +1,4 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
+
 
 #include "Constants.h"
 #include "DauSach.h"
@@ -13,10 +10,6 @@
 #include "TrangThaiManHinhMuonTra.h"
 #include "XuLyChuoi.h"
 
-// --- SHARED DATA ---
-extern PTRDS dsDauSach[];
-extern int soLuongDauSach;
-extern bool duLieuDaThayDoi;
 
 // --- HELPERS (Custom Algorithms) ---
 
@@ -199,7 +192,7 @@ void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheD
   }
 }
 
-void LayDanhSachSachBackend(const std::string &tuKhoa,
+void LayDanhSachSachBackend(PTRDS dsDauSach[], int soLuongDauSach, const std::string &tuKhoa,
                             SachTableDTO_Backend *ketQua, int &soLuong) {
   soLuong = 0;
   if (tuKhoa.empty()) {
@@ -241,7 +234,7 @@ void LayDanhSachSachBackend(const std::string &tuKhoa,
   }
 }
 
-int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua) {
+int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua, PTRDS dsDauSach[], int soLuongDauSach) {
   if (!docGia)
     return 0;
   return LayDSSachDangMuon(docGia, ketQua, 10, dsDauSach, soLuongDauSach);
@@ -249,7 +242,7 @@ int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua) {
 
 // --- TRANSACTIONS ---
 
-std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach) {
+std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!docGia)
     return "Loi: Chua chon doc gia!";
   std::string maSachChuan = CatKhoangTrang(maSach);
@@ -261,7 +254,7 @@ std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach) {
   return result;
 }
 
-std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach) {
+std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!docGia)
     return "Loi: Chua chon doc gia!";
   std::string loi = TraSach(docGia, maSach, dsDauSach, soLuongDauSach);
@@ -270,7 +263,7 @@ std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach) {
   return loi;
 }
 
-std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach) {
+std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!docGia)
     return "Loi: Chua chon doc gia!";
   std::string loi = BaoMatSach(docGia, maSach, dsDauSach, soLuongDauSach);
@@ -281,7 +274,7 @@ std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach) {
 
 // --- UTILITIES ---
 
-std::string TimMaSachCoTheMuon(const std::string &isbn) {
+std::string TimMaSachCoTheMuon(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn) {
   PTRDMS mangBS[100];
   int nBS = LayDanhSachBanSaoSapXep(dsDauSach, soLuongDauSach, isbn, mangBS, 100);
   for (int i = 0; i < nBS; ++i) {

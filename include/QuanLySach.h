@@ -5,7 +5,7 @@
 #include <iostream>
 #include "DauSach.h"
 
-// Global variables now passed as parameters (no longer extern)           
+        
 
 
 // 1. Xu ly ma sach va trang thai

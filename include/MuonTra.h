@@ -33,18 +33,18 @@ void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheD
 /**
  * Searches for books (DauSach) available for borrowing.
  */
-void LayDanhSachSachBackend(const std::string &tuKhoa, SachTableDTO_Backend *ketQua, int &soLuong);
+void LayDanhSachSachBackend(PTRDS dsDauSach[], int soLuongDauSach, const std::string &tuKhoa, SachTableDTO_Backend *ketQua, int &soLuong);
 
 /**
  * Populates the list of books currently borrowed by a specific reader.
  */
-int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua);
+int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua, PTRDS dsDauSach[], int soLuongDauSach);
 
 // --- TRANSACTIONS ---
 
-std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach);
-std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach);
-std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach);
+std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
+std::string ThucHienTraSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
+std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
 
 // --- UTILITIES ---
 /**
@@ -56,6 +56,6 @@ std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach);
  */
 std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten);
 
-std::string TimMaSachCoTheMuon(const std::string &isbn);
+std::string TimMaSachCoTheMuon(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn);
 
 #endif // MUONTRA_H

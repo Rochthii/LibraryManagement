@@ -38,7 +38,7 @@ rem If executable not present, try to build; otherwise just run
 if not exist "%BIN%\main.exe" (
     echo.
     echo 🔧 Building project with %GPP%...
-    "%GPP%" -std=c++17 -Wall -Wextra -Iinclude -I"%SFML_INCLUDE%" -g main.cpp GiaoDienSFML.cpp data\KiemTraDuLieu.cpp data\QuanLySach.cpp data\ThaoTacFile.cpp data\NhapLieu.cpp utils\ThongBao.cpp utils\NgayThang.cpp utils\XuLyChuoi.cpp -I. -L"%SFML_LIB%" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lgdi32 -luser32 -lole32 -loleaut32 -lcomdlg32 -luuid -o "%BIN%\main.exe"
+    "%GPP%" -std=c++17 -Wall -Wextra -Iinclude -I"%SFML_INCLUDE%" -g main.cpp UI\GiaoDienSFML.cpp UI\ManHinhMenuChinh.cpp UI\ManHinhMuonTra.cpp UI\ManHinhQuanLyDocGia.cpp UI\ManHinhQuanLySach.cpp UI\ManHinhThongTin.cpp UI\TienIchGiaoDien.cpp data\DocGia.cpp data\KiemTraDuLieu.cpp data\MuonTra.cpp data\NhapLieu.cpp data\QuanLySach.cpp data\ThaoTacFile.cpp utils\NgayThang.cpp utils\ThongBao.cpp utils\XuLyChuoi.cpp -I. -L"%SFML_LIB%" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lgdi32 -luser32 -lole32 -loleaut32 -lcomdlg32 -luuid -o "%BIN%\main.exe"
 
     if errorlevel 1 (
         echo.

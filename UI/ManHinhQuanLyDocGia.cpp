@@ -15,15 +15,15 @@
 static DocGiaState state;
 
 // ===== FORWARD DECLARATIONS =====
-static void XuLyTextInputDocGia(sf::Event event, DocGiaState& s, PTRDG rootDocGia);
+static void XuLyTextInputDocGia(sf::Event event, DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi);
 static void VeBangDocGia(sf::RenderWindow &window, const sf::Font &font, const DocGiaState& s);
 static void VeFormNhapDocGia(sf::RenderWindow &window, const sf::Font &font, const DocGiaState& s);
 static void VeModalChiTietMuon(sf::RenderWindow &window, const sf::Font &font, const DocGiaState& s);
 static void VeKhungThongBaoDocGia(sf::RenderWindow &window, const sf::Font &font, const DocGiaState& s);
 
 static void CapNhatDuLieuHienThi(DocGiaState& s, PTRDG rootDocGia);
-static void ThucHienThemHoacSuaDocGia(DocGiaState& s, PTRDG rootDocGia);
-static void ThucHienXoaDocGia(DocGiaState& s, PTRDG rootDocGia);
+static void ThucHienThemHoacSuaDocGia(DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi);
+static void ThucHienXoaDocGia(DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi);
 
 // ===== HELPER: Cắt chuỗi với "..." =====
 static inline std::string CatChuoi(const std::string& str, size_t maxLen) {
@@ -444,7 +444,9 @@ static void VeModalChiTietMuon(sf::RenderWindow &window, const sf::Font &font, c
 // PHẦN 5: HÀM VẼ CHÍNH
 // ===============================================
 
-void VeManHinhQuanLyDocGia(sf::RenderWindow &window, const sf::Font &font) {
+void VeManHinhQuanLyDocGia(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach) {
+    (void)dsDauSach;
+    (void)soLuongDauSach;
     // Thanh tiêu đề
     sf::RectangleShape topBar(sf::Vector2f(CHIEU_RONG, THANH_TAB_CAO));
     topBar.setFillColor(MAU_KHUNG);
@@ -519,8 +521,8 @@ static void CapNhatDuLieuHienThi(DocGiaState& s, PTRDG rootDocGia) {
 // PHẦN 7: XỬ LÝ THÊM/SỬA/XÓA
 // ===============================================
 
-static void ThucHienThemHoacSuaDocGia(DocGiaState& s, PTRDG rootDocGia) {
-    extern bool duLieuDaThayDoi;
+static void ThucHienThemHoacSuaDocGia(DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi) {
+    // Extern removed
     
     // Validate
     std::string ho = CatKhoangTrang(s.chuoiHo);
@@ -593,8 +595,8 @@ static void ThucHienThemHoacSuaDocGia(DocGiaState& s, PTRDG rootDocGia) {
     }
 }
 
-static void ThucHienXoaDocGia(DocGiaState& s, PTRDG rootDocGia) {
-    extern bool duLieuDaThayDoi;
+static void ThucHienXoaDocGia(DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi) {
+    // Extern removed
     
     if (s.maTheDocGiaDuocChon == -1) {
         CapNhatThongBaoSFML("Loi: Chua chon doc gia de xoa!", 1);
@@ -630,10 +632,8 @@ static void ThucHienXoaDocGia(DocGiaState& s, PTRDG rootDocGia) {
 // PHẦN 8: XỬ LÝ SỰ KIỆN
 // ===============================================
 
-void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia) {
+void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
     (void)window;
-    extern PTRDS dsDauSach[];
-    extern int soLuongDauSach;
     
     // Xử lý modal
     if (state.hienThiModalChiTiet) {
@@ -654,7 +654,7 @@ void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG ro
           event.key.code == sf::Keyboard::Z))) {
         if (inputHoatDong == INPUT_HO_DOC_GIA || inputHoatDong == INPUT_TEN_DOC_GIA) {
             // Gọi hàm XuLyTextInput từ ManHinhQuanLySach (tái sử dụng)
-            XuLyTextInputDocGia(event, state, rootDocGia);
+            XuLyTextInputDocGia(event, state, rootDocGia, duLieuDaThayDoi);
         }
     }
     
@@ -721,7 +721,7 @@ void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG ro
             case NUT_THEM_DOC_GIA:
             case NUT_LUU_DOC_GIA:
                 inputHoatDong = KHONG_XAC_DINH;
-                ThucHienThemHoacSuaDocGia(state, rootDocGia);
+                ThucHienThemHoacSuaDocGia(state, rootDocGia, duLieuDaThayDoi);
                 break;
                 
             case NUT_HUY_DOC_GIA:
@@ -769,7 +769,7 @@ void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG ro
                 break;
                 
             case NUT_XAC_NHAN_XOA_DG:
-                ThucHienXoaDocGia(state, rootDocGia);
+                ThucHienXoaDocGia(state, rootDocGia, duLieuDaThayDoi);
                 break;
                 
             case NUT_HUY_XOA_DG:
@@ -906,7 +906,7 @@ void KhoiTaoManHinhDocGia(PTRDG rootDocGia) {
 // PHẦN 9: XỬ LÝ TEXT INPUT (Tái sử dụng pattern)
 // ===============================================
 
-void XuLyTextInputDocGia(sf::Event event, DocGiaState& s, PTRDG rootDocGia) {
+void XuLyTextInputDocGia(sf::Event event, DocGiaState& s, PTRDG rootDocGia, bool &duLieuDaThayDoi) {
     if (inputHoatDong != INPUT_HO_DOC_GIA && inputHoatDong != INPUT_TEN_DOC_GIA) return;
     
     std::string* targetString = nullptr;
@@ -971,7 +971,7 @@ void XuLyTextInputDocGia(sf::Event event, DocGiaState& s, PTRDG rootDocGia) {
             } else {
                 inputHoatDong = KHONG_XAC_DINH;
                 if (event.key.code == sf::Keyboard::Enter) {
-                    ThucHienThemHoacSuaDocGia(s, rootDocGia);
+                    ThucHienThemHoacSuaDocGia(s, rootDocGia, duLieuDaThayDoi);
                 }
             }
             CapNhatThongBaoSFML("", 0);

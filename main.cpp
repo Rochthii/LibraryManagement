@@ -62,7 +62,7 @@ int main() {
         return 1;
     }
 
-    if (!KhoiTaoGiaoDienSFML(window, font, fontPath)) {
+    if (!KhoiTaoGiaoDienSFML(window, font, fontPath, dsDauSach, soLuongDauSach)) {
         std::cerr << "Loi khoi tao giao dien!\n";
         GiaiPhongToanBoDauSach(dsDauSach, soLuongDauSach);
         GiaiPhongCay(rootDocGia);

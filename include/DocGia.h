@@ -90,9 +90,9 @@ void giaiPhongDsmt(MUONTRA& dsmt);
 std::string MuonSach(PTRDG docGia, const std::string& isbn, PTRDS dsDauSach[], int soLuongDauSach);
 std::string TraSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
 std::string BaoMatSach(PTRDG docGia, const std::string& maSach, PTRDS dsDauSach[], int soLuongDauSach);
-void themMuonTra(PTRDG docgia, PTRDMS banSaoSach);//khi muon sach
+void themMuonTra(PTRDG docgia, PTRDMS banSaoSach, PTRDS dsDauSach[], int soLuongDauSach);//khi muon sach
 void themMuonTra(PTRDG docgia, const MuonTra &mt);//khi load file
-PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach);
+PTRDMS TimBanSaoCoTheMuon(PTRDS dauSach, PTRDS dsDauSach[], int soLuongDauSach);
 PTRDMS TimBanSaoTheoMa(PTRDS dauSach, const std::string& maSach);
 int DemBanSaoCoTheMuon(PTRDS dauSach);
 // Prototype (h)

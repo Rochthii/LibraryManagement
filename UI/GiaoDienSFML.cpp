@@ -21,7 +21,7 @@ std::string noiDungThongBao = "Chao mung!"; // noi dung thong bao hien thi
 int loaiThongBao = 0; // loai thong bao (0: binh thuong, 1: loi, 2: thanh cong)
 
 bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font,
-                         const std::string &fontPath) {
+                         const std::string &fontPath, PTRDS dsDauSach[], int soLuongDauSach) {
   (void)window; // danh dau bien chua dung truc tiep
   std::cout << "Dang khoi tao cua so SFML..." << std::endl;
   if (!font.loadFromFile(fontPath)) { // tai font tu file
@@ -29,7 +29,7 @@ bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font,
     return false; // bao loi neu khong load duoc
   }
   std::cout << "Khoi tao SFML thanh cong!" << std::endl;
-  KhoiTaoManHinhSach(); // khoi tao du lieu man hinh sach
+  KhoiTaoManHinhSach(dsDauSach, soLuongDauSach); // khoi tao du lieu man hinh sach
   return true;          // khoi tao thanh cong
 }
 
@@ -48,35 +48,11 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font, PTR
   case QUAN_LY_SACH:
     VeManHinhQuanLySach(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     break;
-
-  // [THÊM 2 CASE NÀY VÀO]
   case QUAN_LY_DOC_GIA:
-    VeManHinhQuanLyDocGia(window, font); // Tên hàm phải khớp
+    VeManHinhQuanLyDocGia(window, font, dsDauSach, soLuongDauSach);
     break;
   case MUON_TRA_SACH:
-    VeManHinhMuonTra(window, font); // Tên hàm phải khớp
-    break;
-
-  // (Thêm default để tắt cảnh báo hoàn toàn)
-  default:
-    VeMenuChinhSFML(window, font); // Quay về menu nếu không rõ
-    break;
-  }
-  switch (manHinhHienTai) {
-  case MENU_CHINH:
-    VeMenuChinhSFML(window, font);
-    break;
-  case MAN_HINH_THONG_TIN:
-    VeManHinhThongTinSFML(window, font);
-    break;
-  case QUAN_LY_SACH:
-    VeManHinhQuanLySach(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
-    break;
-  case QUAN_LY_DOC_GIA:
-    VeManHinhQuanLyDocGia(window, font);
-    break;
-  case MUON_TRA_SACH:
-    VeManHinhMuonTra(window, font);
+    VeManHinhMuonTra(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     break;
   default:
     VeMenuChinhSFML(window, font);
@@ -92,17 +68,7 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font, PTR
     }
   }
 
-  // [NEW] Ve Modal sau cung (de de len cac nut)
-  switch (manHinhHienTai) {
-  case MUON_TRA_SACH:
-    VeModalMuonTra(window, font); // Ham moi
-    break;
-  case QUAN_LY_DOC_GIA:
-    // VeModalDocGia(window, font); // Neu can
-    break;
-  default:
-    break;
-  }
+
 }
 
 // ham xu ly su kien tong quat
@@ -134,7 +100,7 @@ static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia, PTRDS dsD
     // dieu phoi su kien den dung man hinh
     switch (manHinhHienTai) {
     case MENU_CHINH:
-      XuLySuKienMenuChinh(window, event, rootDocGia);
+      XuLySuKienMenuChinh(window, event, rootDocGia, dsDauSach, soLuongDauSach);
       break;
     case MAN_HINH_THONG_TIN:
       XuLySuKienThongTin(window, event);
@@ -143,10 +109,10 @@ static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia, PTRDS dsD
       XuLySuKienManHinhSach(window, event, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       break;
     case QUAN_LY_DOC_GIA:
-      XuLySuKienManHinhDocGia(window, event, rootDocGia);
+      XuLySuKienManHinhDocGia(window, event, rootDocGia, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       break;
     case MUON_TRA_SACH:
-      XuLySuKienManHinhMuonTra(window, event, rootDocGia);
+      XuLySuKienManHinhMuonTra(window, event, rootDocGia, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       break;
     default:
       break;
@@ -207,8 +173,6 @@ MaUI LayElementTaiToaDo(int mouseX, int mouseY) {
       return HANG_SACH;
     }
   } else if (manHinhHienTai == MUON_TRA_SACH) {
-    // Fix: Bang bat dau tu khoang headerY + 40 (tam 155), row bat dau tu 190.
-    // Chinh threshold xuong thap hon de bat duoc row dau tien va header
     if (mouseY > BANG_Y + 90.f && mouseY < CHIEU_CAO - 50.f &&
         mouseX >= BANG_X && mouseX <= BANG_X + BANG_RONG) {
       return HANG_SACH;

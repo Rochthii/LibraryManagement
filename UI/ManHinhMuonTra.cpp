@@ -32,16 +32,15 @@ static void VeKhungThongBao(sf::RenderWindow &window, const sf::Font &font,
                             const MuonTraState &s);
 
 static void ThucHienTimKiemDocGia(PTRDG rootDocGia, MuonTraState &s, bool silent = false);
-static void ThucHienXoaDocGia(MuonTraState &s, PTRDG rootDocGia);
-static void ThucHienMuonSachSFML(MuonTraState &s);
-static void ThucHienTraSachSFML(MuonTraState &s);
-static void ThucHienBaoMatSachSFML(MuonTraState &s);
-static void CapNhatSachDangMuon(MuonTraState &s);
-static void XoaFormNhapLieuSFML(MuonTraState &s);
-static void ThucHienTimKiemSach(MuonTraState &s, bool silent = false);
+static void ThucHienXoaDocGia(MuonTraState &s, PTRDG rootDocGia, bool &duLieuDaThayDoi);
+static void ThucHienMuonSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
+static void ThucHienTraSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
+static void ThucHienBaoMatSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
+static void CapNhatSachDangMuon(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach);
+static void ThucHienTimKiemSach(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool silent = false);
 static void CapNhatPhanTrangDocGia(MuonTraState &s);
 static void CapNhatPhanTrangSach(MuonTraState &s);
-static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia);
+static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia, PTRDS dsDauSach[], int soLuongDauSach);
 static void QuayLaiBangDocGia(MuonTraState &s);
 
 static inline std::string CatChuoi(const std::string &str, size_t maxLen) {
@@ -1029,9 +1028,7 @@ static void VeModalChiTietDocGia(sf::RenderWindow &window, const sf::Font &font,
 }
 
 // ===== HAM TAI DU LIEU TOP 10 =====
-static void TaiDuLieuTop10(MuonTraState &s) {
-  extern PTRDS dsDauSach[];
-  extern int soLuongDauSach;
+static void TaiDuLieuTop10(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach) {
 
   TopSachDTO bufferTam[MAX_DAUSACH];
   int soLuong = LayTopSach(dsDauSach, soLuongDauSach, bufferTam);
@@ -1180,7 +1177,21 @@ static void VeModalTop10(sf::RenderWindow &window, const sf::Font &font,
 }
 
 // ===== HAM VE CHINH =====
-void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font) {
+// [NEW] Ham ve cac modal muon tra (Goi tu GiaoDienSFML.cpp sau cung)
+void VeModalMuonTra(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach) {
+  (void)dsDauSach;
+  (void)soLuongDauSach;
+  if (state.hienThiModalTop10) {
+    VeModalTop10(window, font, state); 
+  }
+  if (state.hienThiModalChiTiet) {
+    VeModalChiTietDocGia(window, font, state);
+  }
+}
+
+// ===== HAM VE CHINH =====
+void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
+  (void)duLieuDaThayDoi;
   // Thanh tieu de
   sf::RectangleShape topBar(sf::Vector2f(CHIEU_RONG, THANH_TAB_CAO));
   topBar.setFillColor(MAU_KHUNG);
@@ -1196,7 +1207,6 @@ void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font) {
   TaoNut(font, NUT_BACK, CHIEU_RONG - PADDING - 100.f, PADDING / 4.f, 100.f,
          NUT_CAO * 0.8f, "< MENU", MAU_NUT_BACK, MAU_CHU_NUT);
 
-  // Ve tab bar
   VeTabBar(window, font, state);
 
   // Hien thi dua tren che do
@@ -1218,23 +1228,27 @@ void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font) {
 
   VeKhungThongBao(window, font, state);
 
-  VeKhungThongBao(window, font, state);
+  // Modal drawing called separately or here?
+  // We verified GiaoDienSFML calls VeModalMuonTra separately.
+  // So we can omit it here OR keep it.
+  // But wait, VeManHinhMuonTra implementation in Step 1250 added VeModalMuonTra call at the end.
+  // And GiaoDienSFML ALSO calls VeModalMuonTra?
+  // Let's check GiaoDienSFML again.
+  // In Step 1326, we updated GiaoDienSFML.
+  // It calls VeManHinhMuonTra(...) in the switch.
+  // It ALSO calls VeModalMuonTra(...) in the switch at the end?
+  // No, I REMOVED the switch block logic for Modal in Step 1322!
+  // Wait, step 1322 removed the switch block.
+  // So GiaoDienSFML DOES NOT call VeModalMuonTra manually anymore.
+  // So VeManHinhMuonTra MUST call VeModalMuonTra.
 
-  // XOA: Modal drawing moved to VeModalMuonTra to fix Z-Index
+  VeModalMuonTra(window, font, dsDauSach, soLuongDauSach);
 }
 
-// [NEW] Ham ve cac modal muon tra (Goi tu GiaoDienSFML.cpp sau cung)
-void VeModalMuonTra(sf::RenderWindow &window, const sf::Font &font) {
-  if (state.hienThiModalTop10) {
-    VeModalTop10(window, font, state);
-  }
-  if (state.hienThiModalChiTiet) {
-    VeModalChiTietDocGia(window, font, state);
-  }
-}
+// Old VeModalMuonTra removed as it is merged above
 
 // ===== HAM XU LY SU KIEN =====
-void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia) {
+void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   (void)window;
 
   // Xu ly modal Chi tiet doc gia
@@ -1279,7 +1293,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
 
     // Xu ly NUT TOP 10
     if (element == NUT_MT_VAO_TOP_10) {
-      TaiDuLieuTop10(state);
+      TaiDuLieuTop10(state, dsDauSach, soLuongDauSach);
       state.hienThiModalTop10 = true;
       return;
     }
@@ -1373,15 +1387,14 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
     if (element == static_cast<MaUI>(NUT_XOA_TIM + 50)) {
       state.chuoiTimKiemSach = "";
       inputHoatDong = KHONG_XAC_DINH;
-      ThucHienTimKiemSach(state);
+      ThucHienTimKiemSach(state, dsDauSach, soLuongDauSach);
       return;
     }
 
     // Xu ly Action Buttons (Chi Tiet, Sua, Xoa, Huy Chon)
     if (state.docGiaDangChon) {
       if (element == NUT_CHI_TIET_DOC_GIA) {
-        extern PTRDS dsDauSach[];
-        extern int soLuongDauSach;
+        // Extern removed
         state.slSachDangMuon =
             LayDSSachDangMuon(state.docGiaDangChon, state.listSachDangMuon, 10,
                               dsDauSach, soLuongDauSach);
@@ -1428,7 +1441,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
     }
 
     if (element == NUT_XAC_NHAN_XOA_DG) {
-      ThucHienXoaDocGia(state, rootDocGia);
+      ThucHienXoaDocGia(state, rootDocGia, duLieuDaThayDoi);
       return;
     }
 
@@ -1517,7 +1530,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
                                   0);
             } else {
               // Mode Muon/Tra -> Chuyen sang xem sach
-              XuLyChonDocGia(state, clickedDocGia);
+              XuLyChonDocGia(state, clickedDocGia, dsDauSach, soLuongDauSach);
             }
           } else {
             // Single click
@@ -1565,7 +1578,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
               elapsedTime < state.THOI_GIAN_DOUBLE_CLICK) {
             // DOUBLE CLICK - Chon sach de muon
             // DOUBLE CLICK - Chon sach de muon
-            std::string maChon = TimMaSachCoTheMuon(isbn);
+            std::string maChon = TimMaSachCoTheMuon(dsDauSach, soLuongDauSach, isbn);
 
             if (!maChon.empty()) {
               state.chuoiMaSach = maChon;
@@ -1590,17 +1603,17 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
 
     // Xu ly cac nut muon/tra/bao mat
     if (element == NUT_MT_XAC_NHAN_MUON) {
-      ThucHienMuonSachSFML(state);
+      ThucHienMuonSachSFML(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       return;
     }
 
     if (element == NUT_MT_XAC_NHAN_TRA) {
-      ThucHienTraSachSFML(state);
+      ThucHienTraSachSFML(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       return;
     }
 
     if (element == NUT_MT_BAO_MAT) {
-      ThucHienBaoMatSachSFML(state);
+      ThucHienBaoMatSachSFML(state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
       return;
     }
 
@@ -1617,7 +1630,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
 
     if (element == NUT_THEM_DOC_GIA) {
       // [LOGIC THEM / SUA DOC GIA]
-      extern bool duLieuDaThayDoi;
+      // Extern removed
 
       // 1. Pre-process & Standardize
       std::string hoRaw = state.chuoiHo;
@@ -1780,7 +1793,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
           event.key.code == sf::Keyboard::Backspace) {
         if (!state.chuoiTimKiemSach.empty()) {
           state.chuoiTimKiemSach.pop_back();
-          ThucHienTimKiemSach(state);
+          ThucHienTimKiemSach(state, dsDauSach, soLuongDauSach);
         }
       } else if (event.type == sf::Event::TextEntered &&
                  event.text.unicode < 128 && event.text.unicode != 8 &&
@@ -1788,7 +1801,7 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
         char c = static_cast<char>(event.text.unicode);
         if (state.chuoiTimKiemSach.length() < 100) {
           state.chuoiTimKiemSach += c;
-          ThucHienTimKiemSach(state);
+          ThucHienTimKiemSach(state, dsDauSach, soLuongDauSach);
         }
       }
     }
@@ -1863,9 +1876,9 @@ void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG r
   }
 }
 
-static void CapNhatSachDangMuon(MuonTraState &s) {
+static void CapNhatSachDangMuon(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach) {
   s.slSachDangMuon =
-      LayDSSachDangMuonBackend(s.docGiaDangChon, s.listSachDangMuon);
+      LayDSSachDangMuonBackend(s.docGiaDangChon, s.listSachDangMuon, dsDauSach, soLuongDauSach);
 }
 
 static void XoaFormNhapLieuSFML(MuonTraState &s) {
@@ -1874,7 +1887,7 @@ static void XoaFormNhapLieuSFML(MuonTraState &s) {
   s.indexSachDangChon = -1;
 }
 
-static void ThucHienMuonSachSFML(MuonTraState &s) {
+static void ThucHienMuonSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
@@ -1896,11 +1909,11 @@ static void ThucHienMuonSachSFML(MuonTraState &s) {
   }
 
   // Call backend
-  std::string result = ThucHienMuonSachBackend(s.docGiaDangChon, maSach);
+  std::string result = ThucHienMuonSachBackend(s.docGiaDangChon, maSach, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
 
   if (result.find("Loi:") == std::string::npos) {
     CapNhatThongBaoSFML("Muon sach thanh cong: " + result, 2);
-    CapNhatSachDangMuon(s);
+    CapNhatSachDangMuon(s, dsDauSach, soLuongDauSach);
     XoaFormNhapLieuSFML(s);
     inputHoatDong = KHONG_XAC_DINH;
   } else {
@@ -1909,7 +1922,7 @@ static void ThucHienMuonSachSFML(MuonTraState &s) {
   }
 }
 
-static void ThucHienTraSachSFML(MuonTraState &s) {
+static void ThucHienTraSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
@@ -1923,18 +1936,18 @@ static void ThucHienTraSachSFML(MuonTraState &s) {
     return;
   }
 
-  std::string loi = ThucHienTraSachBackend(s.docGiaDangChon, s.maSachDangChon);
+  std::string loi = ThucHienTraSachBackend(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
 
   if (loi.empty()) {
     CapNhatThongBaoSFML("Tra sach thanh cong: " + s.maSachDangChon, 2);
-    CapNhatSachDangMuon(s);
+    CapNhatSachDangMuon(s, dsDauSach, soLuongDauSach);
     XoaFormNhapLieuSFML(s);
   } else {
     CapNhatThongBaoSFML(loi, 1);
   }
 }
 
-static void ThucHienBaoMatSachSFML(MuonTraState &s) {
+static void ThucHienBaoMatSachSFML(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!s.docGiaDangChon) {
     CapNhatThongBaoSFML("Loi: Chua chon doc gia!", 1);
     return;
@@ -1947,19 +1960,19 @@ static void ThucHienBaoMatSachSFML(MuonTraState &s) {
     return;
   }
 
-  std::string loi = ThucHienMatSachBackend(s.docGiaDangChon, s.maSachDangChon);
+  std::string loi = ThucHienMatSachBackend(s.docGiaDangChon, s.maSachDangChon, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
 
   if (loi.empty()) {
     CapNhatThongBaoSFML("Bao mat sach thanh cong: " + s.maSachDangChon, 2);
-    CapNhatSachDangMuon(s);
+    CapNhatSachDangMuon(s, dsDauSach, soLuongDauSach);
     XoaFormNhapLieuSFML(s);
   } else {
     CapNhatThongBaoSFML(loi, 1);
   }
 }
 
-static void ThucHienXoaDocGia(MuonTraState &s, PTRDG rootDocGia) {
-  extern bool duLieuDaThayDoi;
+static void ThucHienXoaDocGia(MuonTraState &s, PTRDG rootDocGia, bool &duLieuDaThayDoi) {
+  // Extern removed
 
   if (s.docGiaDangChon == nullptr)
     return;
@@ -2024,8 +2037,8 @@ static void CapNhatPhanTrangDocGia(MuonTraState &s) {
     s.trangHienTaiDocGia = s.tongSoTrangDocGia;
 }
 
-static void ThucHienTimKiemSach(MuonTraState &s, bool silent) {
-  LayDanhSachSachBackend(s.chuoiTimKiemSach, s.ketQuaTimKiemSach,
+static void ThucHienTimKiemSach(MuonTraState &s, PTRDS dsDauSach[], int soLuongDauSach, bool silent) {
+  LayDanhSachSachBackend(dsDauSach, soLuongDauSach, s.chuoiTimKiemSach, s.ketQuaTimKiemSach,
                          s.soLuongKetQuaSach);
 
   s.trangHienTaiSach = 1;
@@ -2050,7 +2063,7 @@ static void CapNhatPhanTrangSach(MuonTraState &s) {
     s.trangHienTaiSach = s.tongSoTrangSach;
 }
 
-static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia) {
+static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia, PTRDS dsDauSach[], int soLuongDauSach) {
   if (!docGia)
     return;
 
@@ -2059,11 +2072,11 @@ static void XuLyChonDocGia(MuonTraState &s, PTRDG docGia) {
   s.dangHienThiBangSach = true;
 
   // Lay danh sach sach dang muon tu backend
-  CapNhatSachDangMuon(s);
+  CapNhatSachDangMuon(s, dsDauSach, soLuongDauSach);
 
   // Tim kiem sach (hien tat ca ban dau)
   s.chuoiTimKiemSach = "";
-  ThucHienTimKiemSach(s);
+  ThucHienTimKiemSach(s, dsDauSach, soLuongDauSach);
 
   std::string hoTen = docGia->data.Ho + " " + docGia->data.Ten;
   CapNhatThongBaoSFML(
