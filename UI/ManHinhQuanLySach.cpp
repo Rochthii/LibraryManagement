@@ -485,9 +485,9 @@ static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font, co
            (elementHover == NUT_HUY_THEM_BS ? MAU_NEN_NUT_SANG : MAU_NEN_NUT), MAU_CHU_NUT);
 }
 
-static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState) {
-    LayDanhSachTheoTheLoai(currentState.cacTheLoaiCache, currentState.soTheLoaiCache);
-    LayDanhSachViTri(currentState.cacViTriCache, currentState.soViTriCache);
+static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach) {
+    LayDanhSachTheoTheLoai(dsDauSach, soLuongDauSach, currentState.cacTheLoaiCache, currentState.soTheLoaiCache);
+    LayDanhSachViTri(dsDauSach, soLuongDauSach, currentState.cacViTriCache, currentState.soViTriCache);
     currentState.canCapNhatCache = false;
     float headerY = BANG_Y + 50.f;
     float contentY = headerY + 40.f;
@@ -1058,7 +1058,7 @@ static void XuLyClickBangSach(const sf::Event& event, SachState& state) {
     }
 }
 
-static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state) {
+static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
     (void)event;
     switch (elementNhan) {
         case NUT_BACK:
@@ -1599,9 +1599,9 @@ static void CapNhatPhanTrangSFML(SachState& currentState) {
 }
 
 // Goi backend de tim kiem/lay tat ca sach
-static void ThucHienTimKiemNoiBo(SachState& currentState) {
+static void ThucHienTimKiemNoiBo(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach) {
     // GOI HAM BACKEND - Logic "Get All" va "Search" da duoc gom lai
-    LayDanhSachTimKiem(currentState.chuoiTimKiem, currentState.ketQuaTimKiem, 
+    LayDanhSachTimKiem(dsDauSach, soLuongDauSach, currentState.chuoiTimKiem, currentState.ketQuaTimKiem, 
                        currentState.soLuongKetQuaTimKiem);
     
     currentState.trangHienTai = 1;
@@ -1666,7 +1666,7 @@ static void DienFormVoiSachDuocChon(SachState& currentState) {
 }
 
 
-static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
+static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi) {
     currentState.chuoiTenSach = CatKhoangTrang(currentState.chuoiTenSach);
     currentState.chuoiTacGia = CatKhoangTrang(currentState.chuoiTacGia);
     currentState.chuoiTheLoai = CatKhoangTrang(currentState.chuoiTheLoai);
@@ -1764,21 +1764,21 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
     }
 }
 
-static void ResetVaTaiLaiDuLieu(SachState& currentState, bool xoaForm, bool xoaISBN) {
+static void ResetVaTaiLaiDuLieu(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach, bool xoaForm, bool xoaISBN) {
     if (xoaForm) {
         XoaFormNhapLieuSFML(currentState);
     }
     if (xoaISBN) {
         currentState.isbnSachDuocChon = "";
     }
-    ThucHienTimKiemNoiBo(currentState);
+    ThucHienTimKiemNoiBo(currentState, dsDauSach, soLuongDauSach);
     currentState.canCapNhatCache = true;
     if (currentState.cheDoXemHienTai == XEM_THEO_THE_LOAI) {
-        CapNhatDuLieuXemTheoTheLoai(currentState);
+        CapNhatDuLieuXemTheoTheLoai(currentState, dsDauSach, soLuongDauSach);
     }
 }
 
-static void ThucHienXoaSachSFML(SachState& currentState) {
+static void ThucHienXoaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi) {
     if (currentState.isbnSachDuocChon.empty()) {
         CapNhatThongBaoSFML("Loi: Chua chon dau sach de xoa!", 1);
         return;
@@ -1788,7 +1788,7 @@ static void ThucHienXoaSachSFML(SachState& currentState) {
 
     if (ketQua.empty()) {
         CapNhatThongBaoSFML("Xoa dau sach thanh cong!", 2);
-        ResetVaTaiLaiDuLieu(currentState, false, true);
+        ResetVaTaiLaiDuLieu(currentState, dsDauSach, soLuongDauSach, false, true);
     }
     else {
         CapNhatThongBaoSFML(ketQua, 1);
