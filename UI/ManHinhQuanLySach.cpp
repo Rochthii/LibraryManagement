@@ -21,8 +21,8 @@ static const sf::Color MAU_VIEN_SANG(180, 180, 190);
 static const sf::Color MAU_NUT_BACK_SANG(110, 110, 120);
 
 // Forward Decl cho cac ham cat nho
-static void XuLyClickModalThemBanSao(sf::Event event, SachState& state);
-static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state);
+static void XuLyClickModalThemBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
+static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 static void XuLyClickBangSach(const sf::Event& event, SachState& state);
 
@@ -960,7 +960,7 @@ static void XuLyClickModalThemBanSao(sf::Event event, SachState& state) {
     }
 }
 
-static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state) {
+static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi) {
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
         MaUI elementNhan = LayElementTaiToaDo(event.mouseButton.x, event.mouseButton.y);
 
@@ -1004,7 +1004,7 @@ static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state) {
             return;
         }
         if (elementNhan == NUT_MODAL_TRANG_SAU) {
-            PTRDS dauSachCheck = TimDauSach(state.idModalSachDuocChon);
+            PTRDS dauSachCheck = TimDauSach(dsDauSach, soLuongDauSach, state.idModalSachDuocChon);
             if (dauSachCheck) {
                 int tongBS = dauSachCheck->tongBanSao;
                 int tongTrang = (tongBS + SO_SACH_MOI_TRANG_MODAL - 1) / SO_SACH_MOI_TRANG_MODAL;
@@ -1187,7 +1187,7 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
 // HAM XU LY SU KIEN CHINH (DA DUOC CAT NHO)
 // =============================================================
 
-void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
+void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event, PTRDS dsDauSach[], int &soLuongDauSach, bool &duLieuDaThayDoi) {
     (void)window; 
 
     // Xu ly cuon chuot cho che do xem The Loai
@@ -1206,12 +1206,12 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
     }
 
     if (state.hienThiModalThemBS) {
-        XuLyClickModalThemBanSao(event, state);
+        XuLyClickModalThemBanSao(event, state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
         return;
     }
     
     if (state.hienThiModalBanSao) {
-        XuLyClickModalChiTietBanSao(event, state);
+        XuLyClickModalChiTietBanSao(event, state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
         return;
     }
 
@@ -1264,7 +1264,7 @@ void XuLySuKienManHinhSach(sf::RenderWindow &window, sf::Event event) {
             if (elementNhan == HANG_SACH) {
                 XuLyClickBangSach(event, state);
             } else {
-                XuLyClickMenuChinh(elementNhan, event, state);
+                XuLyClickMenuChinh(elementNhan, event, state, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
             }
         }
     }
