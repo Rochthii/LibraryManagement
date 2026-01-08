@@ -34,7 +34,7 @@ bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font,
 }
 
 // ham ve man hinh hien tai
-static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font) {
+static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   window.clear(MAU_NEN); // xoa man hinh (mau nen)
   soLuongElement = 0;    // reset so luong element
 
@@ -46,7 +46,7 @@ static void VeManHinhHienTai(sf::RenderWindow &window, const sf::Font &font) {
     VeManHinhThongTinSFML(window, font);
     break;
   case QUAN_LY_SACH:
-    VeManHinhQuanLySach(window, font);
+    VeManHinhQuanLySach(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);
     break;
 
   // [THÊM 2 CASE NÀY VÀO]
@@ -163,13 +163,13 @@ static void XuLySuKienSFML(sf::RenderWindow &window, PTRDG rootDocGia) {
   }
 }
 
-void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font, PTRDG rootDocGia) {
+void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font, PTRDG rootDocGia, PTRDS dsDauSach[], int &soLuongDauSach, bool &duLieuDaThayDoi) {
   std::cout << "[DEBUG] Bat dau vong lap SFML..." << std::endl;
   yeuCauThoat = false; // reset co thoat
 
   while (window.isOpen() && !yeuCauThoat) { // vong lap chinh (60 FPS mac dinh)
     XuLySuKienSFML(window, rootDocGia);                 // xu ly su kien (chuot, phim, ...)
-    VeManHinhHienTai(window, font);         // ve man hinh hien tai
+    VeManHinhHienTai(window, font, dsDauSach, soLuongDauSach, duLieuDaThayDoi);         // ve man hinh hien tai
     window.display();                       // hien thi len man hinh
   }
 

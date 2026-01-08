@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 // Khai báo các hàm public cho màn hình sách
-void VeManHinhQuanLySach(sf::RenderWindow& window, const sf::Font& font);
+void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi);
 void XuLySuKienManHinhSach(sf::RenderWindow& window, sf::Event event);
 void KhoiTaoManHinhSach(); 
 

@@ -23,7 +23,7 @@ static const sf::Color MAU_NUT_BACK_SANG(110, 110, 120);
 // Forward Decl cho cac ham cat nho
 static void XuLyClickModalThemBanSao(sf::Event event, SachState& state);
 static void XuLyClickModalChiTietBanSao(sf::Event event, SachState& state);
-static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state);
+static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& state, PTRDS dsDauSach[], int soLuongDauSach, bool& duLieuDaThayDoi);
 static void XuLyClickBangSach(const sf::Event& event, SachState& state);
 
 static void VeBangSach(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
@@ -32,12 +32,12 @@ static void VeKhungThongBaoSFML(sf::RenderWindow &window, const sf::Font &font, 
 static void VeModalChiTietBanSao(sf::RenderWindow &window, const sf::Font &font, SachState& currentState);
 static void VeModalThemBanSao(sf::RenderWindow &window, const sf::Font &font, const SachState& currentState);
 static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font, SachState& currentState);
-static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState);
+static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
 
 static void XuLyTextInput(sf::Event event, SachState& currentState);
-static void ThucHienTimKiemNoiBo(SachState& currentState);
-static void ThucHienThemHoacSuaSachSFML(SachState& currentState);
-static void ThucHienXoaSachSFML(SachState& currentState);
+static void ThucHienTimKiemNoiBo(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach);
+static void ThucHienThemHoacSuaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi);
+static void ThucHienXoaSachSFML(SachState& currentState, PTRDS dsDauSach[], int& soLuongDauSach, bool& duLieuDaThayDoi);
 static void ThucHienThanhLySach(SachState& currentState, const std::string& maSach);
 static void ThucHienXoaBanSao(SachState& currentState, const std::string& maSach);
 static void ThucHienThemBanSao(SachState& currentState);
@@ -45,7 +45,7 @@ static void ThucHienThemBanSao(SachState& currentState);
 static void XoaFormNhapLieuSFML(SachState& currentState);
 static void DienFormVoiSachDuocChon(SachState& currentState);
 static void CapNhatPhanTrangSFML(SachState& currentState);
-static void ResetVaTaiLaiDuLieu(SachState& currentState, bool xoaForm = true, bool xoaISBN = false);
+static void ResetVaTaiLaiDuLieu(SachState& currentState, PTRDS dsDauSach[], int soLuongDauSach, bool xoaForm = true, bool xoaISBN = false);
 
 static inline std::string CatChuoiVoiDauCham(const std::string& str, size_t maxLen) {
     return (str.length() > maxLen) ? str.substr(0, maxLen - 3) + "..." : str;
@@ -508,7 +508,7 @@ static void CapNhatDuLieuXemTheoTheLoai(SachState& currentState) {
         if (i > 0) currentState.totalContentHeightTheLoai += groupSpacing;
         currentState.totalContentHeightTheLoai += afterTitleSpacing;
         PTRDS tempSach[MAX_DAUSACH];
-        int soSach = LayDanhSachSachTheoTheLoai(currentState.cacTheLoaiCache[i], tempSach, MAX_DAUSACH);
+        int soSach = LayDanhSachSachTheoTheLoai(dsDauSach, soLuongDauSach, currentState.cacTheLoaiCache[i], tempSach, MAX_DAUSACH);
         currentState.totalContentHeightTheLoai += (float)soSach * textBlockHeight;
         currentState.totalContentHeightTheLoai += afterGroupSpacing;
     }
@@ -586,7 +586,7 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
         currentY += afterTitleSpacing;
 
         PTRDS sachCungTheLoai[MAX_DAUSACH];
-        int soSach = LayDanhSachSachTheoTheLoai(currentTheLoai, sachCungTheLoai, MAX_DAUSACH);
+        int soSach = LayDanhSachSachTheoTheLoai(dsDauSach, soLuongDauSach, currentTheLoai, sachCungTheLoai, MAX_DAUSACH);
 
         sf::Text bookInfo = TaoVanBan(font, "", FONT_SIZE_BINH_THUONG, MAU_CHU);
         for (int j = 0; j < soSach; ++j) {
@@ -650,7 +650,7 @@ static void VeDanhSachTheoTheLoai(sf::RenderWindow& window, const sf::Font& font
 
 
 // Ham Ve CHINH
-void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font) {
+void VeManHinhQuanLySach(sf::RenderWindow &window, const sf::Font &font, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
     // ve thanh tieu de man hinh
     sf::RectangleShape topBar(sf::Vector2f(CHIEU_RONG, THANH_TAB_CAO));
     topBar.setFillColor(MAU_KHUNG);
@@ -1148,8 +1148,8 @@ static void XuLyClickMenuChinh(MaUI elementNhan, sf::Event event, SachState& sta
             break;
         case NUT_XOA:
             if (state.cheDoXemHienTai == XEM_TIM_KIEM && !state.isbnSachDuocChon.empty()) {
-                if (CoTheBanSao(state.isbnSachDuocChon)) {
-                    PTRDS sachCanXoa = TimDauSach(state.isbnSachDuocChon);
+                if (CoTheBanSao(dsDauSach, soLuongDauSach, state.isbnSachDuocChon)) {
+                    PTRDS sachCanXoa = TimDauSach(dsDauSach, soLuongDauSach, state.isbnSachDuocChon);
                     std::string tenNgan = CatChuoiVoiDauCham(sachCanXoa->tenSach, 30);
                     CapNhatThongBaoSFML("Khong the xoa '" + tenNgan + "' (con ban sao)!", 1);
                 } else {
@@ -1727,9 +1727,9 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         loi = KiemTraTongSoBanSao(isbnChuan, soLuong);
         VALIDATE_AND_RETURN(!loi.empty(), loi, INPUT_SO_LUONG);
 
-        std::string ketQua = ThemDauSachMoi(isbnChuan, currentState.chuoiTenSach, soTrang,
+        std::string ketQua = ThemDauSachMoi(dsDauSach, soLuongDauSach, isbnChuan, currentState.chuoiTenSach, soTrang,
                                             currentState.chuoiTacGia, namXB, currentState.chuoiTheLoai,
-                                            soLuong, currentState.chuoiViTri);
+                                            soLuong, currentState.chuoiViTri, duLieuDaThayDoi);
 
         if (ketQua.empty()) {
             std::string tenHienThi = CatChuoiVoiDauCham(ChuyenThanhTitleCase(currentState.chuoiTenSach), 30);
@@ -1744,9 +1744,9 @@ static void ThucHienThemHoacSuaSachSFML(SachState& currentState) {
         }
     }
     else {
-        std::string ketQua = CapNhatThongTinDauSach(currentState.isbnSachDuocChon, currentState.chuoiTenSach, soTrang,
+        std::string ketQua = CapNhatThongTinDauSach(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon, currentState.chuoiTenSach, soTrang,
                                                     currentState.chuoiTacGia, namXB, currentState.chuoiTheLoai,
-                                                    currentState.chuoiViTri);
+                                                    currentState.chuoiViTri, duLieuDaThayDoi);
 
         if (ketQua.empty()) {
             std::string tenHienThi = CatChuoiVoiDauCham(ChuyenThanhTitleCase(currentState.chuoiTenSach), 30);
@@ -1784,7 +1784,7 @@ static void ThucHienXoaSachSFML(SachState& currentState) {
         return;
     }
 
-    std::string ketQua = XoaDauSachTheoISBN(currentState.isbnSachDuocChon);
+    std::string ketQua = XoaDauSachTheoISBN(dsDauSach, soLuongDauSach, currentState.isbnSachDuocChon, duLieuDaThayDoi);
 
     if (ketQua.empty()) {
         CapNhatThongBaoSFML("Xoa dau sach thanh cong!", 2);
