@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include "QuanLySach.h"
+#include "DocGia.h"
 
 
 // Cac hang so giao dien
@@ -196,7 +197,7 @@ extern int loaiThongBao;
 // Khai bao ham giao dien
 
 bool KhoiTaoGiaoDienSFML(sf::RenderWindow &window, sf::Font &font, const std::string &fontPath);
-void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font);
+void ChayChuongTrinhSFML(sf::RenderWindow &window, sf::Font &font, PTRDG rootDocGia);
 void CapNhatThongBaoSFML(const std::string &msg, int loai = 0);
 MaUI LayElementTaiToaDo(int mouseX, int mouseY);
 

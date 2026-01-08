@@ -138,8 +138,8 @@ struct MuonTraState {
   }
 };
 
-void KhoiTaoManHinhMuonTra();
+void KhoiTaoManHinhMuonTra(PTRDG rootDocGia);
 void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font);
-void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event);
+void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia);
 
 #endif

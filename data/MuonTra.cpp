@@ -3,18 +3,17 @@
 #include <string>
 #include <vector>
 
-#include "../include/Constants.h"
-#include "../include/DauSach.h"
-#include "../include/DocGia.h"
-#include "../include/KiemTraDuLieu.h"
-#include "../include/MuonTra.h"
-#include "../include/NgayThang.h"
-#include "../include/QuanLySach.h"
-#include "../include/TrangThaiManHinhMuonTra.h"
-#include "../include/XuLyChuoi.h"
+#include "Constants.h"
+#include "DauSach.h"
+#include "DocGia.h"
+#include "KiemTraDuLieu.h"
+#include "MuonTra.h"
+#include "NgayThang.h"
+#include "QuanLySach.h"
+#include "TrangThaiManHinhMuonTra.h"
+#include "XuLyChuoi.h"
 
 // --- SHARED DATA ---
-extern PTRDG rootDocGia;
 extern PTRDS dsDauSach[];
 extern int soLuongDauSach;
 extern bool duLieuDaThayDoi;
@@ -65,10 +64,6 @@ std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten) {
 
   return ""; // Valid
 }
-extern PTRDG rootDocGia;
-extern PTRDS dsDauSach[];
-extern int soLuongDauSach;
-extern bool duLieuDaThayDoi;
 
 static void QuickSortByName(DocGiaTableDTO_Backend arr[], int left, int right) {
   int i = left, j = right;
@@ -128,9 +123,7 @@ static bool LaChuoiSo(const std::string &s) {
 
 // --- DATA ACCESS & SEARCH ---
 
-void LayDanhSachDocGiaBackend(const std::string &tuKhoa, bool laCheDoQuaHan,
-                              bool sapXepTheoTen,
-                              DocGiaTableDTO_Backend *ketQua, int &soLuong) {
+void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheDoQuaHan, bool sapXepTheoTen, DocGiaTableDTO_Backend *ketQua, int &soLuong) {
   soLuong = 0;
 
   // 1. TOI UU TIM KIEM THEO MA THE (O(log N))

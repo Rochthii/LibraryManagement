@@ -14,10 +14,11 @@ extern PTRDS dsDauSach[MAX_DAUSACH];
 extern int soLuongDauSach;
 extern bool duLieuDaThayDoi;
 
-// Bien toan cuc cho doc gia
-PTRDG rootDocGia = nullptr;
 
 int main() {
+    //khai bao du lieu
+    PTRDG rootDocGia = nullptr;
+
     std::cout << "[main] Bat dau...\n";
 
     // Nap du lieu sach tu file
@@ -71,7 +72,7 @@ int main() {
     }
 
     // Vong lap chinh cua chuong trinh
-    ChayChuongTrinhSFML(window, font);
+    ChayChuongTrinhSFML(window, font, rootDocGia);
 
     // Luu du lieu truoc khi thoat
     if (duLieuDaThayDoi) {

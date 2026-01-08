@@ -10,9 +10,9 @@
 // No need for additional enum here
 
 // Ham khoi tao va ve
-void KhoiTaoManHinhMuonTra();
+void KhoiTaoManHinhMuonTra(PTRDG rootDocGia);
 void VeManHinhMuonTra(sf::RenderWindow &window, const sf::Font &font);
-void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event);
+void XuLySuKienManHinhMuonTra(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia);
 void VeModalMuonTra(sf::RenderWindow &window, const sf::Font &font);
 
 #endif

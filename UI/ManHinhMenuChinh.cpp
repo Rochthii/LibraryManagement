@@ -6,6 +6,7 @@
 #include "TrangThaiManHinhDocGia.h"
 #include "TrangThaiManHinhMuonTra.h"
 
+#include "GiaoDienMuonTra.h"
 
 // Ve Man Hinh
 void VeMenuChinhSFML(sf::RenderWindow &window, const sf::Font &font) {
@@ -24,7 +25,7 @@ void VeMenuChinhSFML(sf::RenderWindow &window, const sf::Font &font) {
   TaoNut(font, NUT_QUAN_LY_DAU_SACH, x, y, nutRong, nutCao,
          "1. QUAN LY DAU SACH", MAU_NEN_NUT, MAU_CHU_NUT);
   y += nutCao + khoangCachNut;
-  TaoNut(font, NUT_MUON_TRA_SACH, x, y, nutRong, nutCao, "2. MUON TRA SACH",
+  TaoNut(font, NUT_MUON_TRA_SACH, x, y, nutRong, nutCao, "2. MUON TRA & DOC GIA",
          MAU_NEN_NUT, MAU_CHU_NUT);
   y += nutCao + khoangCachNut;
   TaoNut(font, NUT_THONG_TIN, x, y, nutRong, nutCao, "3. THONG TIN",
@@ -35,7 +36,8 @@ void VeMenuChinhSFML(sf::RenderWindow &window, const sf::Font &font) {
 }
 
 // Xu Ly Su Kien
-void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event) {
+void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event,
+                         PTRDG rootDocGia) {
   if (event.type == sf::Event::MouseButtonPressed) {
     if (event.mouseButton.button == sf::Mouse::Left) {
       MaUI elementNhan =
@@ -50,7 +52,7 @@ void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event) {
 
       case NUT_MUON_TRA_SACH:
         manHinhHienTai = MUON_TRA_SACH;
-        KhoiTaoManHinhMuonTra(); // Goi ham khoi tao man hinh Muon Tra
+        KhoiTaoManHinhMuonTra(rootDocGia); // Goi ham khoi tao man hinh Muon Tra
         CapNhatThongBaoSFML("Chuyen den man hinh Muon Tra Sach.", 0);
         break;
 
@@ -81,7 +83,7 @@ void XuLySuKienMenuChinh(sf::RenderWindow &window, sf::Event event) {
     case sf::Keyboard::Num2:
     case sf::Keyboard::Numpad2:
       manHinhHienTai = MUON_TRA_SACH;
-      KhoiTaoManHinhMuonTra();
+      KhoiTaoManHinhMuonTra(rootDocGia);
       CapNhatThongBaoSFML("Chuyen den man hinh Muon Tra Sach.", 0);
       break;
 

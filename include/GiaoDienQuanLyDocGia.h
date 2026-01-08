@@ -19,9 +19,9 @@ enum MaUI_DocGia {
 };
 
 // Ham khoi tao va ve
-void KhoiTaoManHinhDocGia();
+void KhoiTaoManHinhDocGia(PTRDG rootDocGia);
 void VeManHinhQuanLyDocGia(sf::RenderWindow& window, const sf::Font& font);
-void XuLySuKienManHinhDocGia(sf::RenderWindow& window, sf::Event event);
+void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia);
 void VeBangDocGia(sf::RenderWindow& window, const sf::Font& font, float yStart);
 
 #endif

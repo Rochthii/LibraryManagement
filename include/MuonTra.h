@@ -28,15 +28,12 @@ struct SachTableDTO_Backend {
  * @param ketQua Array to store results
  * @param soLuong Out: Total results found
  */
-void LayDanhSachDocGiaBackend(const std::string &tuKhoa, bool laCheDoQuaHan,
-                              bool sapXepTheoTen,
-                              DocGiaTableDTO_Backend *ketQua, int &soLuong);
+void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheDoQuaHan, bool sapXepTheoTen, DocGiaTableDTO_Backend *ketQua, int &soLuong);
 
 /**
  * Searches for books (DauSach) available for borrowing.
  */
-void LayDanhSachSachBackend(const std::string &tuKhoa,
-                            SachTableDTO_Backend *ketQua, int &soLuong);
+void LayDanhSachSachBackend(const std::string &tuKhoa, SachTableDTO_Backend *ketQua, int &soLuong);
 
 /**
  * Populates the list of books currently borrowed by a specific reader.

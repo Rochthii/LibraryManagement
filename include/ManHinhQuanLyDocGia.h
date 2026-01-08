@@ -2,10 +2,11 @@
 #define MAN_HINH_QUAN_LY_DOC_GIA_H
 
 #include <SFML/Graphics.hpp>
+#include <DocGia.h>
 
 // Hàm public
 void VeManHinhQuanLyDocGia(sf::RenderWindow &window, const sf::Font &font);
-void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event);
-void KhoiTaoManHinhDocGia();
+void XuLySuKienManHinhDocGia(sf::RenderWindow &window, sf::Event event, PTRDG rootDocGia);
+void KhoiTaoManHinhDocGia(PTRDG rootDocGia);
 
 #endif
