@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <sstream>
 
-// Global variables removed - now passed as parameters
 
 // 1. Xu ly ma sach va trang thai
 
