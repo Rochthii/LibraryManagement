@@ -11,33 +11,41 @@
 #include "XuLyChuoi.h"
 
 
-// --- HELPERS (Custom Algorithms) ---
+// --- HAM HO TRO (THUAT TOAN TU CHON) ---
+static bool LaChuoiSo(const std::string &s) {
+  if (s.empty())
+    return false;
+  for (size_t i = 0; i < s.length(); ++i) {
+    if (s[i] < '0' || s[i] > '9')
+      return false;
+  }
+  return true;
+}
+
 
 static bool LaKyTuChuCaiASCII(char c) {
   return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
 /**
- * Strictly checks for unaccented ASCII letters and spaces.
+ * Kiem tra ky tu ten: chi chua chu cai ASCII khong dau va khoang trang
  */
-static std::string KiemTraKyTuTenASCII(const std::string &s,
-                                       const std::string &fieldName) {
+static std::string KiemTraKyTuTenASCII(const std::string &s, const std::string &fieldName) {
   for (size_t i = 0; i < s.length(); ++i) {
     char c = s[i];
     if (!LaKyTuChuCaiASCII(c) && c != ' ') {
-      return "Loi: " + fieldName +
-             " chi duoc chua chu cai khong dau (A-Z) va khoang trang!";
+      return "Loi: " + fieldName + " chi duoc chua chu cai khong dau (A-Z) va khoang trang!";
     }
   }
   return "";
 }
 
 std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten) {
-  // 1. Clean & Standardize
+  // 1. Chuan hoa khoang trang
   std::string hoChuan = ChuanHoaKhoangTrang(ho);
   std::string tenChuan = ChuanHoaKhoangTrang(ten);
 
-  // 2. Check Empty & Length (using existing logic)
+  // 2. Kiem tra rong va do dai
   std::string loiHo = KiemTraChuoiVaDodai(hoChuan, "Ho", 30);
   if (!loiHo.empty())
     return loiHo;
@@ -46,7 +54,7 @@ std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten) {
   if (!loiTen.empty())
     return loiTen;
 
-  // 3. Strict ASCII Check (No accents, symbols, or digits)
+  // 3. Kiem tra ki tu 
   std::string loiKyTuHo = KiemTraKyTuTenASCII(hoChuan, "Ho");
   if (!loiKyTuHo.empty())
     return loiKyTuHo;
@@ -55,12 +63,14 @@ std::string KiemTraDuLieuDocGia(const std::string &ho, const std::string &ten) {
   if (!loiKyTuTen.empty())
     return loiKyTuTen;
 
-  return ""; // Valid
+  return ""; //Hop le
 }
 
 static void QuickSortByName(DocGiaTableDTO_Backend arr[], int left, int right) {
   int i = left, j = right;
+  // chon pivot
   PTRDG pivotDg = arr[(left + right) / 2].docGia;
+  // phan hoach
   std::string pivot = pivotDg->data.Ten + pivotDg->data.Ho;
   while (i <= j) {
     while (arr[i].docGia->data.Ten + arr[i].docGia->data.Ho < pivot)
@@ -81,15 +91,14 @@ static void QuickSortByName(DocGiaTableDTO_Backend arr[], int left, int right) {
     QuickSortByName(arr, i, right);
 }
 
-static void QuickSortByOverdue(DocGiaTableDTO_Backend arr[], int left,
-                               int right) {
+static void QuickSortByOverdue(DocGiaTableDTO_Backend arr[], int left, int right) {
   int i = left, j = right;
   int pivot = arr[(left + right) / 2].overdueDays;
   while (i <= j) {
     while (arr[i].overdueDays > pivot)
-      i++; // Descending
+      i++; // giam dan
     while (arr[j].overdueDays < pivot)
-      j--;
+      j--; 
     if (i <= j) {
       DocGiaTableDTO_Backend temp = arr[i];
       arr[i] = arr[j];
@@ -104,29 +113,20 @@ static void QuickSortByOverdue(DocGiaTableDTO_Backend arr[], int left,
     QuickSortByOverdue(arr, i, right);
 }
 
-static bool LaChuoiSo(const std::string &s) {
-  if (s.empty())
-    return false;
-  for (size_t i = 0; i < s.length(); ++i) {
-    if (s[i] < '0' || s[i] > '9')
-      return false;
-  }
-  return true;
-}
 
-// --- DATA ACCESS & SEARCH ---
+// --- TRUY CAP DU LIEU & TIM KIEM ---
 
 void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheDoQuaHan, bool sapXepTheoTen, DocGiaTableDTO_Backend *ketQua, int &soLuong) {
   soLuong = 0;
 
-  // 1. TOI UU TIM KIEM THEO MA THE (O(log N))
+  // 1. TOI UU TIM KIEM THEO MA THE 
   if (!tuKhoa.empty() && LaChuoiSo(tuKhoa) && !laCheDoQuaHan) {
     int maThe = 0;
     if (ChuyenChuoiThanhSoNguyen(tuKhoa, maThe, true)) {
-      PTRDG dg = timDocGia(rootDocGia, maThe); // AVL Search O(log N)
+      PTRDG dg = timDocGia(rootDocGia, maThe); // tim kiem bang cay AVL
       if (dg) {
         ketQua[soLuong].docGia = dg;
-        ketQua[soLuong].loaiKhop = 0; // Exact
+        ketQua[soLuong].loaiKhop = 0; 
         ketQua[soLuong].overdueDays = 0;
         soLuong++;
       }
@@ -135,30 +135,29 @@ void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheD
   }
 
   // 2. TIM KIEM THEO TEN HOAC TAT CA (O(N))
-  // Lay tat ca doc gia ra mang
+  // Lay tat ca pointer doc gia ra mang
   PTRDG mangTam[MAX_DAUSACH];
-  int countTotal = 0;
+  int countTotal = 0; // tong so doc gia trong cay 
   DuyetCayRaMang(rootDocGia, mangTam, countTotal);
 
-  if (tuKhoa.empty()) {
-    // Show all
+  if (tuKhoa.empty()) { // khong co tu khoa tim kiem (mac dinh)
+    // hien thi tat ca
     for (int i = 0; i < countTotal && i < MAX_DAUSACH; ++i) {
       ketQua[soLuong].docGia = mangTam[i];
-      ketQua[soLuong].loaiKhop = 2;
+      ketQua[soLuong].loaiKhop = 2; // hien thi tat ca
       ketQua[soLuong].overdueDays = 0;
       soLuong++;
     }
   } else {
-    // Partial Match (Keyword search)
+    // neu co tu khoa tim kiem
     std::string tuKhoaLower = ChuyenInThuong(tuKhoa);
     for (int i = 0; i < countTotal && soLuong < MAX_DAUSACH; ++i) {
-      std::string hoTenLower =
-          ChuyenInThuong(mangTam[i]->data.Ho + " " + mangTam[i]->data.Ten);
+      std::string hoTenLower = ChuyenInThuong(mangTam[i]->data.Ho + " " + mangTam[i]->data.Ten);
       if (hoTenLower.find(tuKhoaLower) != std::string::npos) {
         ketQua[soLuong].docGia = mangTam[i];
-        ketQua[soLuong].loaiKhop = 1; // Partial
+        ketQua[soLuong].loaiKhop = 1; // khop mot phan
         ketQua[soLuong].overdueDays = 0;
-        soLuong++;
+        soLuong++; 
       }
     }
   }
@@ -182,25 +181,24 @@ void LayDanhSachDocGiaBackend(PTRDG rootDocGia, std::string &tuKhoa, bool laCheD
       ketQua[i] = ketQuaTam[i];
     soLuong = soLuongTam;
 
-    // Custom Sort by Overdue Desc
+    // sap xep theo so ngay qua han giam dan
     if (soLuong > 1) {
       QuickSortByOverdue(ketQua, 0, soLuong - 1);
     }
   } else if (sapXepTheoTen && soLuong > 1) {
-    // Custom Sort by Name Asc
+    // sap xep theo ten tang dan
     QuickSortByName(ketQua, 0, soLuong - 1);
   }
 }
 
-void LayDanhSachSachBackend(PTRDS dsDauSach[], int soLuongDauSach, const std::string &tuKhoa,
-                            SachTableDTO_Backend *ketQua, int &soLuong) {
+void LayDanhSachSachBackend(PTRDS dsDauSach[], int soLuongDauSach, const std::string &tuKhoa, SachTableDTO_Backend *ketQua, int &soLuong) {
   soLuong = 0;
   if (tuKhoa.empty()) {
     for (int i = 0; i < soLuongDauSach && i < MAX_DAUSACH; ++i) {
       if (dsDauSach[i]) {
         ketQua[soLuong].dauSach = dsDauSach[i];
-        ketQua[soLuong].loaiKhop = 2; // Show all
-        soLuong++;
+        ketQua[soLuong].loaiKhop = 2; // hien thi tat ca
+        soLuong++; 
       }
     }
   } else {
@@ -240,7 +238,7 @@ int LayDSSachDangMuonBackend(PTRDG docGia, ThongTinSachDangMuon_DTO *ketQua, PTR
   return LayDSSachDangMuon(docGia, ketQua, 10, dsDauSach, soLuongDauSach);
 }
 
-// --- TRANSACTIONS ---
+// --- GIAO DICH ---
 
 std::string ThucHienMuonSachBackend(PTRDG docGia, const std::string &maSach, PTRDS dsDauSach[], int soLuongDauSach, bool &duLieuDaThayDoi) {
   if (!docGia)
@@ -272,7 +270,7 @@ std::string ThucHienMatSachBackend(PTRDG docGia, const std::string &maSach, PTRD
   return loi;
 }
 
-// --- UTILITIES ---
+// --- TIEN ICH ---
 
 std::string TimMaSachCoTheMuon(PTRDS dsDauSach[], int soLuongDauSach, const std::string &isbn) {
   PTRDMS mangBS[100];
